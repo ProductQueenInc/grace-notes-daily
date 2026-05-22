@@ -224,7 +224,7 @@ Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 2–4 sentences. Conversational. Personal. No sign-off — this is mid-conversation. Not preachy. Just present and loving.`,
       },
-      ...data.history.slice(-6).map((m) => ({
+      ...data.history.slice(-6).map((m: { role: string; text: string }) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
         content: m.text,
       })),
