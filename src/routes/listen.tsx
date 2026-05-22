@@ -34,7 +34,25 @@ function Listen() {
   const { play, track, expanded, setExpanded } = useAudioPlayer();
   const railTitle = pickListenRailTitle(profile);
 
-  const filtered = theme === "All" ? MEDIA : MEDIA.filter((m) => m.theme === theme);
+  const { data } = useQuery({
+    queryKey: ["tracks"],
+    queryFn: () => getTracks(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const media: Track[] = (data?.tracks ?? []).length
+    ? data!.tracks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        speaker: t.speaker,
+        theme: t.theme,
+        youtubeId: t.youtube_id ?? undefined,
+        audioUrl: t.audio_url ?? undefined,
+        thumb: t.thumb,
+      }))
+    : FALLBACK;
+
+  const filtered = theme === "All" ? media : media.filter((m) => m.theme === theme);
 
   return (
     <>
