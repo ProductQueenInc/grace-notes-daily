@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /home
+Disallow: /heart-notes
+Disallow: /prayers
+Disallow: /journey
+Disallow: /listen
+Disallow: /settings
+Disallow: /onboarding
+
+Sitemap: https://www.gracenotesdaily.com/sitemap.xml
