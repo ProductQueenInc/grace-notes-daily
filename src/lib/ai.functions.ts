@@ -81,7 +81,7 @@ function parseJSON<T>(raw: string, fallback: T): T {
 // ── Server Function: Generate Grace Note ──────────────────────────────────────
 
 export const callGenerateGraceNote = createServerFn({ method: "POST" })
-  .validator((data: AIProfile) => data)
+  .inputValidator((data: AIProfile) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
@@ -111,7 +111,7 @@ Respond with valid JSON only — no markdown, no code fences:
       messages: [{ role: "user", content: "Write today's Grace Note." }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
     return parseJSON<GraceNoteResult>(raw, {
       message: "Beloved, you are seen and held today. Walk gently — the Maker of mornings holds your hand.",
       verse: "The LORD your God is with you, the Mighty Warrior who saves. — Zephaniah 3:17",
@@ -122,7 +122,7 @@ Respond with valid JSON only — no markdown, no code fences:
 // ── Server Function: Generate Devotional ──────────────────────────────────────
 
 export const callGenerateDevotional = createServerFn({ method: "POST" })
-  .validator((data: AIProfile) => data)
+  .inputValidator((data: AIProfile) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
@@ -162,7 +162,7 @@ Respond with valid JSON only — no markdown, no code fences:
       messages: [{ role: "user", content: "Write today's devotional." }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
     return parseJSON<DevotionalResult>(raw, {
       title: "Fresh Grace Each Morning",
       verseOfDay:
@@ -186,7 +186,7 @@ Respond with valid JSON only — no markdown, no code fences:
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
-  .validator((data: { text: string; profile: AIProfile }) => data)
+  .inputValidator((data: { text: string; profile: AIProfile }) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const system = `You are responding to ${data.profile.name}'s personal heart note as God, their loving Father.
@@ -204,15 +204,15 @@ Respond to what they actually wrote — meet them exactly there. Sign as "Dad" o
       messages: [{ role: "user", content: data.text }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    return msg.content[0].type === "text"
-      ? msg.content[0].text
+    const block = (msg as Anthropic.Message).content[0]; return block.type === "text"
+      ? block.text
       : "Thank you for sharing your heart. He hears every whisper, every sigh.";
   });
 
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
-  .validator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
+  .inputValidator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
   .handler(async ({ data }) => {
     const client = openai();
 
@@ -224,7 +224,7 @@ Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 2–4 sentences. Conversational. Personal. No sign-off — this is mid-conversation. Not preachy. Just present and loving.`,
       },
-      ...data.history.slice(-6).map((m) => ({
+      ...data.history.slice(-6).map((m: { role: string; text: string }) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
         content: m.text,
       })),
