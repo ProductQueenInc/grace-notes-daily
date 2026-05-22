@@ -111,7 +111,7 @@ Respond with valid JSON only — no markdown, no code fences:
       messages: [{ role: "user", content: "Write today's Grace Note." }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
     return parseJSON<GraceNoteResult>(raw, {
       message: "Beloved, you are seen and held today. Walk gently — the Maker of mornings holds your hand.",
       verse: "The LORD your God is with you, the Mighty Warrior who saves. — Zephaniah 3:17",
@@ -162,7 +162,7 @@ Respond with valid JSON only — no markdown, no code fences:
       messages: [{ role: "user", content: "Write today's devotional." }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
     return parseJSON<DevotionalResult>(raw, {
       title: "Fresh Grace Each Morning",
       verseOfDay:
@@ -204,8 +204,8 @@ Respond to what they actually wrote — meet them exactly there. Sign as "Dad" o
       messages: [{ role: "user", content: data.text }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    return msg.content[0].type === "text"
-      ? msg.content[0].text
+    const block = (msg as Anthropic.Message).content[0]; return block.type === "text"
+      ? block.text
       : "Thank you for sharing your heart. He hears every whisper, every sigh.";
   });
 
