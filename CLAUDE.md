@@ -2,7 +2,43 @@
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to Claude Code. The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
-Last updated: 2026-05-11.
+Last updated: 2026-05-22.
+
+---
+
+## 0. Build status (as of 2026-05-22)
+
+### ✅ Complete
+| Phase | What |
+|-------|------|
+| DB schema | 8 tables, RLS, auth trigger — run in Supabase SQL Editor |
+| AI server functions | `src/lib/ai.functions.ts` — grace note, devotional, heart note, daily chat |
+| Daily content caching | Grace note + devotional cached per (user_id, date) in daily_content |
+| Auth hook | `use-auth.ts` reads full profile from Supabase |
+| Onboarding | Saves name, faith_phase, rhythms, seasons, voice, timezone to profiles |
+| Habits | `use-habits.ts` — Supabase-backed, localStorage fallback |
+| Daily chat | `use-daily-chat.ts` — persists to daily_messages, AI replies via OpenAI |
+| Heart Notes | Saves to heart_notes, loads today's entry on mount, AI response persisted |
+| Prayers | Full CRUD — add, mark answered, thanksgiving, soft delete |
+| Streak | `use-streak.ts` — consecutive gold-day counter from daily_habits |
+| Journey | Real data from heart_notes + prayers + daily_content, date range filter |
+| PWA | manifest.json, theme-color, Apple PWA meta, robots.txt, sitemap.xml |
+| SEO | og:url, og:image, og:title, og:description, twitter card wired to gracenotesdaily.com |
+| Capacitor stub | capacitor.config.ts ready for iOS/Android |
+| AI packages | @anthropic-ai/sdk + openai installed in package.json |
+
+### ⏳ Needs Cindy before going live
+| # | Action | Where |
+|---|--------|-------|
+| 1 | Add ANTHROPIC_API_KEY as Wrangler secret | Terminal: `npx wrangler secret put ANTHROPIC_API_KEY` |
+| 2 | Add OPENAI_API_KEY as Wrangler secret | Terminal: `npx wrangler secret put OPENAI_API_KEY` |
+| 3 | Add gracenotesdaily.com to Supabase Auth redirect URLs | Supabase → Auth → URL Configuration |
+| 4 | Drop icon-192.png + icon-512.png into /public/icons/ | For PWA install prompt |
+
+### ❌ Not started (later phases)
+- Push notifications (VAPID keys + Supabase Edge Function)
+- Listen / audio (signed Supabase Storage URLs)
+- Background image upload script
 
 ---
 
