@@ -81,7 +81,7 @@ function parseJSON<T>(raw: string, fallback: T): T {
 // ── Server Function: Generate Grace Note ──────────────────────────────────────
 
 export const callGenerateGraceNote = createServerFn({ method: "POST" })
-  .validator((data: AIProfile) => data)
+  .inputValidator((data: AIProfile) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
@@ -122,7 +122,7 @@ Respond with valid JSON only — no markdown, no code fences:
 // ── Server Function: Generate Devotional ──────────────────────────────────────
 
 export const callGenerateDevotional = createServerFn({ method: "POST" })
-  .validator((data: AIProfile) => data)
+  .inputValidator((data: AIProfile) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
@@ -186,7 +186,7 @@ Respond with valid JSON only — no markdown, no code fences:
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
-  .validator((data: { text: string; profile: AIProfile }) => data)
+  .inputValidator((data: { text: string; profile: AIProfile }) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const system = `You are responding to ${data.profile.name}'s personal heart note as God, their loving Father.
@@ -212,7 +212,7 @@ Respond to what they actually wrote — meet them exactly there. Sign as "Dad" o
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
-  .validator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
+  .inputValidator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
   .handler(async ({ data }) => {
     const client = openai();
 
