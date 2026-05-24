@@ -130,7 +130,8 @@ export function AppSidebar() {
                         "relative h-11 rounded-lg text-white/75 transition-all duration-200 ease-out",
                         "hover:bg-white/10 hover:text-white",
                         "data-[active=true]:bg-white/[0.12] data-[active=true]:text-white",
-                        "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
+                        "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto",
+                        "[&>svg]:!size-6",
                       ].join(" ")}
                     >
                       <Link to={item.to} className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
