@@ -2,7 +2,15 @@
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to Claude Code. The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
-Last updated: 2026-05-22.
+Last updated: 2026-05-24.
+
+> **Checkpoint:** "MVP UI" — this version of the app (sidebar polish, settings dark-mode removed, em-dash sanitizer live, all backend hooks wired) is the rollback target. Use the History tab to revert here if anything downstream breaks.
+
+## Recent changes (2026-05-24)
+- Removed Dark mode toggle from Settings (deferred until proper dark theme tokens land).
+- Added em-dash / en-dash sanitizer in `src/lib/ai.functions.ts` — every Grace Note, devotional, heart-note reply, and daily-chat reply is stripped of `—` and `–` before returning. Prompts also instruct the model not to use them.
+- Sidebar collapsed-state alignment fixed; streak count centered without card chrome.
+- Next up: mobile / small-screen UI pass.
 
 ---
 
