@@ -16,6 +16,7 @@ create table if not exists public.profiles (
   updated_at    timestamptz not null default now()
 );
 alter table public.profiles enable row level security;
+drop policy if exists "profiles_self" on public.profiles;
 create policy "profiles_self" on public.profiles for all
   using (auth.uid() = id) with check (auth.uid() = id);
 
@@ -43,6 +44,7 @@ create table if not exists public.daily_habits (
   primary key (user_id, date)
 );
 alter table public.daily_habits enable row level security;
+drop policy if exists "habits_self" on public.daily_habits;
 create policy "habits_self" on public.daily_habits for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -58,6 +60,7 @@ create table if not exists public.daily_messages (
 );
 create index if not exists daily_messages_user_date on public.daily_messages (user_id, date);
 alter table public.daily_messages enable row level security;
+drop policy if exists "messages_self" on public.daily_messages;
 create policy "messages_self" on public.daily_messages for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -73,6 +76,7 @@ create table if not exists public.heart_notes (
 );
 create index if not exists heart_notes_user_date on public.heart_notes (user_id, date);
 alter table public.heart_notes enable row level security;
+drop policy if exists "heart_notes_self" on public.heart_notes;
 create policy "heart_notes_self" on public.heart_notes for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -89,6 +93,7 @@ create table if not exists public.prayers (
 );
 create index if not exists prayers_user_active on public.prayers (user_id) where deleted_at is null;
 alter table public.prayers enable row level security;
+drop policy if exists "prayers_self" on public.prayers;
 create policy "prayers_self" on public.prayers for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -102,6 +107,7 @@ create table if not exists public.thanksgivings (
   created_at timestamptz not null default now()
 );
 alter table public.thanksgivings enable row level security;
+drop policy if exists "thanksgivings_self" on public.thanksgivings;
 create policy "thanksgivings_self" on public.thanksgivings for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -117,6 +123,7 @@ create table if not exists public.daily_content (
   unique (user_id, date)
 );
 alter table public.daily_content enable row level security;
+drop policy if exists "daily_content_self" on public.daily_content;
 create policy "daily_content_self" on public.daily_content for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -134,6 +141,7 @@ create table if not exists public.listen_content (
   published_at timestamptz not null default now()
 );
 alter table public.listen_content enable row level security;
+drop policy if exists "listen_read" on public.listen_content;
 create policy "listen_read" on public.listen_content for select
   using (auth.role() = 'authenticated');
 
@@ -147,5 +155,6 @@ create table if not exists public.background_images (
   created_at  timestamptz not null default now()
 );
 alter table public.background_images enable row level security;
+drop policy if exists "background_read" on public.background_images;
 create policy "background_read" on public.background_images for select
   using (auth.role() = 'authenticated');
