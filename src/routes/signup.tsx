@@ -3,7 +3,7 @@ import { useState } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Heart } from "lucide-react";
+import { DoveMark } from "@/components/dove-mark";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Create your account - GraceNotes Daily" }] }),
