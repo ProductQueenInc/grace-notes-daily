@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
-import { Heart, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { DoveMark } from "@/components/dove-mark";
 import { useState } from "react";
 
 export const Route = createFileRoute("/faq")({
