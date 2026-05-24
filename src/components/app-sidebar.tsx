@@ -93,7 +93,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               tooltip="Home"
-              className="h-12 hover:bg-white/10 text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center"
+              className="h-12 hover:bg-white/10 text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               <Link
                 to="/home"
