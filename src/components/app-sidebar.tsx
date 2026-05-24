@@ -28,6 +28,7 @@ import { Icon } from "@/components/icon";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useStreak } from "@/hooks/use-streak";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +57,7 @@ export function AppSidebar() {
 
   const displayName = profile?.name || user?.email?.split("@")[0] || "Friend";
   const initial = displayName.charAt(0).toUpperCase();
-  const streak = 1; // backend will compute
+  const streak = useStreak();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -79,9 +80,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarHeader className="px-3 py-4">
-        <Link to="/home" className={`flex items-center gap-2 ${collapsed ? "justify-center px-0" : "px-2"}`}>
-          <span className="w-8 h-8 aspect-square rounded-full bg-gold/90 text-gold-foreground flex items-center justify-center font-display text-lg shadow-soft shrink-0">G</span>
+      <SidebarHeader className="px-2 py-4 flex items-center justify-center">
+        <Link to="/home" className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-1"}`}>
+          {/* Home medallion — sacred anchor, intentionally larger than all other icons */}
+          <span className="w-11 h-11 aspect-square rounded-full bg-gold/90 text-gold-foreground flex items-center justify-center font-display text-xl shadow-soft shrink-0 ring-2 ring-gold/30">
+            G
+          </span>
           {!collapsed && (
             <span className="font-display text-lg text-white tracking-tight">GraceNotes Daily</span>
           )}
@@ -100,14 +104,17 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.label}
-                      className="relative data-[active=true]:bg-white/10 data-[active=true]:text-white hover:bg-white/8 text-white/80"
+                      className="relative data-[active=true]:bg-white/12 data-[active=true]:text-white hover:bg-white/8 hover:text-white text-white/70 transition-all duration-200"
                     >
-                      <Link to={item.to} className="flex items-center gap-3">
-                        {active && (
-                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-gold" />
+                      <Link to={item.to} className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
+                        {active && !collapsed && (
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-gold" />
                         )}
-                        <Icon icon={item.icon} size="nav" tone={active ? "active" : "inherit"} />
-                        <span>{item.label}</span>
+                        {active && collapsed && (
+                          <span className="absolute inset-0 rounded-md ring-1 ring-gold/40 bg-white/10" />
+                        )}
+                        <Icon icon={item.icon} size="nav" tone={active ? "active" : "inherit"} className="relative z-10" />
+                        <span className="relative z-10">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -154,8 +161,8 @@ export function AppSidebar() {
                     collapsed ? "h-10 justify-center" : "h-12"
                   }`}
                 >
-                  <span className="w-7 h-7 aspect-square rounded-full bg-gold/90 text-gold-foreground inline-flex items-center justify-center text-xs font-semibold shrink-0 leading-none">
-                    {initial}
+                  <span className="w-8 h-8 aspect-square rounded-full bg-grace-deep inline-flex items-center justify-center shrink-0 leading-none ring-2 ring-gold/60">
+                    <span className="font-display text-sm text-gold leading-none">{initial}</span>
                   </span>
                   {!collapsed && (
                     <>
