@@ -169,7 +169,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={`${streak} day streak`}
-              className="h-11 rounded-lg text-white/85 hover:bg-transparent cursor-default group-data-[collapsible=icon]:justify-center"
+              className="h-11 rounded-lg text-white/85 hover:bg-transparent cursor-default group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               {collapsed ? (
                 <span className="inline-flex flex-col items-center justify-center leading-none gap-0.5">
