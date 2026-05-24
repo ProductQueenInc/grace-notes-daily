@@ -10,9 +10,11 @@ import {
   Settings as SettingsIcon,
   LogOut,
   X,
+  Flame,
 } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { useStreak } from "@/hooks/use-streak";
 
 import { PlayerDock } from "@/components/player-dock";
 import { Icon } from "@/components/icon";
@@ -34,6 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const streak = useStreak();
 
   async function signOut() {
     if (supabaseConfigured) await supabase.auth.signOut();
@@ -47,33 +50,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <AppSidebar />
 
         <SidebarInset className="bg-transparent">
-          {/* Desktop top bar removed - sidebar holds nav/profile/streak */}
-
-          {/* Mobile top bar — respects iOS notch */}
-          <header
-            className="md:hidden sticky top-0 z-30 px-3"
+          {/* Floating streak chip — mobile only, top-right, safe-area aware */}
+          <div
+            className="md:hidden fixed top-0 right-0 z-30 pr-3"
             style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
           >
-            <div className="glass-on-hue rounded-2xl h-14 flex items-center justify-between px-3">
-              <button
-                onClick={() => setMenuOpen(true)}
-                className="min-w-11 min-h-11 inline-flex items-center justify-center text-white/85 -ml-1"
-                aria-label="Menu"
-              >
-                <Icon icon={Menu} size="nav" />
-              </button>
-              <Link to="/home" className="font-display text-lg text-white">GraceNotes Daily</Link>
-              <Link
-                to="/settings"
-                aria-label="Settings"
-                className="min-w-11 min-h-11 inline-flex items-center justify-center -mr-1"
-              >
-                <span className="w-9 h-9 rounded-full bg-gold/90 text-gold-foreground flex items-center justify-center text-sm font-semibold">
-                  G
-                </span>
-              </Link>
+            <div className="glass-on-hue rounded-full h-10 px-3 inline-flex items-center gap-1.5 text-white/90 text-xs font-medium">
+              <Icon icon={Flame} size="sm" className="text-gold" />
+              {streak} {streak === 1 ? "day" : "days"}
             </div>
-          </header>
+          </div>
 
           <main
             className="flex-1 fade-up md:pb-12"
@@ -81,6 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {children}
           </main>
+
 
           {/* Mobile bottom tab bar — respects iOS home-indicator */}
           <nav
