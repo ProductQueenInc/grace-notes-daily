@@ -77,7 +77,7 @@ function HeartNotes() {
         />
 
         {!submitted ? (
-          <div className="glass rounded-3xl p-6">
+          <div className="glass rounded-3xl p-5 sm:p-6">
             <label className="block text-sm font-medium mb-2">What's on your heart today?</label>
             <textarea
               value={text}
@@ -86,14 +86,14 @@ function HeartNotes() {
               placeholder="Pour it out gently - there's no rush."
               className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none"
             />
-            <div className="flex items-center justify-between mt-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
               <span className={`text-xs ${words > LIMIT ? "text-destructive" : "text-foreground/55"}`}>
                 {words}/{LIMIT} words
               </span>
               <button
                 onClick={submit}
                 disabled={!text.trim() || words > LIMIT}
-                className="px-5 py-2.5 rounded-full bg-grace text-white font-semibold flex items-center gap-2 disabled:opacity-50"
+                className="px-5 py-3 min-h-11 rounded-full bg-grace text-white font-semibold flex items-center gap-2 disabled:opacity-50"
               >
                 <Send className="w-4 h-4" /> Share with Him
               </button>
@@ -101,11 +101,11 @@ function HeartNotes() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="glass rounded-3xl p-6">
+            <div className="glass rounded-3xl p-5 sm:p-6">
               <p className="text-xs uppercase tracking-wider text-foreground/55 mb-2">Your note</p>
               <p className="text-foreground/85 whitespace-pre-wrap">{submitted}</p>
             </div>
-            <div className="glass rounded-3xl p-6 border-l-4 border-grace">
+            <div className="glass rounded-3xl p-5 sm:p-6 border-l-4 border-grace">
               <p className="text-xs uppercase tracking-wider text-grace mb-2">A gentle reply</p>
               {loading ? (
                 <div className="flex items-center gap-2 text-foreground/60">

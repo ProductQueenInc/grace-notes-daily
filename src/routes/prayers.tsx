@@ -131,7 +131,7 @@ function Prayers() {
           <div className="gradient-grace text-white px-6 py-4 font-semibold flex items-center gap-2">
             <HandHeart className="w-5 h-5" /> Add a New Prayer
           </div>
-          <div className="p-5 flex gap-2">
+          <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-2">
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -139,9 +139,9 @@ function Prayers() {
               placeholder="Be bold and specific in your prayer…"
               className="flex-1 px-4 py-3 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace"
             />
-            <button onClick={add} className="px-5 rounded-2xl bg-grace text-white font-semibold flex items-center gap-1"><Plus className="w-4 h-4" /> Add</button>
+            <button onClick={add} className="px-5 py-3 min-h-11 rounded-2xl bg-grace text-white font-semibold flex items-center justify-center gap-1"><Plus className="w-4 h-4" /> Add</button>
           </div>
-          <p className="text-xs text-foreground/55 px-5 pb-4 text-right">Press Enter to add</p>
+          <p className="text-xs text-foreground/55 px-5 pb-4 text-right hidden sm:block">Press Enter to add</p>
         </div>
 
         <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
@@ -151,12 +151,12 @@ function Prayers() {
         </div>
         <div className="space-y-3 mb-8">
           {active.map((p) => (
-            <div key={p.id} className="glass rounded-2xl p-5 flex items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold">{p.text}</p>
-                <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Added {p.createdAt}</p>
+            <div key={p.id} className="glass rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold break-words">{p.text}</p>
+                <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3 shrink-0" /> Added {p.createdAt}</p>
               </div>
-              <button onClick={() => markAnswered(p)} className="shrink-0 px-3 py-2 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center gap-1">
+              <button onClick={() => markAnswered(p)} className="shrink-0 self-stretch sm:self-auto px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" /> Mark as Answered
               </button>
             </div>

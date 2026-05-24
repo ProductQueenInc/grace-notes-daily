@@ -76,15 +76,16 @@ function Home() {
           <div className="lg:col-span-2 space-y-5">
             {/* Today's Grace Note + Daily Message chat */}
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
-              <div className="px-6 py-4 flex items-center justify-between border-b border-white/10">
-                <div className="flex items-center gap-2 font-semibold text-white">
-                  <Icon icon={MessageCircle} size="md" tone="inherit" /> Today's Grace Note
+              <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
+                <div className="flex items-center gap-2 font-semibold text-white min-w-0">
+                  <Icon icon={MessageCircle} size="md" tone="inherit" />
+                  <span className="truncate">Today's Grace Note</span>
                 </div>
-                <button onClick={() => setShowVerse((v) => !v)} className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-full">
+                <button onClick={() => setShowVerse((v) => !v)} className="shrink-0 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
                   {showVerse ? "Hide Verse" : "Show Verse"}
                 </button>
               </div>
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {!graceNote ? (
                   <div className="text-center py-10">
                     <div className="inline-block w-7 h-7 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
@@ -109,12 +110,12 @@ function Home() {
             {/* Daily Devotional CTA */}
             <button
               onClick={() => setDevotionalOpen(true)}
-              className="w-full text-left rounded-3xl p-6 glass-on-hue hover:scale-[1.005] transition group"
+              className="w-full text-left rounded-3xl p-5 sm:p-6 glass-on-hue hover:scale-[1.005] transition group"
             >
               <div className="flex items-center gap-2 text-gold font-semibold mb-1 text-sm uppercase tracking-wider">
                 <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily Devotional
               </div>
-              <h3 className="font-display text-3xl text-white">A Journey of New Beginnings</h3>
+              <h3 className="font-display text-2xl sm:text-3xl text-white">A Journey of New Beginnings</h3>
               <p className="text-sm text-white/70 mt-1">Lamentations 3:22-23 · Fresh mercies for today</p>
               <span className="inline-block mt-3 text-sm font-semibold text-gold">Read Today's Devotional →</span>
             </button>
@@ -122,7 +123,7 @@ function Home() {
 
           {/* Right column */}
           <div className="space-y-5">
-            <div className="glass-on-hue rounded-3xl p-6">
+            <div className="glass-on-hue rounded-3xl p-5 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-display text-xl text-white">Divine Habit Tracker</h3>
