@@ -199,7 +199,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               onClick={togglePin}
               tooltip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="h-10 rounded-lg text-white/75 hover:bg-white/10 hover:text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center"
+              className="h-10 rounded-lg text-white/75 hover:bg-white/10 hover:text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               <Icon
                 icon={collapsed ? PanelLeftOpen : PanelLeftClose}
