@@ -6,7 +6,7 @@ import { Heart, BookOpen } from "lucide-react";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms — GraceNotes Daily" },
+      { title: "Terms - GraceNotes Daily" },
       { name: "description", content: "Terms of use for GraceNotes Daily." },
     ],
   }),
@@ -25,7 +25,7 @@ function Terms() {
           <BookOpen className="w-7 h-7 text-grace" />
           <h1 className="font-display text-4xl text-grace">Terms of Use</h1>
           <p className="text-sm text-foreground/55">Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
-          <p className="text-foreground/75 leading-relaxed">By using GraceNotes Daily you agree to use it with gentleness — toward yourself and others. The content provided is for personal spiritual reflection and isn't a substitute for community, pastoral guidance, or professional support.</p>
+          <p className="text-foreground/75 leading-relaxed">By using GraceNotes Daily you agree to use it with gentleness - toward yourself and others. The content provided is for personal spiritual reflection and isn't a substitute for community, pastoral guidance, or professional support.</p>
           <h2 className="font-display text-2xl text-grace mt-6">Your account</h2>
           <p className="text-foreground/75 leading-relaxed">You're responsible for keeping your account credentials safe. Please don't share your account with others.</p>
           <h2 className="font-display text-2xl text-grace mt-6">Content</h2>

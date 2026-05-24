@@ -6,7 +6,7 @@ import { Heart, ShieldCheck } from "lucide-react";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy — GraceNotes Daily" },
+      { title: "Privacy - GraceNotes Daily" },
       { name: "description", content: "Privacy policy for GraceNotes Daily. Your heart, prayers, and reflections stay yours." },
     ],
   }),

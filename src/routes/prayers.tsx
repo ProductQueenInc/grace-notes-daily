@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/prayers")({
-  head: () => ({ meta: [{ title: "Prayers — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Prayers /></AppShell></RequireAuth>,
 });
 
@@ -144,36 +144,40 @@ function Prayers() {
           <p className="text-xs text-foreground/55 px-5 pb-4 text-right">Press Enter to add</p>
         </div>
 
-        <h2 className="flex items-center gap-2 font-display text-2xl text-grace mb-3">
-          <HandHeart className="w-5 h-5" /> Active Prayers <span className="text-sm bg-grace-soft px-2 py-0.5 rounded-full">{active.length}</span>
-        </h2>
+        <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
+          <HandHeart className="w-5 h-5 text-white" />
+          <h2 className="font-display text-2xl text-white">Active Prayers</h2>
+          <span className="ml-auto text-xs font-semibold bg-white/15 text-white px-2.5 py-1 rounded-full">{active.length}</span>
+        </div>
         <div className="space-y-3 mb-8">
           {active.map((p) => (
             <div key={p.id} className="glass rounded-2xl p-5 flex items-center justify-between gap-3">
               <div>
                 <p className="font-semibold">{p.text}</p>
-                <p className="text-xs text-foreground/55 mt-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Added {p.createdAt}</p>
+                <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Added {p.createdAt}</p>
               </div>
               <button onClick={() => markAnswered(p)} className="shrink-0 px-3 py-2 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Mark as Answered
               </button>
             </div>
           ))}
-          {!active.length && <p className="text-sm text-foreground/55 italic text-center py-6">No active prayers. Add one above.</p>}
+          {!active.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">No active prayers. Add one above.</p>}
         </div>
 
-        <h2 className="flex items-center gap-2 font-display text-2xl mb-3" style={{ color: "var(--gold)" }}>
-          <CheckCircle2 className="w-5 h-5" /> Answered Prayers <span className="text-sm bg-gold-soft px-2 py-0.5 rounded-full text-gold-foreground">{answered.length}</span>
-        </h2>
+        <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-gold" />
+          <h2 className="font-display text-2xl text-white">Answered Prayers</h2>
+          <span className="ml-auto text-xs font-semibold bg-gold text-gold-foreground px-2.5 py-1 rounded-full">{answered.length}</span>
+        </div>
         <div className="space-y-3">
           {answered.map((p) => (
-            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/60 backdrop-blur p-5">
-              <p className="font-semibold">{p.text}</p>
-              {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/75">"{p.thanksgiving}"</p>}
-              <p className="text-xs text-foreground/55 mt-1">Answered {p.answeredAt}</p>
+            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5">
+              <p className="font-semibold text-gold-foreground">{p.text}</p>
+              {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
+              <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
             </div>
           ))}
-          {!answered.length && <p className="text-sm text-foreground/55 italic text-center py-6">Your testimonies will gather here.</p>}
+          {!answered.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">Your testimonies will gather here.</p>}
         </div>
       </section>
 

@@ -12,13 +12,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { getTracks } from "@/lib/tracks.functions";
 
 export const Route = createFileRoute("/listen")({
-  head: () => ({ meta: [{ title: "Listen — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Listen /></AppShell></RequireAuth>,
 });
 
 const THEMES = ["All", "Worship", "Prayer", "Teaching", "Rest"];
 
-// Fallback curated list — used until the `tracks` table is seeded.
+// Fallback curated list - used until the `tracks` table is seeded.
 const FALLBACK: Track[] = [
   { id: "1", title: "Goodness of God (Live)", speaker: "Bethel Music", theme: "Worship", youtubeId: "n0FBb6hnwTo", thumb: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600" },
   { id: "2", title: "Stillness in His Presence", speaker: "Soaking Worship", theme: "Rest", youtubeId: "yPwyTzajGtg", thumb: "https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?w=600" },

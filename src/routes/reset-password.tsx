@@ -5,7 +5,7 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Reset password — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Reset password - GraceNotes Daily" }] }),
   component: ResetPassword,
 });
 
@@ -26,7 +26,7 @@ function ResetPassword() {
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else toast.success("Check your inbox — a reset link is on its way.");
+    else toast.success("Check your inbox - a reset link is on its way.");
   }
 
   async function updatePass(e: React.FormEvent) {

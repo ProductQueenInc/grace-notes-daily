@@ -10,7 +10,7 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GraceNotes Daily — A soft daily space for spiritual growth" },
+      { title: "GraceNotes Daily - A soft daily space for spiritual growth" },
       {
         name: "description",
         content:
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "GraceNotes Daily" },
       {
         property: "og:description",
-        content: "A soft, held space for your spiritual journey — daily grace notes, prayer, devotionals, and reflection.",
+        content: "A soft, held space for your spiritual journey - daily grace notes, prayer, devotionals, and reflection.",
       },
     ],
   }),
@@ -34,10 +34,10 @@ const phases = [
 ];
 
 const features = [
-  { icon: Sparkles, title: "Daily Grace Notes", desc: "A personal, AI-crafted message of love each morning — written like a letter just for you." },
+  { icon: Sparkles, title: "Daily Grace Notes", desc: "A personal, AI-crafted message of love each morning - written like a letter just for you." },
   { icon: BookHeart, title: "Heart Notes", desc: "A gentle journaling space. Pour out your heart and receive a quiet, grace-filled reply." },
   { icon: HandHeart, title: "Prayer Tracker", desc: "Hold your prayers in one place. Celebrate the answers with confetti and thanksgiving." },
-  { icon: Compass, title: "Your Journey", desc: "Look back on how far you've come — every note, prayer, and answered moment." },
+  { icon: Compass, title: "Your Journey", desc: "Look back on how far you've come - every note, prayer, and answered moment." },
   { icon: Headphones, title: "Listen", desc: "Worship, prayer, and teaching curated to walk with you wherever you are." },
   { icon: Sun, title: "Divine Habit Streaks", desc: "Three soft, daily practices that build a gentle rhythm with God." },
 ];
@@ -45,21 +45,21 @@ const features = [
 const testimonials = [
   { quote: "It feels like a friend gently reminding me I'm loved every morning.", who: "Anna, returning to faith" },
   { quote: "My quiet time with God finally has a soft, beautiful home.", who: "Joseph, growing deeper" },
-  { quote: "I've never felt more held by an app. It doesn't push — it whispers.", who: "Mariam, newbie" },
+  { quote: "I've never felt more held by an app. It doesn't push - it whispers.", who: "Mariam, newbie" },
 ];
 
 const faqs = [
   {
     q: "What is GraceNotes Daily?",
-    a: "GraceNotes Daily is a gentle, faith-based companion that meets you each day with a personal grace note, devotional, prayer tracker, and journaling space. It's designed to feel like a soft, sacred pause — not another notification.",
+    a: "GraceNotes Daily is a gentle, faith-based companion that meets you each day with a personal grace note, devotional, prayer tracker, and journaling space. It's designed to feel like a soft, sacred pause - not another notification.",
   },
   {
     q: "Is this affiliated with any specific denomination?",
-    a: "No. GraceNotes Daily is rooted in scripture and a Christ-centered posture, but it's designed for anyone exploring or deepening their walk with God — wherever you are on the journey.",
+    a: "No. GraceNotes Daily is rooted in scripture and a Christ-centered posture, but it's designed for anyone exploring or deepening their walk with God - wherever you are on the journey.",
   },
   {
     q: "How is it different from a Bible app?",
-    a: "Bible apps focus on text. GraceNotes Daily focuses on tenderness — a daily message written to you, a journaling space that listens, and a prayer tracker that celebrates with you.",
+    a: "Bible apps focus on text. GraceNotes Daily focuses on tenderness - a daily message written to you, a journaling space that listens, and a prayer tracker that celebrates with you.",
   },
   {
     q: "Is my data private?",
@@ -67,11 +67,11 @@ const faqs = [
   },
   {
     q: "Do I need to be a 'good Christian' to use this?",
-    a: "Not at all. The whole point is grace. Whether you're brand new, returning, growing, or seasoned in faith — you're welcome here exactly as you are.",
+    a: "Not at all. The whole point is grace. Whether you're brand new, returning, growing, or seasoned in faith - you're welcome here exactly as you are.",
   },
   {
     q: "Is it free?",
-    a: "Yes, the core daily experience is free. We're a small team building this with love — premium options may come later, but the daily grace will always remain accessible.",
+    a: "Yes, the core daily experience is free. We're a small team building this with love - premium options may come later, but the daily grace will always remain accessible.",
   },
 ];
 
@@ -94,7 +94,7 @@ function Landing() {
             <span className="text-gold">You are welcome here.</span>
           </h1>
           <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
-            GraceNotes Daily is a soft, gentle companion for your walk with God — meeting you with
+            GraceNotes Daily is a soft, gentle companion for your walk with God - meeting you with
             reflection, prayer, and presence, wherever you are.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -102,7 +102,7 @@ function Landing() {
               to="/signup"
               className="px-7 py-3.5 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition"
             >
-              Begin your journey — free
+              Begin your journey - free
             </Link>
             <Link
               to="/login"
@@ -124,7 +124,7 @@ function Landing() {
           <p className="font-display text-2xl md:text-3xl text-grace leading-snug max-w-3xl mx-auto">
             "Come to me, all who are weary and burdened, and I will give you rest."
           </p>
-          <p className="text-sm text-foreground/60 mt-3">— Matthew 11:28</p>
+          <p className="text-sm text-foreground/60 mt-3">- Matthew 11:28</p>
         </div>
       </section>
 
@@ -152,7 +152,7 @@ function Landing() {
           <SectionTitle
             eyebrow="No matter where you are"
             title="Wherever you are on the journey, you belong"
-            subtitle="GraceNotes Daily walks with you — at every phase of faith."
+            subtitle="GraceNotes Daily walks with you - at every phase of faith."
           />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
             {phases.map((p) => (
@@ -175,7 +175,7 @@ function Landing() {
               <div key={t.who} className="glass rounded-3xl p-6 text-foreground">
                 <Quote className="w-5 h-5 text-gold mb-3" />
                 <p className="font-display text-lg text-grace leading-snug">{t.quote}</p>
-                <p className="text-xs text-foreground/60 mt-4">— {t.who}</p>
+                <p className="text-xs text-foreground/60 mt-4">- {t.who}</p>
               </div>
             ))}
           </div>
@@ -198,7 +198,7 @@ function Landing() {
           <Moon className="w-7 h-7 text-gold mx-auto mb-3" />
           <h2 className="font-display text-3xl md:text-5xl text-grace mb-3">Begin gently. Stay softly.</h2>
           <p className="text-foreground/70 mb-7 max-w-xl mx-auto">
-            One small, sacred pause a day. No pressure, no performance — just presence.
+            One small, sacred pause a day. No pressure, no performance - just presence.
           </p>
           <Link
             to="/signup"

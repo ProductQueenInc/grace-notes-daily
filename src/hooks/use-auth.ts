@@ -63,7 +63,7 @@ export function useAuth() {
     if (data) {
       setProfile(data as Profile);
     } else {
-      // Profile row not created yet (trigger may not have fired) — create it now
+      // Profile row not created yet (trigger may not have fired) - create it now
       await supabase.from("profiles").insert({ id: uid }).select().maybeSingle();
       setProfile({ id: uid, name: null, faith_phase: null, onboarded: false });
     }

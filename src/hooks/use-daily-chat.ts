@@ -82,7 +82,7 @@ async function insertMessage(
 /**
  * Daily-message chat thread. Resets at midnight (date-keyed).
  * When Supabase is configured, messages are persisted server-side and
- * the AI call is made via a server function — no replyStub needed.
+ * the AI call is made via a server function - no replyStub needed.
  * The replyStub param is kept for API compatibility; it is only used as a
  * fallback when Supabase is not configured.
  */

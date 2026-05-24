@@ -1,6 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  Sun,
   NotebookPen,
   HandHeart,
   Headphones,
@@ -28,6 +27,8 @@ import { Icon } from "@/components/icon";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useStreak } from "@/hooks/use-streak";
+import doveLogo from "@/assets/dove-logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +39,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const NAV = [
-  { to: "/home", label: "Today", icon: Sun },
   { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen },
   { to: "/prayers", label: "Prayers", icon: HandHeart },
   { to: "/listen", label: "Listen", icon: Headphones },
@@ -47,16 +47,21 @@ const NAV = [
 
 const PIN_KEY = "gn:sidebar:pinned";
 
+function firstName(full: string | undefined | null, fallback = "Friend") {
+  if (!full) return fallback;
+  return full.trim().split(/\s+/)[0] || fallback;
+}
+
 export function AppSidebar() {
   const navigate = useNavigate();
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const { state, setOpen, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const { profile, user } = useAuth();
+  const streak = useStreak();
 
-  const displayName = profile?.name || user?.email?.split("@")[0] || "Friend";
+  const displayName = firstName(profile?.name) || user?.email?.split("@")[0] || "Friend";
   const initial = displayName.charAt(0).toUpperCase();
-  const streak = 1; // backend will compute
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -79,13 +84,27 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarHeader className="px-3 py-4">
-        <Link to="/home" className={`flex items-center gap-2 ${collapsed ? "justify-center px-0" : "px-2"}`}>
-          <span className="w-8 h-8 aspect-square rounded-full bg-gold/90 text-gold-foreground flex items-center justify-center font-display text-lg shadow-soft shrink-0">G</span>
-          {!collapsed && (
-            <span className="font-display text-lg text-white tracking-tight">GraceNotes Daily</span>
-          )}
-        </Link>
+      <SidebarHeader className="px-2 py-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Home"
+              className="h-12 hover:bg-white/8 text-white"
+            >
+              <Link to="/home" aria-label="GraceNotes Daily home" className="flex items-center gap-2">
+                <span className="w-8 h-8 aspect-square rounded-full bg-grace-deep/60 flex items-center justify-center shrink-0 overflow-hidden">
+                  <img src={doveLogo} alt="" className="w-7 h-7 object-contain" />
+                </span>
+                {!collapsed && (
+                  <span className="font-display text-lg text-white tracking-tight truncate">
+                    GraceNotes Daily
+                  </span>
+                )}
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
@@ -100,7 +119,7 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.label}
-                      className="relative data-[active=true]:bg-white/10 data-[active=true]:text-white hover:bg-white/8 text-white/80"
+                      className="relative h-10 data-[active=true]:bg-white/10 data-[active=true]:text-white hover:bg-white/8 text-white/85"
                     >
                       <Link to={item.to} className="flex items-center gap-3">
                         {active && (
@@ -119,27 +138,27 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-2 gap-1">
-        {/* Streak — visible even when sidebar is collapsed */}
-        <div
-          title={`${streak} day streak`}
-          className={`flex items-center rounded-md py-1.5 text-white/85 ${
-            collapsed ? "justify-center gap-1 px-0" : "gap-2 px-2"
-          }`}
-        >
-          <Icon icon={Flame} size="nav" className="text-gold shrink-0" tone="inherit" />
-          <span className="font-semibold text-gold text-sm leading-none">{streak}</span>
-          {!collapsed && <span className="text-white/70 text-sm leading-none">day streak</span>}
-        </div>
-
         <SidebarMenu>
+          {/* Collapse / expand */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={`${streak} day streak`}
+              className="h-10 text-white/85 hover:bg-transparent cursor-default"
+            >
+              <Icon icon={Flame} size="nav" className="text-gold shrink-0" tone="inherit" />
+              <span className="font-semibold text-gold text-sm">{streak}</span>
+              <span className="text-white/70 text-sm">day streak</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
           {/* Collapse / expand */}
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={togglePin}
               tooltip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="text-white/70 hover:bg-white/8"
+              className="h-10 text-white/80 hover:bg-white/8"
             >
-              <Icon icon={collapsed ? PanelLeftOpen : PanelLeftClose} size="md" />
+              <Icon icon={collapsed ? PanelLeftOpen : PanelLeftClose} size="nav" />
               <span>Collapse</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -150,11 +169,9 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   tooltip={displayName}
-                  className={`text-white/90 hover:bg-white/10 data-[state=open]:bg-white/10 ${
-                    collapsed ? "h-10 justify-center" : "h-12"
-                  }`}
+                  className="h-12 text-white hover:bg-white/10 data-[state=open]:bg-white/10"
                 >
-                  <span className="w-7 h-7 aspect-square rounded-full bg-gold/90 text-gold-foreground inline-flex items-center justify-center text-xs font-semibold shrink-0 leading-none">
+                  <span className="w-8 h-8 aspect-square rounded-full bg-gold/90 text-gold-foreground inline-flex items-center justify-center text-xs font-semibold shrink-0 leading-none">
                     {initial}
                   </span>
                   {!collapsed && (
@@ -162,10 +179,10 @@ export function AppSidebar() {
                       <span className="flex-1 text-left truncate">
                         <span className="block text-sm font-medium leading-tight truncate">{displayName}</span>
                         {user?.email && (
-                          <span className="block text-[11px] text-white/55 truncate">{user.email}</span>
+                          <span className="block text-[11px] text-white/65 truncate">{user.email}</span>
                         )}
                       </span>
-                      <Icon icon={ChevronUp} size="sm" className="text-white/55" />
+                      <Icon icon={ChevronUp} size="sm" className="text-white/65" />
                     </>
                   )}
                 </SidebarMenuButton>
@@ -175,9 +192,9 @@ export function AppSidebar() {
                 align="end"
                 className="w-56 bg-[oklch(0.22_0.05_152)] border-white/10 text-white"
               >
-                <DropdownMenuLabel className="text-white/60 text-xs font-normal">
+                <DropdownMenuLabel className="text-white/70 text-xs font-normal">
                   Signed in as<br />
-                  <span className="text-white/90">{user?.email || displayName}</span>
+                  <span className="text-white">{user?.email || displayName}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/10" />
                 <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white cursor-pointer">
@@ -201,4 +218,4 @@ export function AppSidebar() {
 }
 
 export const SIDEBAR_NAV = NAV;
-export { Sun, NotebookPen, HandHeart, Headphones, Compass, Settings, LogOut };
+export { NotebookPen, HandHeart, Headphones, Compass, Settings, LogOut };
