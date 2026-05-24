@@ -69,6 +69,28 @@ function openai() {
   return new OpenAI({ apiKey: key });
 }
 
+function stripEmDashes(s: string): string {
+  // Replace em-dash (—) and en-dash (–) with " - " or appropriate punctuation.
+  return s.replace(/\s*[—–]\s*/g, " - ");
+}
+
+const NO_EM_DASH_RULE =
+  "STYLE RULE: Never use em-dashes (—) or en-dashes (–) anywhere. Use a hyphen (-), comma, semicolon, or colon instead.";
+
+function sanitizeGraceNote(r: GraceNoteResult): GraceNoteResult {
+  return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: stripEmDashes(r.signed) };
+}
+function sanitizeDevotional(r: DevotionalResult): DevotionalResult {
+  return {
+    ...r,
+    title: stripEmDashes(r.title),
+    verseOfDay: stripEmDashes(r.verseOfDay),
+    body: r.body.map(stripEmDashes),
+    related: r.related.map((x) => ({ ref: x.ref, text: stripEmDashes(x.text) })),
+    takeaway: stripEmDashes(r.takeaway),
+  };
+}
+
 function parseJSON<T>(raw: string, fallback: T): T {
   try {
     const match = raw.match(/\{[\s\S]*\}/);
@@ -98,7 +120,8 @@ Date: ${today}.
 
 Write as a loving Father who adores this child and is both gentle and powerful. Address them directly as "you". Sign off warmly.
 Include ONE Bible verse that perfectly fits the message - quote it fully, then give the reference.
-2–3 paragraphs. Deep, not preachy. Conversational, not formal. Never hollow.
+2-3 paragraphs. Deep, not preachy. Conversational, not formal. Never hollow.
+${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
 { "message": "your full message", "verse": "Full verse text - Book Chapter:Verse", "signed": "With love, always" }`;
