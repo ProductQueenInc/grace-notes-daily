@@ -44,7 +44,7 @@ function Login() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md glass rounded-3xl p-8 fade-up">
           <Link to="/" className="flex items-center justify-center gap-2 text-grace mb-2">
-            <DoveMark variant="green" className="w-6 h-6" />
+            <DoveMark variant="green" className="w-10 h-10" />
             <span className="font-display text-2xl">GraceNotes Daily</span>
           </Link>
           <h1 className="font-display text-3xl text-center text-grace mb-1">Welcome back</h1>

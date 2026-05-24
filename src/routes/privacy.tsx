@@ -19,7 +19,7 @@ function Privacy() {
     <>
       <NatureBackground />
       <header className="px-6 py-5 flex items-center text-white relative z-10">
-        <Link to="/" className="flex items-center gap-2"><DoveMark variant="white" className="w-6 h-6" /><span className="font-display text-2xl">GraceNotes Daily</span></Link>
+        <Link to="/" className="flex items-center gap-2"><DoveMark variant="white" className="w-10 h-10" /><span className="font-display text-2xl">GraceNotes Daily</span></Link>
       </header>
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto glass rounded-3xl p-10 text-foreground space-y-4">
