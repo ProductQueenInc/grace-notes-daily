@@ -93,7 +93,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               tooltip="Home"
-              className="h-12 hover:bg-white/10 text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center"
+              className="h-12 hover:bg-white/10 text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               <Link
                 to="/home"
@@ -130,7 +130,8 @@ export function AppSidebar() {
                         "relative h-11 rounded-lg text-white/75 transition-all duration-200 ease-out",
                         "hover:bg-white/10 hover:text-white",
                         "data-[active=true]:bg-white/[0.12] data-[active=true]:text-white",
-                        "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
+                        "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto",
+                        "[&>svg]:!size-6",
                       ].join(" ")}
                     >
                       <Link to={item.to} className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
@@ -168,7 +169,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={`${streak} day streak`}
-              className="h-11 rounded-lg text-white/85 hover:bg-transparent cursor-default group-data-[collapsible=icon]:justify-center"
+              className="h-11 rounded-lg text-white/85 hover:bg-transparent cursor-default group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               {collapsed ? (
                 <span className="inline-flex flex-col items-center justify-center leading-none gap-0.5">
@@ -198,7 +199,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               onClick={togglePin}
               tooltip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="h-10 rounded-lg text-white/75 hover:bg-white/10 hover:text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center"
+              className="h-10 rounded-lg text-white/75 hover:bg-white/10 hover:text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               <Icon
                 icon={collapsed ? PanelLeftOpen : PanelLeftClose}
@@ -215,7 +216,7 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   tooltip={displayName}
-                  className="h-12 rounded-lg text-white hover:bg-white/10 data-[state=open]:bg-white/10 transition-colors duration-200 group-data-[collapsible=icon]:justify-center"
+                  className="h-12 rounded-lg text-white hover:bg-white/10 data-[state=open]:bg-white/10 transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
                 >
                   <span className="w-9 h-9 aspect-square rounded-full bg-grace-deep inline-flex items-center justify-center shrink-0 leading-none ring-2 ring-gold/60 shadow-[0_0_10px_-4px_var(--gold)]">
                     <span className="font-display text-sm text-gold leading-none">{initial}</span>

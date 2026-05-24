@@ -96,8 +96,8 @@
   --sidebar-ring: var(--gold);
 
   /* Surfaces */
-  --surface-haze-card: rgba(20, 40, 30, 0.45);
-  --surface-haze-card-border: rgba(255, 255, 255, 0.18);
+  --surface-haze-card: rgba(18, 36, 26, 0.72);
+  --surface-haze-card-border: rgba(255, 255, 255, 0.22);
   --text-on-hue: rgba(255, 255, 255, 0.92);
   --surface-parchment-from: oklch(0.985 0.012 90 / 0.92);
   --surface-parchment-to: oklch(0.965 0.02 85 / 0.88);
