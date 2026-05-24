@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Welcome — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Welcome - GraceNotes Daily" }] }),
   component: Onboarding,
 });
 
@@ -83,7 +83,7 @@ function Onboarding() {
         return;
       }
     } else {
-      // Offline fallback — keep localStorage until Supabase is configured
+      // Offline fallback - keep localStorage until Supabase is configured
       writeProfileExtras(user.id, { rhythms, seasons: seasonObjs, voice, timezone, translation: null });
     }
 

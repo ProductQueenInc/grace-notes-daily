@@ -10,7 +10,7 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import type { GraceNoteResult, DevotionalResult } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/journey")({
-  head: () => ({ meta: [{ title: "Journey — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Journey - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Journey /></AppShell></RequireAuth>,
 });
 
@@ -209,7 +209,7 @@ function Journey() {
                 </button>
               );
             })}
-            {!entries.length && <p className="text-center text-foreground/55 italic py-10">Nothing here yet — keep walking.</p>}
+            {!entries.length && <p className="text-center text-foreground/55 italic py-10">Nothing here yet - keep walking.</p>}
           </div>
         )}
       </section>

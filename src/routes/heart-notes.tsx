@@ -11,7 +11,7 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { BookHeart, Send } from "lucide-react";
 
 export const Route = createFileRoute("/heart-notes")({
-  head: () => ({ meta: [{ title: "Heart Notes — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Heart Notes - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><HeartNotes /></AppShell></RequireAuth>,
 });
 
@@ -73,7 +73,7 @@ function HeartNotes() {
           icon={BookHeart}
           eyebrow="Today's reflection"
           title="Heart Notes"
-          subtitle="A daily space to pour out your heart — one entry per day."
+          subtitle="A daily space to pour out your heart - one entry per day."
         />
 
         {!submitted ? (
@@ -83,7 +83,7 @@ function HeartNotes() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={10}
-              placeholder="Pour it out gently — there's no rush."
+              placeholder="Pour it out gently - there's no rush."
               className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none"
             />
             <div className="flex items-center justify-between mt-3">

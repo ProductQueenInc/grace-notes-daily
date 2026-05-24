@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/prayers")({
-  head: () => ({ meta: [{ title: "Prayers — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Prayers /></AppShell></RequireAuth>,
 });
 

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — GraceNotes Daily" },
+      { title: "Contact - GraceNotes Daily" },
       { name: "description", content: "Reach out to the GraceNotes Daily team. We'd love to hear from you." },
       { property: "og:title", content: "Contact GraceNotes Daily" },
     ],
@@ -33,7 +33,7 @@ function Contact() {
         <div className="max-w-xl mx-auto glass rounded-3xl p-10 text-foreground">
           <Mail className="w-7 h-7 text-grace mb-3" />
           <h1 className="font-display text-4xl text-grace mb-2">Say hello</h1>
-          <p className="text-foreground/70 mb-6">We read every message — gently, and with care.</p>
+          <p className="text-foreground/70 mb-6">We read every message - gently, and with care.</p>
 
           {sent ? (
             <p className="rounded-2xl bg-grace-soft p-5 text-grace font-medium">Thank you. We'll be in touch</p>

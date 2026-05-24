@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Heart } from "lucide-react";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Create your account — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Create your account - GraceNotes Daily" }] }),
   component: Signup,
 });
 
@@ -51,7 +51,7 @@ function Signup() {
             <span className="font-display text-2xl">GraceNotes Daily</span>
           </Link>
           <h1 className="font-display text-3xl text-center text-grace mb-1">Begin your journey</h1>
-          <p className="text-center text-sm text-foreground/70 mb-6">A soft, daily space — just for you.</p>
+          <p className="text-center text-sm text-foreground/70 mb-6">A soft, daily space - just for you.</p>
 
           <button onClick={withGoogle} className="w-full mb-4 py-3 rounded-full bg-white border border-border flex items-center justify-center gap-3 font-medium hover:bg-white/90 transition">
             <span className="w-[18px] h-[18px] inline-block bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><path fill=%22%23FFC107%22 d=%22M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z%22/></svg>')]" />

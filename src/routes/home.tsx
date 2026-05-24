@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/home")({
-  head: () => ({ meta: [{ title: "Home — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Home - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Home /></AppShell></RequireAuth>,
 });
 
@@ -66,7 +66,7 @@ function Home() {
             {pickRhythmGreeting(profile)}.
           </h1>
           <p className="text-white/80 mt-3 text-base md:text-lg max-w-xl">
-            Your daily space for spiritual growth and reflection. Walk gently — you are loved.
+            Your daily space for spiritual growth and reflection. Walk gently - you are loved.
           </p>
         </div>
 
@@ -97,7 +97,7 @@ function Home() {
                         {graceNote.verse}
                       </div>
                     )}
-                    <p className="text-right text-sm text-white/55 italic mt-4">— {graceNote.signed}</p>
+                    <p className="text-right text-sm text-white/55 italic mt-4">- {graceNote.signed}</p>
                   </>
                 )}
 
@@ -143,7 +143,7 @@ function Home() {
               <p className="text-sm text-white/75">
                 {completedCount === 3
                   ? "You completed today's gold day."
-                  : `Almost there, ${name} — ${3 - completedCount} more step${3 - completedCount > 1 ? "s" : ""} to complete your gold day.`}
+                  : `Almost there, ${name} - ${3 - completedCount} more step${3 - completedCount > 1 ? "s" : ""} to complete your gold day.`}
               </p>
               <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-3">
                 <div className="h-full gradient-gold transition-all" style={{ width: `${(completedCount / 3) * 100}%` }} />
@@ -327,7 +327,7 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
               </button>
             </TooltipTrigger>
             <TooltipContent className="bg-black/85 text-white border border-white/10 max-w-[220px]">
-              Each day fills with the badge you earn — copper, silver, or gold.
+              Each day fills with the badge you earn - copper, silver, or gold.
             </TooltipContent>
           </Tooltip>
         </div>

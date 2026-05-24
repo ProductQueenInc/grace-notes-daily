@@ -85,7 +85,7 @@
   --input: oklch(0.92 0.015 140);
   --ring: var(--grace);
 
-  /* Sidebar tokens (used by shadcn sidebar) — deep forest, opaque for contrast */
+  /* Sidebar tokens (used by shadcn sidebar) - deep forest, opaque for contrast */
   --sidebar: oklch(0.22 0.06 152 / 0.92);
   --sidebar-foreground: oklch(0.98 0.01 100);
   --sidebar-primary: var(--gold);
@@ -162,7 +162,7 @@
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
   }
-  /* Ambient on-hue glass — used on every authenticated screen */
+  /* Ambient on-hue glass - used on every authenticated screen */
   .glass-on-hue {
     background: var(--surface-haze-card);
     backdrop-filter: blur(18px) saturate(120%);
@@ -172,7 +172,7 @@
     color: var(--text-on-hue);
   }
   .glass-on-hue h1, .glass-on-hue h2, .glass-on-hue h3 { color: white; }
-  /* Parchment glass — used inside content readers only */
+  /* Parchment glass - used inside content readers only */
   .glass-parchment {
     background: linear-gradient(180deg, var(--surface-parchment-from), var(--surface-parchment-to));
     backdrop-filter: blur(20px);

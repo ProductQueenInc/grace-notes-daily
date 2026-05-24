@@ -73,7 +73,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GraceNotes Daily — Your daily space for spiritual growth" },
+      { title: "GraceNotes Daily - Your daily space for spiritual growth" },
       { name: "description", content: "A soft, held space for your spiritual journey. Daily grace notes, prayer tracking, devotionals, and reflection." },
       { name: "author", content: "GraceNotes Daily" },
       { property: "og:title", content: "GraceNotes Daily" },

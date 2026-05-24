@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { LogOut, Settings as SettingsIcon, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Settings - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Settings /></AppShell></RequireAuth>,
 });
 

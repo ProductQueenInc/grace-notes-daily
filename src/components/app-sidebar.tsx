@@ -119,7 +119,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-2 gap-1">
-        {/* Streak — visible even when sidebar is collapsed */}
+        {/* Streak - visible even when sidebar is collapsed */}
         <div
           title={`${streak} day streak`}
           className={`flex items-center rounded-md py-1.5 text-white/85 ${

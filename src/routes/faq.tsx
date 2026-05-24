@@ -7,9 +7,9 @@ import { useState } from "react";
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "FAQ — GraceNotes Daily" },
-      { name: "description", content: "Frequently asked questions about GraceNotes Daily — your soft, daily companion for faith." },
-      { property: "og:title", content: "GraceNotes Daily — FAQ" },
+      { title: "FAQ - GraceNotes Daily" },
+      { name: "description", content: "Frequently asked questions about GraceNotes Daily - your soft, daily companion for faith." },
+      { property: "og:title", content: "GraceNotes Daily - FAQ" },
     ],
   }),
   component: FAQ,
@@ -18,11 +18,11 @@ export const Route = createFileRoute("/faq")({
 const faqs = [
   { q: "What is GraceNotes Daily?", a: "A gentle, faith-based companion that meets you each day with a personal grace note, devotional, prayer tracker, and journaling space." },
   { q: "Is this affiliated with any specific denomination?", a: "No. We're rooted in scripture and a Christ-centered posture, but built for anyone exploring or deepening their walk with God." },
-  { q: "How is it different from a Bible app?", a: "Bible apps focus on text. GraceNotes Daily focuses on tenderness — a daily message written to you, journaling that listens, and prayer that celebrates with you." },
+  { q: "How is it different from a Bible app?", a: "Bible apps focus on text. GraceNotes Daily focuses on tenderness - a daily message written to you, journaling that listens, and prayer that celebrates with you." },
   { q: "Is my data private?", a: "Yes. Your reflections and prayers are private to your account. We never sell your data and you can delete your account at any time." },
-  { q: "Do I need to be a 'good Christian' to use this?", a: "Not at all. The whole point is grace. Whether you're brand new, returning, growing, or seasoned — you're welcome." },
+  { q: "Do I need to be a 'good Christian' to use this?", a: "Not at all. The whole point is grace. Whether you're brand new, returning, growing, or seasoned - you're welcome." },
   { q: "Is it free?", a: "Yes, the core daily experience is free. Premium options may come later, but the daily grace will always remain accessible." },
-  { q: "How does the streak work?", a: "Each day has three soft practices: read your Grace Note, receive the devotional, and write a heart note. Complete all three for a 'gold day' — but there's no shame in missing a day." },
+  { q: "How does the streak work?", a: "Each day has three soft practices: read your Grace Note, receive the devotional, and write a heart note. Complete all three for a 'gold day' - but there's no shame in missing a day." },
 ];
 
 function FAQ() {
@@ -36,7 +36,7 @@ function FAQ() {
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto">
           <h1 className="font-display text-4xl md:text-5xl text-white text-center drop-shadow mb-3">Frequently asked questions</h1>
-          <p className="text-center text-white/85 mb-10">Gentle answers — and feel free to <Link to="/contact" className="underline text-gold">reach out</Link> if you have more.</p>
+          <p className="text-center text-white/85 mb-10">Gentle answers - and feel free to <Link to="/contact" className="underline text-gold">reach out</Link> if you have more.</p>
           <div className="space-y-3">
             {faqs.map((f, i) => <Item key={i} q={f.q} a={f.a} />)}
           </div>
