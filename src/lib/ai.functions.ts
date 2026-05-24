@@ -236,8 +236,9 @@ Respond with valid JSON only - no markdown, no code fences:
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string; profile: AIProfile }) => data)
+  .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = anthropic();
     const system = `You are responding to ${data.profile.name}'s personal heart note as God, their loving Father.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
