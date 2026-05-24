@@ -263,7 +263,7 @@ ${NO_EM_DASH_RULE}`,
       messages,
     });
 
-    return res.choices[0]?.message?.content ?? "Beloved, He hears you. Stay close.";
+    return stripEmDashes(res.choices[0]?.message?.content ?? "Beloved, He hears you. Stay close.");
   });
 
 // ── Helper: build AIProfile from Profile ─────────────────────────────────────
