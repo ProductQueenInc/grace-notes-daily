@@ -4,7 +4,7 @@ import { DoveMark } from "@/components/dove-mark";
 export function SiteFooter() {
   return (
     <footer className="relative z-10 mt-24 border-t border-white/20 bg-grace text-white/90">
-      <div className="max-w-7xl mx-auto px-6 py-12 grid gap-10 md:grid-cols-4">
+      <div className="max-w-7xl mx-auto px-6 py-12 grid gap-10 md:grid-cols-5">
         <div>
           <div className="flex items-center gap-2 text-white">
             <DoveMark variant="white" className="w-10 h-10" />
@@ -21,6 +21,12 @@ export function SiteFooter() {
           <FooterLink to="/faq">FAQ</FooterLink>
           <FooterLink to="/signup">Get started</FooterLink>
           <FooterLink to="/login">Sign in</FooterLink>
+        </FooterColumn>
+
+        <FooterColumn title="Learn">
+          <FooterLink to="/prayer-journaling">Prayer Journaling</FooterLink>
+          <FooterLink to="/daily-devotional">Daily Devotional</FooterLink>
+          <FooterLink to="/christian-journaling">Christian Journaling</FooterLink>
         </FooterColumn>
 
         <FooterColumn title="Company">

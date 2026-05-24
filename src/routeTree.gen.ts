@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrayersRouteImport } from './routes/prayers'
+import { Route as PrayerJournalingRouteImport } from './routes/prayer-journaling'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListenRouteImport } from './routes/listen'
@@ -22,7 +23,9 @@ import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HeartNotesRouteImport } from './routes/heart-notes'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as DailyDevotionalRouteImport } from './routes/daily-devotional'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ChristianJournalingRouteImport } from './routes/christian-journaling'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -54,6 +57,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PrayersRoute = PrayersRouteImport.update({
   id: '/prayers',
   path: '/prayers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrayerJournalingRoute = PrayerJournalingRouteImport.update({
+  id: '/prayer-journaling',
+  path: '/prayer-journaling',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -91,9 +99,19 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailyDevotionalRoute = DailyDevotionalRouteImport.update({
+  id: '/daily-devotional',
+  path: '/daily-devotional',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChristianJournalingRoute = ChristianJournalingRouteImport.update({
+  id: '/christian-journaling',
+  path: '/christian-journaling',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -110,7 +128,9 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/christian-journaling': typeof ChristianJournalingRoute
   '/contact': typeof ContactRoute
+  '/daily-devotional': typeof DailyDevotionalRoute
   '/faq': typeof FaqRoute
   '/heart-notes': typeof HeartNotesRoute
   '/home': typeof HomeRoute
@@ -118,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/listen': typeof ListenRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/prayer-journaling': typeof PrayerJournalingRoute
   '/prayers': typeof PrayersRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -128,7 +149,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/christian-journaling': typeof ChristianJournalingRoute
   '/contact': typeof ContactRoute
+  '/daily-devotional': typeof DailyDevotionalRoute
   '/faq': typeof FaqRoute
   '/heart-notes': typeof HeartNotesRoute
   '/home': typeof HomeRoute
@@ -136,6 +159,7 @@ export interface FileRoutesByTo {
   '/listen': typeof ListenRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/prayer-journaling': typeof PrayerJournalingRoute
   '/prayers': typeof PrayersRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -147,7 +171,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/christian-journaling': typeof ChristianJournalingRoute
   '/contact': typeof ContactRoute
+  '/daily-devotional': typeof DailyDevotionalRoute
   '/faq': typeof FaqRoute
   '/heart-notes': typeof HeartNotesRoute
   '/home': typeof HomeRoute
@@ -155,6 +181,7 @@ export interface FileRoutesById {
   '/listen': typeof ListenRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/prayer-journaling': typeof PrayerJournalingRoute
   '/prayers': typeof PrayersRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -167,7 +194,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/christian-journaling'
     | '/contact'
+    | '/daily-devotional'
     | '/faq'
     | '/heart-notes'
     | '/home'
@@ -175,6 +204,7 @@ export interface FileRouteTypes {
     | '/listen'
     | '/login'
     | '/onboarding'
+    | '/prayer-journaling'
     | '/prayers'
     | '/privacy'
     | '/reset-password'
@@ -185,7 +215,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/christian-journaling'
     | '/contact'
+    | '/daily-devotional'
     | '/faq'
     | '/heart-notes'
     | '/home'
@@ -193,6 +225,7 @@ export interface FileRouteTypes {
     | '/listen'
     | '/login'
     | '/onboarding'
+    | '/prayer-journaling'
     | '/prayers'
     | '/privacy'
     | '/reset-password'
@@ -203,7 +236,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/christian-journaling'
     | '/contact'
+    | '/daily-devotional'
     | '/faq'
     | '/heart-notes'
     | '/home'
@@ -211,6 +246,7 @@ export interface FileRouteTypes {
     | '/listen'
     | '/login'
     | '/onboarding'
+    | '/prayer-journaling'
     | '/prayers'
     | '/privacy'
     | '/reset-password'
@@ -222,7 +258,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ChristianJournalingRoute: typeof ChristianJournalingRoute
   ContactRoute: typeof ContactRoute
+  DailyDevotionalRoute: typeof DailyDevotionalRoute
   FaqRoute: typeof FaqRoute
   HeartNotesRoute: typeof HeartNotesRoute
   HomeRoute: typeof HomeRoute
@@ -230,6 +268,7 @@ export interface RootRouteChildren {
   ListenRoute: typeof ListenRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PrayerJournalingRoute: typeof PrayerJournalingRoute
   PrayersRoute: typeof PrayersRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -282,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrayersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prayer-journaling': {
+      id: '/prayer-journaling'
+      path: '/prayer-journaling'
+      fullPath: '/prayer-journaling'
+      preLoaderRoute: typeof PrayerJournalingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -331,11 +377,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily-devotional': {
+      id: '/daily-devotional'
+      path: '/daily-devotional'
+      fullPath: '/daily-devotional'
+      preLoaderRoute: typeof DailyDevotionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/christian-journaling': {
+      id: '/christian-journaling'
+      path: '/christian-journaling'
+      fullPath: '/christian-journaling'
+      preLoaderRoute: typeof ChristianJournalingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -358,7 +418,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ChristianJournalingRoute: ChristianJournalingRoute,
   ContactRoute: ContactRoute,
+  DailyDevotionalRoute: DailyDevotionalRoute,
   FaqRoute: FaqRoute,
   HeartNotesRoute: HeartNotesRoute,
   HomeRoute: HomeRoute,
@@ -366,6 +428,7 @@ const rootRouteChildren: RootRouteChildren = {
   ListenRoute: ListenRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PrayerJournalingRoute: PrayerJournalingRoute,
   PrayersRoute: PrayersRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -376,3 +439,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
