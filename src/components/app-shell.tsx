@@ -10,9 +10,11 @@ import {
   Settings as SettingsIcon,
   LogOut,
   X,
+  Flame,
 } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { useStreak } from "@/hooks/use-streak";
 
 import { PlayerDock } from "@/components/player-dock";
 import { Icon } from "@/components/icon";
