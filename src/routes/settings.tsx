@@ -71,7 +71,7 @@ function Settings() {
           subtitle="Make GraceNotes Daily truly yours."
         />
 
-        <div className="glass rounded-3xl p-6 space-y-5 mb-5">
+        <div className="glass rounded-3xl p-5 sm:p-6 space-y-5 mb-5">
           <div>
             <label className="text-sm font-medium block mb-1">Name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border" />
@@ -80,20 +80,20 @@ function Settings() {
             <label className="text-sm font-medium block mb-2">Your faith phase</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {PHASES.map((p) => (
-                <button key={p.id} onClick={() => setPhase(p.id)} className={`rounded-2xl p-3 text-center border-2 transition ${phase === p.id ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}>
+                <button key={p.id} onClick={() => setPhase(p.id)} className={`rounded-2xl p-3 min-h-16 text-center border-2 transition ${phase === p.id ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}>
                   <p.icon className="w-6 h-6 mx-auto text-grace" strokeWidth={1.75} />
                   <div className="text-xs font-semibold mt-1">{p.title}</div>
                 </button>
               ))}
             </div>
           </div>
-          <button onClick={save} className="w-full py-3 rounded-full bg-grace text-white font-semibold">Save changes</button>
+          <button onClick={save} className="w-full py-3 min-h-12 rounded-full bg-grace text-white font-semibold">Save changes</button>
         </div>
 
-        <div className="glass rounded-3xl p-6 space-y-4 mb-5">
+        <div className="glass rounded-3xl p-5 sm:p-6 space-y-4 mb-5">
 
           <Row label="Daily reminder" hint="When should we nudge you?">
-            <select value={reminder} onChange={(e) => setReminder(e.target.value)} className="px-3 py-2 rounded-full bg-white/80 border border-border text-sm">
+            <select value={reminder} onChange={(e) => setReminder(e.target.value)} className="px-3 py-2 min-h-10 rounded-full bg-white/80 border border-border text-sm">
               <option value="morning">Morning</option>
               <option value="midday">Midday</option>
               <option value="evening">Evening</option>
@@ -105,11 +105,11 @@ function Settings() {
           </Row>
         </div>
 
-        <div className="glass rounded-3xl p-6 space-y-2">
-          <button onClick={signOut} className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl hover:bg-grace-soft text-left">
+        <div className="glass rounded-3xl p-5 sm:p-6 space-y-2">
+          <button onClick={signOut} className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
             <LogOut className="w-4 h-4 text-grace" /> Sign out
           </button>
-          <button onClick={deleteAccount} className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl hover:bg-destructive/10 text-destructive text-left">
+          <button onClick={deleteAccount} className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-destructive/10 text-destructive text-left">
             <Trash2 className="w-4 h-4" /> Delete account
           </button>
         </div>
