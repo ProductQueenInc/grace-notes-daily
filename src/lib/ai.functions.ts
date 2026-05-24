@@ -128,8 +128,9 @@ function parseJSON<T>(raw: string, fallback: T): T {
 // ── Server Function: Generate Grace Note ──────────────────────────────────────
 
 export const callGenerateGraceNote = createServerFn({ method: "POST" })
-  .inputValidator((data: AIProfile) => data)
+  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
       weekday: "long",
