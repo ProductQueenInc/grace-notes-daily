@@ -28,7 +28,6 @@ function Settings() {
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [phase, setPhase] = useState<string>("growth");
-  const [dark, setDark] = useState(false);
   const [reminder, setReminder] = useState("morning");
   const [personalize, setPersonalize] = useState(true);
 
@@ -39,9 +38,7 @@ function Settings() {
     }
   }, [profile]);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
+
 
   async function save() {
     if (!user || !supabaseConfigured) return toast.error("Sign in first.");
@@ -94,9 +91,7 @@ function Settings() {
         </div>
 
         <div className="glass rounded-3xl p-6 space-y-4 mb-5">
-          <Row label="Dark mode" hint="Easier on the eyes at night.">
-            <Toggle checked={dark} onChange={setDark} />
-          </Row>
+
           <Row label="Daily reminder" hint="When should we nudge you?">
             <select value={reminder} onChange={(e) => setReminder(e.target.value)} className="px-3 py-2 rounded-full bg-white/80 border border-border text-sm">
               <option value="morning">Morning</option>

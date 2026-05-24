@@ -69,6 +69,28 @@ function openai() {
   return new OpenAI({ apiKey: key });
 }
 
+function stripEmDashes(s: string): string {
+  // Replace em-dash (—) and en-dash (–) with " - " or appropriate punctuation.
+  return s.replace(/\s*[—–]\s*/g, " - ");
+}
+
+const NO_EM_DASH_RULE =
+  "STYLE RULE: Never use em-dashes (—) or en-dashes (–) anywhere. Use a hyphen (-), comma, semicolon, or colon instead.";
+
+function sanitizeGraceNote(r: GraceNoteResult): GraceNoteResult {
+  return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: stripEmDashes(r.signed) };
+}
+function sanitizeDevotional(r: DevotionalResult): DevotionalResult {
+  return {
+    ...r,
+    title: stripEmDashes(r.title),
+    verseOfDay: stripEmDashes(r.verseOfDay),
+    body: r.body.map(stripEmDashes),
+    related: r.related.map((x) => ({ ref: x.ref, text: stripEmDashes(x.text) })),
+    takeaway: stripEmDashes(r.takeaway),
+  };
+}
+
 function parseJSON<T>(raw: string, fallback: T): T {
   try {
     const match = raw.match(/\{[\s\S]*\}/);
@@ -98,7 +120,8 @@ Date: ${today}.
 
 Write as a loving Father who adores this child and is both gentle and powerful. Address them directly as "you". Sign off warmly.
 Include ONE Bible verse that perfectly fits the message - quote it fully, then give the reference.
-2–3 paragraphs. Deep, not preachy. Conversational, not formal. Never hollow.
+2-3 paragraphs. Deep, not preachy. Conversational, not formal. Never hollow.
+${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
 { "message": "your full message", "verse": "Full verse text - Book Chapter:Verse", "signed": "With love, always" }`;
@@ -112,11 +135,11 @@ Respond with valid JSON only - no markdown, no code fences:
     } as Parameters<typeof client.messages.create>[0]);
 
     const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
-    return parseJSON<GraceNoteResult>(raw, {
-      message: "Beloved, you are seen and held today. Walk gently - the Maker of mornings holds your hand.",
+    return sanitizeGraceNote(parseJSON<GraceNoteResult>(raw, {
+      message: "Beloved, you are seen and held today. Walk gently, the Maker of mornings holds your hand.",
       verse: "The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17",
       signed: "With love, always",
-    });
+    }));
   });
 
 // ── Server Function: Generate Devotional ──────────────────────────────────────
@@ -163,7 +186,7 @@ Respond with valid JSON only - no markdown, no code fences:
     } as Parameters<typeof client.messages.create>[0]);
 
     const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
-    return parseJSON<DevotionalResult>(raw, {
+    return sanitizeDevotional(parseJSON<DevotionalResult>(raw, {
       title: "Fresh Grace Each Morning",
       verseOfDay:
         "The steadfast love of the LORD never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.",
@@ -171,7 +194,7 @@ Respond with valid JSON only - no markdown, no code fences:
       date: today,
       body: [
         "God's love never fails. Never wavers. Never ends. In a world of constant change, the Creator's faithfulness remains absolute.",
-        "Consider the context - these words were penned amid devastation. Yet there, standing in ruins, the prophet proclaimed this radical truth.",
+        "Consider the context: these words were penned amid devastation. Yet there, standing in ruins, the prophet proclaimed this radical truth.",
         "Scripture confirms this reality: Jesus Christ is the same yesterday, today, and forever. His character stands immovable.",
       ],
       related: [
@@ -179,8 +202,8 @@ Respond with valid JSON only - no markdown, no code fences:
         { ref: "2 Corinthians 5:17", text: "Therefore, if anyone is in Christ, the new creation has come." },
         { ref: "Matthew 28:20", text: "And surely I am with you always, to the very end of the age." },
       ],
-      takeaway: "His mercies are new today - for exactly where you are. Receive them.",
-    });
+      takeaway: "His mercies are new today, for exactly where you are. Receive them.",
+    }));
   });
 
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
@@ -193,8 +216,9 @@ export const callRespondToHeartNote = createServerFn({ method: "POST" })
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 
-Be warm, personal, and fully present with what they shared. 3–5 sentences. Not preachy. Not generic.
-Respond to what they actually wrote - meet them exactly there. Sign as "Dad" or "Your Father" or "Love, your Father".`;
+Be warm, personal, and fully present with what they shared. 3-5 sentences. Not preachy. Not generic.
+${NO_EM_DASH_RULE}
+Respond to what they actually wrote, meet them exactly there. Sign as "Dad" or "Your Father" or "Love, your Father".`;
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-5",
@@ -205,7 +229,7 @@ Respond to what they actually wrote - meet them exactly there. Sign as "Dad" or 
     } as Parameters<typeof client.messages.create>[0]);
 
     const block = (msg as Anthropic.Message).content[0]; return block.type === "text"
-      ? block.text
+      ? stripEmDashes(block.text)
       : "Thank you for sharing your heart. He hears every whisper, every sigh.";
   });
 
@@ -222,7 +246,8 @@ export const callRespondToDailyMessage = createServerFn({ method: "POST" })
         content: `You are responding to ${data.profile.name} as God, their loving Father, in an ongoing daily conversation.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
-2–4 sentences. Conversational. Personal. No sign-off - this is mid-conversation. Not preachy. Just present and loving.`,
+2-4 sentences. Conversational. Personal. No sign-off, this is mid-conversation. Not preachy. Just present and loving.
+${NO_EM_DASH_RULE}`,
       },
       ...data.history.slice(-6).map((m: { role: string; text: string }) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
@@ -238,7 +263,7 @@ Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
       messages,
     });
 
-    return res.choices[0]?.message?.content ?? "Beloved, He hears you. Stay close.";
+    return stripEmDashes(res.choices[0]?.message?.content ?? "Beloved, He hears you. Stay close.");
   });
 
 // ── Helper: build AIProfile from Profile ─────────────────────────────────────
