@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart } from "lucide-react";
+import { DoveMark } from "@/components/dove-mark";
 
 export function SiteFooter() {
   return (
