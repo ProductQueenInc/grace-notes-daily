@@ -1,7 +1,32 @@
 import { createServerFn } from "@tanstack/react-start";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
+import { z } from "zod";
 import { currentRhythmWindow } from "@/lib/personalization";
+import { requireUserId } from "@/lib/auth-guard.server";
+
+// ── Input schemas ─────────────────────────────────────────────────────────────
+
+const AIProfileSchema = z.object({
+  name: z.string().max(200),
+  faithPhase: z.string().max(50),
+  voice: z.string().max(50),
+  seasons: z.array(z.string().max(100)).max(20),
+  rhythmWindow: z.string().max(50),
+});
+
+const HeartNoteInputSchema = z.object({
+  text: z.string().min(1).max(5000),
+  profile: AIProfileSchema,
+});
+
+const DailyMessageInputSchema = z.object({
+  text: z.string().min(1).max(2000),
+  profile: AIProfileSchema,
+  history: z
+    .array(z.object({ role: z.string().max(20), text: z.string().max(2000) }))
+    .max(20),
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
