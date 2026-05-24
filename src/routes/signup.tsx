@@ -19,16 +19,19 @@ function Signup() {
   const [loading, setLoading] = useState(false);
 
   async function withGoogle() {
-    if (!supabaseConfigured) return toast.error("Add your Supabase keys to enable sign-up.");
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/onboarding`,
-    });
-    if (result.error) {
-      toast.error(result.error.message ?? "Could not start Google sign-in.");
-      return;
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/onboarding`,
+      });
+      if (result.error) {
+        toast.error(result.error.message ?? "Could not start Google sign-in.");
+        return;
+      }
+      if (result.redirected) return;
+      nav({ to: "/onboarding" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start Google sign-in.");
     }
-    if (result.redirected) return;
-    nav({ to: "/onboarding" });
   }
 
   async function submit(e: React.FormEvent) {
