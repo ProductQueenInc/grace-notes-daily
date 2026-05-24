@@ -170,20 +170,24 @@ export function AppSidebar() {
               tooltip={`${streak} day streak`}
               className="h-11 rounded-lg text-white/85 hover:bg-transparent cursor-default group-data-[collapsible=icon]:justify-center"
             >
-              <span
-                className={[
-                  "inline-flex items-center justify-center shrink-0 rounded-full",
-                  "bg-gold/15 ring-1 ring-gold/40",
-                  "min-w-9 h-9 px-2 gap-1",
-                  "shadow-[0_0_14px_-6px_var(--gold)]",
-                ].join(" ")}
-              >
-                <Icon icon={Flame} size="sm" className="text-gold shrink-0" tone="inherit" />
-                <span className="font-semibold text-gold text-[12px] leading-none tabular-nums">
-                  {streakText}
+              {collapsed ? (
+                <span className="inline-flex flex-col items-center justify-center leading-none gap-0.5">
+                  <Icon icon={Flame} size="sm" className="text-gold" tone="inherit" />
+                  <span className="font-semibold text-gold text-[10px] leading-none tabular-nums">
+                    {streakText}
+                  </span>
                 </span>
-              </span>
-              {!collapsed && <span className="text-white/70 text-sm">day streak</span>}
+              ) : (
+                <>
+                  <span className="inline-flex items-center justify-center shrink-0 rounded-full bg-gold/15 ring-1 ring-gold/40 min-w-9 h-9 px-2 gap-1 shadow-[0_0_14px_-6px_var(--gold)]">
+                    <Icon icon={Flame} size="sm" className="text-gold shrink-0" tone="inherit" />
+                    <span className="font-semibold text-gold text-[12px] leading-none tabular-nums">
+                      {streakText}
+                    </span>
+                  </span>
+                  <span className="text-white/70 text-sm">day streak</span>
+                </>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
 
