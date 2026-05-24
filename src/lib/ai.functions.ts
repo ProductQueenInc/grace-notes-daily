@@ -1,7 +1,32 @@
 import { createServerFn } from "@tanstack/react-start";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
+import { z } from "zod";
 import { currentRhythmWindow } from "@/lib/personalization";
+import { requireUserId } from "@/lib/auth-guard.server";
+
+// ── Input schemas ─────────────────────────────────────────────────────────────
+
+const AIProfileSchema = z.object({
+  name: z.string().max(200),
+  faithPhase: z.string().max(50),
+  voice: z.string().max(50),
+  seasons: z.array(z.string().max(100)).max(20),
+  rhythmWindow: z.string().max(50),
+});
+
+const HeartNoteInputSchema = z.object({
+  text: z.string().min(1).max(5000),
+  profile: AIProfileSchema,
+});
+
+const DailyMessageInputSchema = z.object({
+  text: z.string().min(1).max(2000),
+  profile: AIProfileSchema,
+  history: z
+    .array(z.object({ role: z.string().max(20), text: z.string().max(2000) }))
+    .max(20),
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -103,8 +128,9 @@ function parseJSON<T>(raw: string, fallback: T): T {
 // ── Server Function: Generate Grace Note ──────────────────────────────────────
 
 export const callGenerateGraceNote = createServerFn({ method: "POST" })
-  .inputValidator((data: AIProfile) => data)
+  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
       weekday: "long",
@@ -145,8 +171,9 @@ Respond with valid JSON only - no markdown, no code fences:
 // ── Server Function: Generate Devotional ──────────────────────────────────────
 
 export const callGenerateDevotional = createServerFn({ method: "POST" })
-  .inputValidator((data: AIProfile) => data)
+  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
       year: "numeric",
@@ -209,8 +236,9 @@ Respond with valid JSON only - no markdown, no code fences:
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string; profile: AIProfile }) => data)
+  .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = anthropic();
     const system = `You are responding to ${data.profile.name}'s personal heart note as God, their loving Father.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
@@ -236,8 +264,9 @@ Respond to what they actually wrote, meet them exactly there. Sign as "Dad" or "
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
+  .inputValidator((data: unknown) => DailyMessageInputSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = openai();
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
