@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
-import { Heart, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { DoveMark } from "@/components/dove-mark";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
