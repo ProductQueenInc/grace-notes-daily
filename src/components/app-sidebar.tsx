@@ -216,7 +216,7 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   tooltip={displayName}
-                  className="h-12 rounded-lg text-white hover:bg-white/10 data-[state=open]:bg-white/10 transition-colors duration-200 group-data-[collapsible=icon]:justify-center"
+                  className="h-12 rounded-lg text-white hover:bg-white/10 data-[state=open]:bg-white/10 transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
                 >
                   <span className="w-9 h-9 aspect-square rounded-full bg-grace-deep inline-flex items-center justify-center shrink-0 leading-none ring-2 ring-gold/60 shadow-[0_0_10px_-4px_var(--gold)]">
                     <span className="font-display text-sm text-gold leading-none">{initial}</span>
