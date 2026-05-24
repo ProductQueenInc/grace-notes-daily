@@ -264,8 +264,9 @@ Respond to what they actually wrote, meet them exactly there. Sign as "Dad" or "
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
+  .inputValidator((data: unknown) => DailyMessageInputSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = openai();
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
