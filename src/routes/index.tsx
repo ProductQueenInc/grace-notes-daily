@@ -113,7 +113,7 @@ function Landing() {
             </Link>
           </div>
           <p className="text-xs text-white/70 mt-5 flex items-center justify-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> No credit card · Private by default
+            <ShieldCheck className="w-3.5 h-3.5" /> All entries secure
           </p>
         </div>
       </section>
