@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { DoveMark } from "@/components/dove-mark";
 
@@ -19,10 +20,15 @@ function Signup() {
 
   async function withGoogle() {
     if (!supabaseConfigured) return toast.error("Add your Supabase keys to enable sign-up.");
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/onboarding` },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/onboarding`,
     });
+    if (result.error) {
+      toast.error(result.error.message ?? "Could not start Google sign-in.");
+      return;
+    }
+    if (result.redirected) return;
+    nav({ to: "/onboarding" });
   }
 
   async function submit(e: React.FormEvent) {
