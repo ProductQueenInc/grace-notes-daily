@@ -3,11 +3,10 @@ import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
-import { useEffect, useState } from "react";
-import { Compass, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Compass, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import type { GraceNoteResult, DevotionalResult } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/journey")({
   head: () => ({ meta: [{ title: "Journey - GraceNotes Daily" }] }),
@@ -16,40 +15,34 @@ export const Route = createFileRoute("/journey")({
 
 type Entry = {
   id: string;
-  type: "grace-note" | "heart-note" | "prayer" | "devotional";
-  date: string;
-  isoDate: string;
+  type: "heart-note" | "prayer";
+  isoDate: string;          // YYYY-MM-DD
+  date: string;             // human
   title: string;
-  preview: string;
-  full: string;
+  body: string;
+  extra?: string;           // reply / gratitude
 };
 
-const TYPES = ["all", "grace-note", "heart-note", "prayer", "devotional"] as const;
-const RANGES = ["7d", "30d", "all"] as const;
+const PAGE_SIZE = 15;
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
-
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
 function truncate(s: string, n: number) {
   return s.length <= n ? s : s.slice(0, n).trimEnd() + "…";
 }
 
-function cutoffDate(range: typeof RANGES[number]): Date | null {
-  if (range === "all") return null;
-  const d = new Date();
-  d.setDate(d.getDate() - (range === "7d" ? 7 : 30));
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 function Journey() {
-  const [allEntries, setAllEntries] = useState<Entry[]>([]);
+  const [all, setAll] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [type, setType] = useState<typeof TYPES[number]>("all");
-  const [range, setRange] = useState<typeof RANGES[number]>("all");
+  const [type, setType] = useState<"all" | "heart-note" | "prayer">("all");
+  const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -57,103 +50,91 @@ function Journey() {
 
     (async () => {
       const uid = user.id;
+      const today = todayISO();
 
-      const [
-        { data: heartNotes },
-        { data: prayers },
-        { data: dailyContent },
-      ] = await Promise.all([
-        supabase
-          .from("heart_notes")
-          .select("id, body, date, created_at")
-          .eq("user_id", uid)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("prayers")
-          .select("id, body, answered, answered_at, created_at")
-          .eq("user_id", uid)
-          .is("deleted_at", null)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("daily_content")
-          .select("date, grace_note, devotional")
-          .eq("user_id", uid)
-          .order("date", { ascending: false }),
-      ]);
+      // Heart notes: only entries from BEFORE today (today's stays on its page)
+      const heartReq = supabase
+        .from("heart_notes")
+        .select("id, body, ai_response, date, created_at")
+        .eq("user_id", uid)
+        .lt("date", today)
+        .order("date", { ascending: false });
+
+      // Answered prayers + their thanksgivings
+      const prayerReq = supabase
+        .from("prayers")
+        .select("id, body, answered_at")
+        .eq("user_id", uid)
+        .eq("answered", true)
+        .is("deleted_at", null)
+        .order("answered_at", { ascending: false });
+
+      const [{ data: hearts }, { data: prayers }] = await Promise.all([heartReq, prayerReq]);
+
+      const prayerIds = (prayers ?? []).map((p) => p.id as string);
+      const { data: thanks } = prayerIds.length
+        ? await supabase
+            .from("thanksgivings")
+            .select("prayer_id, content")
+            .in("prayer_id", prayerIds)
+        : { data: [] as { prayer_id: string; content: string }[] };
+
+      const thanksMap = Object.fromEntries(
+        (thanks ?? []).map((t) => [t.prayer_id as string, t.content as string]),
+      );
 
       const entries: Entry[] = [];
 
-      for (const h of heartNotes ?? []) {
-        const body = h.body as string;
-        const iso = (h.date as string) || (h.created_at as string);
+      for (const h of hearts ?? []) {
+        const iso = (h.date as string) || (h.created_at as string).slice(0, 10);
+        const body = (h.body as string) ?? "";
         entries.push({
-          id: h.id as string,
+          id: `hn-${h.id}`,
           type: "heart-note",
-          date: fmt(iso),
           isoDate: iso,
-          title: truncate(body, 45),
-          preview: truncate(body, 100),
-          full: body,
+          date: fmt(iso),
+          title: truncate(body, 60) || "Heart Note",
+          body,
+          extra: (h.ai_response as string) || undefined,
         });
       }
 
       for (const p of prayers ?? []) {
-        const body = p.body as string;
-        const iso = p.created_at as string;
-        const answeredNote = p.answered && p.answered_at
-          ? `\n\nAnswered ${fmt(p.answered_at as string)}`
-          : "";
+        const iso = (p.answered_at as string)?.slice(0, 10) ?? today;
+        const body = (p.body as string) ?? "";
         entries.push({
-          id: p.id as string,
+          id: `pr-${p.id}`,
           type: "prayer",
-          date: fmt(iso),
           isoDate: iso,
-          title: truncate(body, 45),
-          preview: truncate(body, 100),
-          full: body + answeredNote,
+          date: fmt(iso),
+          title: truncate(body, 60) || "Answered Prayer",
+          body,
+          extra: thanksMap[p.id as string],
         });
       }
 
-      for (const dc of dailyContent ?? []) {
-        const iso = dc.date as string;
-        const gn = dc.grace_note as GraceNoteResult | null;
-        if (gn) {
-          entries.push({
-            id: `gn-${iso}`,
-            type: "grace-note",
-            date: fmt(iso),
-            isoDate: iso,
-            title: gn.signed,
-            preview: truncate(gn.message, 100),
-            full: `${gn.message}\n\n${gn.verse}`,
-          });
-        }
-
-        const dev = dc.devotional as DevotionalResult | null;
-        if (dev) {
-          entries.push({
-            id: `dev-${iso}`,
-            type: "devotional",
-            date: fmt(iso),
-            isoDate: iso,
-            title: dev.title,
-            preview: dev.verseRef,
-            full: dev.takeaway ?? (dev.body?.[0] ?? ""),
-          });
-        }
-      }
-
       entries.sort((a, b) => b.isoDate.localeCompare(a.isoDate));
-      setAllEntries(entries);
+      setAll(entries);
       setLoading(false);
     })();
   }, [user]);
 
-  const cutoff = cutoffDate(range);
-  let entries = allEntries;
-  if (cutoff) entries = entries.filter((e) => new Date(e.isoDate) >= cutoff!);
-  if (type !== "all") entries = entries.filter((e) => e.type === type);
-  if (q.trim()) entries = entries.filter((e) => (e.title + e.full).toLowerCase().includes(q.toLowerCase()));
+  const filtered = useMemo(() => {
+    let rows = all;
+    if (type !== "all") rows = rows.filter((e) => e.type === type);
+    if (dateFilter) rows = rows.filter((e) => e.isoDate === dateFilter);
+    if (q.trim()) {
+      const needle = q.toLowerCase();
+      rows = rows.filter((e) => (e.title + " " + e.body + " " + (e.extra ?? "")).toLowerCase().includes(needle));
+    }
+    return rows;
+  }, [all, type, dateFilter, q]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pageRows = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+
+  useEffect(() => { setPage(0); }, [type, dateFilter, q]);
 
   return (
     <>
@@ -166,51 +147,118 @@ function Journey() {
           subtitle="Look back on how far you've come."
         />
 
-        <div className="glass rounded-3xl p-4 mb-5 space-y-3">
+        <div className="glass-on-hue rounded-3xl p-4 mb-5 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your journey…" className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace text-sm" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search your journey…"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white/15 border border-white/20 focus:outline-none focus:ring-2 focus:ring-gold text-sm text-white placeholder:text-white/60"
+            />
           </div>
-          <div className="flex gap-2 overflow-x-auto">
-            {TYPES.map((t) => (
-              <button key={t} onClick={() => setType(t)} className={`px-3 py-1 rounded-full text-xs shrink-0 ${type === t ? "bg-grace text-white" : "bg-white/70 border border-border"}`}>
-                {t.replace("-", " ")}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            {RANGES.map((r) => (
-              <button key={r} onClick={() => setRange(r)} className={`px-3 py-1 rounded-full text-xs ${range === r ? "bg-gold text-gold-foreground" : "bg-white/70 border border-border"}`}>
-                {r === "7d" ? "Last 7 days" : r === "30d" ? "Last 30 days" : "All time"}
-              </button>
-            ))}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-sm">
+              <CalendarIcon className="w-4 h-4" />
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
+              />
+              {dateFilter && (
+                <button onClick={() => setDateFilter("")} aria-label="Clear date" className="text-white/70 hover:text-white">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </label>
+
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as typeof type)}
+              className="px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-sm focus:outline-none focus:ring-2 focus:ring-gold"
+            >
+              <option value="all" className="text-foreground">All entries</option>
+              <option value="heart-note" className="text-foreground">Heart Notes</option>
+              <option value="prayer" className="text-foreground">Answered Prayers</option>
+            </select>
+
+            <span className="ml-auto text-xs text-white/70">
+              {filtered.length} {filtered.length === 1 ? "entry" : "entries"}
+            </span>
           </div>
         </div>
 
         {loading ? (
           <div className="text-center py-16">
-            <div className="inline-block w-6 h-6 border-2 border-grace border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-foreground/55 mt-2">Loading your journey…</p>
+            <div className="inline-block w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-white/80 mt-2">Loading your journey…</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {entries.map((e) => {
-              const isOpen = open === e.id;
-              return (
-                <button key={e.id} onClick={() => setOpen(isOpen ? null : e.id)} className="w-full text-left glass rounded-2xl p-5 hover:scale-[1.005] transition">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-xs text-grace font-semibold uppercase tracking-wider">{e.type.replace("-", " ")} · {e.date}</div>
-                      <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
-                      <p className="text-sm text-foreground/70 mt-1">{isOpen ? e.full : e.preview}</p>
+          <>
+            <div className="space-y-3">
+              {pageRows.map((e) => {
+                const isOpen = open === e.id;
+                const replyLabel = e.type === "heart-note" ? "A gentle reply" : "Your gratitude";
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => setOpen(isOpen ? null : e.id)}
+                    className="w-full text-left glass rounded-2xl p-5 hover:scale-[1.005] transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-grace font-semibold uppercase tracking-wider">
+                          {e.type === "heart-note" ? "Heart Note" : "Answered Prayer"} · {e.date}
+                        </div>
+                        <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
+                        {isOpen && (
+                          <>
+                            <p className="text-sm text-foreground/80 mt-2 whitespace-pre-wrap">{e.body}</p>
+                            {e.extra && (
+                              <div className="mt-3 border-l-4 border-gold pl-3 py-1">
+                                <p className="text-[11px] uppercase tracking-wider text-gold-foreground/70 font-semibold">{replyLabel}</p>
+                                <p className="text-sm italic text-foreground/80 mt-1">{e.extra}</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {isOpen ? <ChevronUp className="w-4 h-4 mt-1 text-foreground/60" /> : <ChevronDown className="w-4 h-4 mt-1 text-foreground/60" />}
                     </div>
-                    {isOpen ? <ChevronUp className="w-4 h-4 mt-1 text-foreground/55" /> : <ChevronDown className="w-4 h-4 mt-1 text-foreground/55" />}
-                  </div>
+                  </button>
+                );
+              })}
+              {!pageRows.length && (
+                <p className="text-center text-white/80 italic py-10 glass-on-hue rounded-2xl">
+                  Nothing here yet - keep walking.
+                </p>
+              )}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-6">
+                <button
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={safePage === 0}
+                  className="px-3 py-2 rounded-full bg-white/10 border border-white/15 text-white text-sm flex items-center gap-1 disabled:opacity-40"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
                 </button>
-              );
-            })}
-            {!entries.length && <p className="text-center text-foreground/55 italic py-10">Nothing here yet - keep walking.</p>}
-          </div>
+                <span className="text-sm text-white/80">
+                  Page {safePage + 1} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={safePage >= totalPages - 1}
+                  className="px-3 py-2 rounded-full bg-white/10 border border-white/15 text-white text-sm flex items-center gap-1 disabled:opacity-40"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </>
