@@ -321,7 +321,7 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
       .eq("user_id", user.id)
       .gte("date", first)
       .lte("date", last)
-      .then(({ data }) => {
+      .then(({ data }: { data: { date: string; devotional: boolean | null; daily_message: boolean | null; journal: boolean | null }[] | null }) => {
         const map: Record<string, BadgeTier> = {};
         for (const row of data ?? []) {
           const count =
