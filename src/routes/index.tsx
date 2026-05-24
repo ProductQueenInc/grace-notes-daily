@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import {
-  Heart, Sparkles, BookHeart, HandHeart, Compass, Headphones,
+  Sparkles, BookHeart, HandHeart, Compass, Headphones,
   ChevronDown, Quote, ShieldCheck, Sun, Moon,
 } from "lucide-react";
 import { useState } from "react";
