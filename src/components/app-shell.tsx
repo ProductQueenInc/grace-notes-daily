@@ -49,23 +49,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <SidebarInset className="bg-transparent">
           {/* Desktop top bar removed - sidebar holds nav/profile/streak */}
 
-          {/* Mobile top bar */}
-          <header className="md:hidden sticky top-0 z-30 px-3 pt-3">
-            <div className="glass-on-hue rounded-2xl h-12 flex items-center justify-between px-3">
-              <button onClick={() => setMenuOpen(true)} className="p-1.5 text-white/85" aria-label="Menu">
+          {/* Mobile top bar — respects iOS notch */}
+          <header
+            className="md:hidden sticky top-0 z-30 px-3"
+            style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+          >
+            <div className="glass-on-hue rounded-2xl h-14 flex items-center justify-between px-3">
+              <button
+                onClick={() => setMenuOpen(true)}
+                className="min-w-11 min-h-11 inline-flex items-center justify-center text-white/85 -ml-1"
+                aria-label="Menu"
+              >
                 <Icon icon={Menu} size="nav" />
               </button>
               <Link to="/home" className="font-display text-lg text-white">GraceNotes Daily</Link>
-              <Link to="/settings" className="w-8 h-8 rounded-full bg-gold/90 text-gold-foreground flex items-center justify-center text-sm font-semibold">
-                G
+              <Link
+                to="/settings"
+                aria-label="Settings"
+                className="min-w-11 min-h-11 inline-flex items-center justify-center -mr-1"
+              >
+                <span className="w-9 h-9 rounded-full bg-gold/90 text-gold-foreground flex items-center justify-center text-sm font-semibold">
+                  G
+                </span>
               </Link>
             </div>
           </header>
 
-          <main className="flex-1 fade-up pb-28 md:pb-12">{children}</main>
+          <main
+            className="flex-1 fade-up md:pb-12"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6.5rem)" }}
+          >
+            {children}
+          </main>
 
-          {/* Mobile bottom tab bar */}
-          <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 px-3 pb-3">
+          {/* Mobile bottom tab bar — respects iOS home-indicator */}
+          <nav
+            className="md:hidden fixed bottom-0 inset-x-0 z-30 px-3"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
+          >
             <div className="glass-on-hue rounded-2xl">
               <div className="grid grid-cols-4">
                 {MOBILE_TABS.map((item) => {
@@ -74,7 +95,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.to}
                       to={item.to}
-                      className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] ${
+                      className={`flex flex-col items-center justify-center gap-1 min-h-14 py-2 text-[11px] leading-none ${
                         active ? "text-gold" : "text-white/75"
                       }`}
                     >
@@ -83,7 +104,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </Link>
                   );
                 })}
-                <button onClick={() => setMenuOpen(true)} className="flex flex-col items-center gap-0.5 py-2.5 text-[11px] text-white/75">
+                <button
+                  onClick={() => setMenuOpen(true)}
+                  className="flex flex-col items-center justify-center gap-1 min-h-14 py-2 text-[11px] leading-none text-white/75"
+                >
                   <Icon icon={Menu} size="md" />
                   Menu
                 </button>
