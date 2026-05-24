@@ -3,7 +3,7 @@ import { useState } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Heart } from "lucide-react";
+import { DoveMark } from "@/components/dove-mark";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Create your account - GraceNotes Daily" }] }),
@@ -47,7 +47,7 @@ function Signup() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md glass rounded-3xl p-8 fade-up">
           <Link to="/" className="flex items-center justify-center gap-2 text-grace mb-2">
-            <Heart className="w-5 h-5 fill-current" />
+            <DoveMark variant="green" className="w-6 h-6" />
             <span className="font-display text-2xl">GraceNotes Daily</span>
           </Link>
           <h1 className="font-display text-3xl text-center text-grace mb-1">Begin your journey</h1>

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
-import { Heart, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
+import { DoveMark } from "@/components/dove-mark";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,7 +24,7 @@ function Contact() {
       <NatureBackground />
       <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
         <Link to="/" className="flex items-center gap-2">
-          <Heart className="w-5 h-5 fill-current" />
+          <DoveMark variant="white" className="w-6 h-6" />
           <span className="font-display text-2xl">GraceNotes Daily</span>
           <span className="text-gold"></span>
         </Link>
