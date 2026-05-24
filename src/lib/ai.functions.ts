@@ -135,11 +135,11 @@ Respond with valid JSON only - no markdown, no code fences:
     } as Parameters<typeof client.messages.create>[0]);
 
     const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
-    return parseJSON<GraceNoteResult>(raw, {
-      message: "Beloved, you are seen and held today. Walk gently - the Maker of mornings holds your hand.",
+    return sanitizeGraceNote(parseJSON<GraceNoteResult>(raw, {
+      message: "Beloved, you are seen and held today. Walk gently, the Maker of mornings holds your hand.",
       verse: "The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17",
       signed: "With love, always",
-    });
+    }));
   });
 
 // ── Server Function: Generate Devotional ──────────────────────────────────────
