@@ -14,7 +14,322 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      background_images: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          series: string
+          storage_url: string
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          series: string
+          storage_url: string
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          series?: string
+          storage_url?: string
+        }
+        Relationships: []
+      }
+      daily_content: {
+        Row: {
+          date: string
+          devotional: Json | null
+          generated_at: string
+          grace_note: Json | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          date: string
+          devotional?: Json | null
+          generated_at?: string
+          grace_note?: Json | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          date?: string
+          devotional?: Json | null
+          generated_at?: string
+          grace_note?: Json | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_content_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_habits: {
+        Row: {
+          daily_message: boolean
+          date: string
+          devotional: boolean
+          journal: boolean
+          user_id: string
+        }
+        Insert: {
+          daily_message?: boolean
+          date: string
+          devotional?: boolean
+          journal?: boolean
+          user_id: string
+        }
+        Update: {
+          daily_message?: boolean
+          date?: string
+          devotional?: boolean
+          journal?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_habits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_messages: {
+        Row: {
+          date: string
+          id: string
+          role: string
+          text: string
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          date: string
+          id?: string
+          role: string
+          text: string
+          ts?: string
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          role?: string
+          text?: string
+          ts?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      heart_notes: {
+        Row: {
+          ai_response: string | null
+          body: string
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          ai_response?: string | null
+          body: string
+          created_at?: string
+          date?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          ai_response?: string | null
+          body?: string
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "heart_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listen_content: {
+        Row: {
+          description: string | null
+          duration: string | null
+          id: string
+          published_at: string
+          theme: string | null
+          thumbnail: string | null
+          title: string
+          type: string | null
+          url: string
+        }
+        Insert: {
+          description?: string | null
+          duration?: string | null
+          id?: string
+          published_at?: string
+          theme?: string | null
+          thumbnail?: string | null
+          title: string
+          type?: string | null
+          url: string
+        }
+        Update: {
+          description?: string | null
+          duration?: string | null
+          id?: string
+          published_at?: string
+          theme?: string | null
+          thumbnail?: string | null
+          title?: string
+          type?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
+      prayers: {
+        Row: {
+          answered: boolean
+          answered_at: string | null
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          answered?: boolean
+          answered_at?: string | null
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          answered?: boolean
+          answered_at?: string | null
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prayers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          faith_phase: string | null
+          id: string
+          name: string | null
+          onboarded: boolean
+          rhythms: string[]
+          seasons: Json
+          timezone: string | null
+          translation: string | null
+          updated_at: string
+          voice: string | null
+        }
+        Insert: {
+          created_at?: string
+          faith_phase?: string | null
+          id: string
+          name?: string | null
+          onboarded?: boolean
+          rhythms?: string[]
+          seasons?: Json
+          timezone?: string | null
+          translation?: string | null
+          updated_at?: string
+          voice?: string | null
+        }
+        Update: {
+          created_at?: string
+          faith_phase?: string | null
+          id?: string
+          name?: string | null
+          onboarded?: boolean
+          rhythms?: string[]
+          seasons?: Json
+          timezone?: string | null
+          translation?: string | null
+          updated_at?: string
+          voice?: string | null
+        }
+        Relationships: []
+      }
+      thanksgivings: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          prayer_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          prayer_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          prayer_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thanksgivings_prayer_id_fkey"
+            columns: ["prayer_id"]
+            isOneToOne: false
+            referencedRelation: "prayers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thanksgivings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
