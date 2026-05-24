@@ -87,7 +87,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r-0 group/sidebar">
-      <SidebarHeader className="px-2 py-4">
+      <SidebarHeader className="px-2 py-4 group-data-[collapsible=icon]:px-0">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -98,7 +98,7 @@ export function AppSidebar() {
               <Link
                 to="/home"
                 aria-label="GraceNotes Daily home"
-                className="flex items-center gap-3"
+                className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
               >
                 <span className="w-9 h-9 aspect-square rounded-full flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-gold/30 shadow-[0_0_18px_-6px_var(--gold)]">
                   <img src={doveLogo} alt="" className="w-9 h-9 object-cover" />
