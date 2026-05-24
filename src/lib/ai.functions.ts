@@ -171,8 +171,9 @@ Respond with valid JSON only - no markdown, no code fences:
 // ── Server Function: Generate Devotional ──────────────────────────────────────
 
 export const callGenerateDevotional = createServerFn({ method: "POST" })
-  .inputValidator((data: AIProfile) => data)
+  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data }) => {
+    await requireUserId();
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
       year: "numeric",
