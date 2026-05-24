@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
+import { DoveMark } from "@/components/dove-mark";
 import {
   Sparkles, BookHeart, HandHeart, Compass, Headphones,
   ChevronDown, Quote, ShieldCheck, Sun, Moon,
