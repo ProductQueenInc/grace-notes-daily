@@ -8,6 +8,7 @@ import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { generateGraceNote, respondToDailyMessage } from "@/lib/ai-stubs";
 import { useStreak } from "@/hooks/use-streak";
+import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
