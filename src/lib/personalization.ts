@@ -12,7 +12,8 @@ export function currentRhythmWindow(date = new Date()): Rhythm {
 }
 
 export function pickRhythmGreeting(profile: Profile | null, date = new Date()) {
-  const name = profile?.name || "Friend";
+  const raw = profile?.name?.trim() || "Friend";
+  const name = raw.split(/\s+/)[0] || "Friend";
   const w = currentRhythmWindow(date);
   if (w === "morning") return `Good morning, ${name}`;
   if (w === "midday") return `A midday breath, ${name}`;

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Heart } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Grace Notes Daily" }] }),
+  head: () => ({ meta: [{ title: "Sign in - Grace Notes Daily" }] }),
   component: Login,
 });
 

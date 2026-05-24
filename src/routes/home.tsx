@@ -8,6 +8,7 @@ import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { generateGraceNote, respondToDailyMessage } from "@/lib/ai-stubs";
 import { useStreak } from "@/hooks/use-streak";
+import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/home")({
-  head: () => ({ meta: [{ title: "Home — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Home - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Home /></AppShell></RequireAuth>,
 });
 
@@ -66,7 +67,7 @@ function Home() {
             {pickRhythmGreeting(profile)}.
           </h1>
           <p className="text-white/80 mt-3 text-base md:text-lg max-w-xl">
-            Your daily space for spiritual growth and reflection. Walk gently — you are loved.
+            Your daily space for spiritual growth and reflection. Walk gently - you are loved.
           </p>
         </div>
 
@@ -97,7 +98,7 @@ function Home() {
                         {graceNote.verse}
                       </div>
                     )}
-                    <p className="text-right text-sm text-white/55 italic mt-4">— {graceNote.signed}</p>
+                    <p className="text-right text-sm text-white/55 italic mt-4">- {graceNote.signed}</p>
                   </>
                 )}
 
@@ -143,7 +144,7 @@ function Home() {
               <p className="text-sm text-white/75">
                 {completedCount === 3
                   ? "You completed today's gold day."
-                  : `Almost there, ${name} — ${3 - completedCount} more step${3 - completedCount > 1 ? "s" : ""} to complete your gold day.`}
+                  : `Almost there, ${name} - ${3 - completedCount} more step${3 - completedCount > 1 ? "s" : ""} to complete your gold day.`}
               </p>
               <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-3">
                 <div className="h-full gradient-gold transition-all" style={{ width: `${(completedCount / 3) * 100}%` }} />
@@ -300,10 +301,38 @@ function BadgeCoin({ tier, size = 28 }: { tier: BadgeTier; size?: number }) {
 }
 
 function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
+  const { user } = useAuth();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const monthName = cursor.toLocaleString("en-US", { month: "long", year: "numeric" });
   const today = new Date();
   const sameMonth = today.getFullYear() === cursor.getFullYear() && today.getMonth() === cursor.getMonth();
+  const [monthTiers, setMonthTiers] = useState<Record<string, BadgeTier>>({});
+
+  useEffect(() => {
+    if (!user) return;
+    const y = cursor.getFullYear();
+    const m = cursor.getMonth();
+    const first = `${y}-${String(m + 1).padStart(2, "0")}-01`;
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const last = `${y}-${String(m + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    supabase
+      .from("daily_habits")
+      .select("date, devotional, daily_message, journal")
+      .eq("user_id", user.id)
+      .gte("date", first)
+      .lte("date", last)
+      .then(({ data }: { data: { date: string; devotional: boolean | null; daily_message: boolean | null; journal: boolean | null }[] | null }) => {
+        const map: Record<string, BadgeTier> = {};
+        for (const row of data ?? []) {
+          const count =
+            (row.devotional ? 1 : 0) +
+            (row.daily_message ? 1 : 0) +
+            (row.journal ? 1 : 0);
+          map[(row.date as string).slice(0, 10)] = badgeForCount(count);
+        }
+        setMonthTiers(map);
+      });
+  }, [user, cursor]);
 
   const grid = useMemo(() => {
     const first = new Date(cursor);
@@ -315,6 +344,12 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
     return cells;
   }, [cursor]);
 
+  function isoFor(d: number) {
+    const y = cursor.getFullYear();
+    const m = String(cursor.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}-${String(d).padStart(2, "0")}`;
+  }
+
   return (
     <div className="glass-on-hue rounded-3xl p-5">
       <div className="flex items-center justify-between mb-3">
@@ -322,35 +357,39 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
           <h3 className="font-display text-xl text-white">Spiritual Journey</h3>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button aria-label="How this works" className="text-white/55 hover:text-white/90">
+              <button aria-label="How this works" className="text-white/70 hover:text-white">
                 <Icon icon={Info} size="sm" />
               </button>
             </TooltipTrigger>
             <TooltipContent className="bg-black/85 text-white border border-white/10 max-w-[220px]">
-              Each day fills with the badge you earn — copper, silver, or gold.
+              Each day fills with the badge you earn - copper, silver, or gold.
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 text-sm text-white/85">
-          <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronLeft} size="sm" /></button>
+        <div className="flex items-center gap-2 text-sm text-white/90">
+          <button aria-label="Previous month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronLeft} size="sm" /></button>
           <span className="font-medium">{monthName}</span>
-          <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronRight} size="sm" /></button>
+          <button aria-label="Next month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronRight} size="sm" /></button>
         </div>
       </div>
-      <div className="grid grid-cols-7 text-center text-[10px] uppercase text-white/55 mb-1">
+      <div className="grid grid-cols-7 text-center text-[10px] uppercase text-white/70 mb-1">
         {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => <div key={d}>{d}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1 text-sm">
         {grid.map((d, i) => {
           const isToday = sameMonth && d === today.getDate();
-          const showCoin = isToday && todayTier !== "none";
+          const iso = d ? isoFor(d) : "";
+          const tier: BadgeTier = isToday ? todayTier : (monthTiers[iso] ?? "none");
+          const showCoin = !!d && tier !== "none";
           return (
             <div key={i} className="aspect-square flex items-center justify-center">
               {d && (
                 showCoin ? (
-                  <BadgeCoin tier={todayTier} size={30} />
+                  <span className="relative inline-flex items-center justify-center" title={iso}>
+                    <BadgeCoin tier={tier} size={30} />
+                  </span>
                 ) : (
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isToday ? "ring-2 ring-gold/60 text-white font-semibold" : "text-white/75 hover:bg-white/8"}`}>
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isToday ? "ring-2 ring-gold/60 text-white font-semibold" : "text-white/85 hover:bg-white/8"}`}>
                     {d}
                   </span>
                 )

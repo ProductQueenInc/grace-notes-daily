@@ -1,0 +1,34 @@
+import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
+
+export type DBTrack = {
+  id: string;
+  title: string;
+  speaker: string;
+  theme: "Worship" | "Prayer" | "Teaching" | "Rest";
+  youtube_id: string | null;
+  audio_url: string | null;
+  thumb: string;
+};
+
+export const getTracks = createServerFn({ method: "GET" }).handler(async () => {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return { tracks: [] as DBTrack[] };
+
+  const supabase = createClient(url, key);
+  const { data, error } = await supabase
+    .from("tracks")
+    .select("id,title,speaker,theme,youtube_id,audio_url,thumb")
+    .eq("published", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("getTracks error:", error.message);
+    return { tracks: [] as DBTrack[] };
+  }
+  return { tracks: (data ?? []) as DBTrack[] };
+});

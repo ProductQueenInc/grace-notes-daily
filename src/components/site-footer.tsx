@@ -12,7 +12,7 @@ export function SiteFooter() {
             <span className="text-gold"></span>
           </div>
           <p className="text-sm text-white/70 mt-3 max-w-xs">
-            A soft, daily companion for your walk with God — gentle reflections, prayer, and presence.
+            A soft, daily companion for your walk with God - gentle reflections, prayer, and presence.
           </p>
         </div>
 
@@ -35,7 +35,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-5 text-xs text-white/60 flex flex-wrap items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} GraceNotes Daily. Walk gently — you are loved.</span>
+          <span>© {new Date().getFullYear()} GraceNotes Daily. Walk gently - you are loved.</span>
           <span className="flex items-center gap-1"><span className="text-gold"></span> Made with grace</span>
         </div>
       </div>

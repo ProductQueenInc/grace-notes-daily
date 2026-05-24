@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <AppSidebar />
 
         <SidebarInset className="bg-transparent">
-          {/* Desktop top bar removed — sidebar holds nav/profile/streak */}
+          {/* Desktop top bar removed - sidebar holds nav/profile/streak */}
 
           {/* Mobile top bar */}
           <header className="md:hidden sticky top-0 z-30 px-3 pt-3">

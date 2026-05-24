@@ -3,20 +3,23 @@ import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Headphones, Play, X } from "lucide-react";
 import { useAudioPlayer, type Track } from "@/hooks/use-audio-player";
 import { Icon } from "@/components/icon";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
+import { getTracks } from "@/lib/tracks.functions";
 
 export const Route = createFileRoute("/listen")({
-  head: () => ({ meta: [{ title: "Listen — GraceNotes Daily" }] }),
+  head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Listen /></AppShell></RequireAuth>,
 });
 
 const THEMES = ["All", "Worship", "Prayer", "Teaching", "Rest"];
 
-const MEDIA: Track[] = [
+// Fallback curated list - used until the `tracks` table is seeded.
+const FALLBACK: Track[] = [
   { id: "1", title: "Goodness of God (Live)", speaker: "Bethel Music", theme: "Worship", youtubeId: "n0FBb6hnwTo", thumb: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600" },
   { id: "2", title: "Stillness in His Presence", speaker: "Soaking Worship", theme: "Rest", youtubeId: "yPwyTzajGtg", thumb: "https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?w=600" },
   { id: "3", title: "The Lord's Prayer", speaker: "Hillsong", theme: "Prayer", youtubeId: "ngEzZLnnk2A", thumb: "https://images.unsplash.com/photo-1508873696983-2dfd5898f08b?w=600" },
@@ -31,7 +34,25 @@ function Listen() {
   const { play, track, expanded, setExpanded } = useAudioPlayer();
   const railTitle = pickListenRailTitle(profile);
 
-  const filtered = theme === "All" ? MEDIA : MEDIA.filter((m) => m.theme === theme);
+  const { data } = useQuery({
+    queryKey: ["tracks"],
+    queryFn: () => getTracks(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const media: Track[] = (data?.tracks ?? []).length
+    ? data!.tracks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        speaker: t.speaker,
+        theme: t.theme,
+        youtubeId: t.youtube_id ?? undefined,
+        audioUrl: t.audio_url ?? undefined,
+        thumb: t.thumb,
+      }))
+    : FALLBACK;
+
+  const filtered = theme === "All" ? media : media.filter((m) => m.theme === theme);
 
   return (
     <>

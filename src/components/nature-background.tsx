@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  */
 /**
  * IMAGE POLICY (locked):
- * Only soft, reverent natural imagery — forests, mountains, dawn light, mist,
+ * Only soft, reverent natural imagery - forests, mountains, dawn light, mist,
  * still water, open fields. Absolutely NO alcohol, food, people's faces,
  * brands, urban scenes, or anything that could feel out of place in a
  * Christian devotional context. Vet every new URL before adding it.
@@ -36,7 +36,7 @@ export function NatureBackground({ overlay = true }: { overlay?: boolean }) {
       ))}
       {overlay && (
         <>
-          {/* Radial green haze — the "Calm" tint that holds the app together */}
+          {/* Radial green haze - the "Calm" tint that holds the app together */}
           <div
             className="absolute inset-0"
             style={{

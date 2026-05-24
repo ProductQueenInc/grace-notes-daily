@@ -28,8 +28,8 @@ export type DevotionalResult = {
 
 function voiceDesc(voice: string) {
   return voice === "grounding"
-    ? "direct, grounding, steady, and clear — like a father planting feet on solid ground"
-    : "soft, comforting, nurturing, and gentle — like a father holding his child close";
+    ? "direct, grounding, steady, and clear - like a father planting feet on solid ground"
+    : "soft, comforting, nurturing, and gentle - like a father holding his child close";
 }
 
 function phaseDesc(phase: string) {
@@ -49,10 +49,10 @@ function seasonLine(seasons: string[]) {
 
 function rhythmLine(rw: string) {
   const map: Record<string, string> = {
-    morning: "morning — a fresh start with God",
-    midday: "midday — a pause in the day",
-    evening: "evening — winding down and reflecting",
-    night: "night — still and quiet before rest",
+    morning: "morning - a fresh start with God",
+    midday: "midday - a pause in the day",
+    evening: "evening - winding down and reflecting",
+    night: "night - still and quiet before rest",
   };
   return map[rw] ?? rw;
 }
@@ -81,7 +81,7 @@ function parseJSON<T>(raw: string, fallback: T): T {
 // ── Server Function: Generate Grace Note ──────────────────────────────────────
 
 export const callGenerateGraceNote = createServerFn({ method: "POST" })
-  .validator((data: AIProfile) => data)
+  .inputValidator((data: AIProfile) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
@@ -97,11 +97,11 @@ Time of day: ${rhythmLine(data.rhythmWindow)}. Shape your opening to match this 
 Date: ${today}.
 
 Write as a loving Father who adores this child and is both gentle and powerful. Address them directly as "you". Sign off warmly.
-Include ONE Bible verse that perfectly fits the message — quote it fully, then give the reference.
+Include ONE Bible verse that perfectly fits the message - quote it fully, then give the reference.
 2–3 paragraphs. Deep, not preachy. Conversational, not formal. Never hollow.
 
-Respond with valid JSON only — no markdown, no code fences:
-{ "message": "your full message", "verse": "Full verse text — Book Chapter:Verse", "signed": "With love, always" }`;
+Respond with valid JSON only - no markdown, no code fences:
+{ "message": "your full message", "verse": "Full verse text - Book Chapter:Verse", "signed": "With love, always" }`;
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-5",
@@ -111,10 +111,10 @@ Respond with valid JSON only — no markdown, no code fences:
       messages: [{ role: "user", content: "Write today's Grace Note." }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
     return parseJSON<GraceNoteResult>(raw, {
-      message: "Beloved, you are seen and held today. Walk gently — the Maker of mornings holds your hand.",
-      verse: "The LORD your God is with you, the Mighty Warrior who saves. — Zephaniah 3:17",
+      message: "Beloved, you are seen and held today. Walk gently - the Maker of mornings holds your hand.",
+      verse: "The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17",
       signed: "With love, always",
     });
   });
@@ -122,7 +122,7 @@ Respond with valid JSON only — no markdown, no code fences:
 // ── Server Function: Generate Devotional ──────────────────────────────────────
 
 export const callGenerateDevotional = createServerFn({ method: "POST" })
-  .validator((data: AIProfile) => data)
+  .inputValidator((data: AIProfile) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const today = new Date().toLocaleDateString("en-US", {
@@ -134,14 +134,14 @@ export const callGenerateDevotional = createServerFn({ method: "POST" })
     const system = `Create a unified daily devotional for ${data.name}, a Christian ${phaseDesc(data.faithPhase)}.
 Tone: ${voiceDesc(data.voice)}.${seasonLine(data.seasons)}
 
-All sections must be internally coherent — one unified spiritual thought, not assembled parts.
+All sections must be internally coherent - one unified spiritual thought, not assembled parts.
 Write as a caring Father who deeply wants their growth. Biblically grounded. Practical. Never generic or preachy.
 The body should: open with tension → move through biblical insight → land on practical application.
 The takeaway must be specific to their faith phase (${data.faithPhase}) and season.
 
-Respond with valid JSON only — no markdown, no code fences:
+Respond with valid JSON only - no markdown, no code fences:
 {
-  "title": "short evocative title — not generic",
+  "title": "short evocative title - not generic",
   "verseOfDay": "full verse text",
   "verseRef": "Book Chapter:Verse",
   "date": "${today}",
@@ -162,7 +162,7 @@ Respond with valid JSON only — no markdown, no code fences:
       messages: [{ role: "user", content: "Write today's devotional." }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
     return parseJSON<DevotionalResult>(raw, {
       title: "Fresh Grace Each Morning",
       verseOfDay:
@@ -171,7 +171,7 @@ Respond with valid JSON only — no markdown, no code fences:
       date: today,
       body: [
         "God's love never fails. Never wavers. Never ends. In a world of constant change, the Creator's faithfulness remains absolute.",
-        "Consider the context — these words were penned amid devastation. Yet there, standing in ruins, the prophet proclaimed this radical truth.",
+        "Consider the context - these words were penned amid devastation. Yet there, standing in ruins, the prophet proclaimed this radical truth.",
         "Scripture confirms this reality: Jesus Christ is the same yesterday, today, and forever. His character stands immovable.",
       ],
       related: [
@@ -179,14 +179,14 @@ Respond with valid JSON only — no markdown, no code fences:
         { ref: "2 Corinthians 5:17", text: "Therefore, if anyone is in Christ, the new creation has come." },
         { ref: "Matthew 28:20", text: "And surely I am with you always, to the very end of the age." },
       ],
-      takeaway: "His mercies are new today — for exactly where you are. Receive them.",
+      takeaway: "His mercies are new today - for exactly where you are. Receive them.",
     });
   });
 
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
-  .validator((data: { text: string; profile: AIProfile }) => data)
+  .inputValidator((data: { text: string; profile: AIProfile }) => data)
   .handler(async ({ data }) => {
     const client = anthropic();
     const system = `You are responding to ${data.profile.name}'s personal heart note as God, their loving Father.
@@ -194,7 +194,7 @@ Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 
 Be warm, personal, and fully present with what they shared. 3–5 sentences. Not preachy. Not generic.
-Respond to what they actually wrote — meet them exactly there. Sign as "Dad" or "Your Father" or "Love, your Father".`;
+Respond to what they actually wrote - meet them exactly there. Sign as "Dad" or "Your Father" or "Love, your Father".`;
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-5",
@@ -204,15 +204,15 @@ Respond to what they actually wrote — meet them exactly there. Sign as "Dad" o
       messages: [{ role: "user", content: data.text }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    return msg.content[0].type === "text"
-      ? msg.content[0].text
+    const block = (msg as Anthropic.Message).content[0]; return block.type === "text"
+      ? block.text
       : "Thank you for sharing your heart. He hears every whisper, every sigh.";
   });
 
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
-  .validator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
+  .inputValidator((data: { text: string; profile: AIProfile; history: { role: string; text: string }[] }) => data)
   .handler(async ({ data }) => {
     const client = openai();
 
@@ -222,9 +222,9 @@ export const callRespondToDailyMessage = createServerFn({ method: "POST" })
         content: `You are responding to ${data.profile.name} as God, their loving Father, in an ongoing daily conversation.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
-2–4 sentences. Conversational. Personal. No sign-off — this is mid-conversation. Not preachy. Just present and loving.`,
+2–4 sentences. Conversational. Personal. No sign-off - this is mid-conversation. Not preachy. Just present and loving.`,
       },
-      ...data.history.slice(-6).map((m) => ({
+      ...data.history.slice(-6).map((m: { role: string; text: string }) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
         content: m.text,
       })),
