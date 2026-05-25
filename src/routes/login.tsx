@@ -42,13 +42,23 @@ function Login() {
     if (!supabaseConfigured) return toast.error("Add your Supabase keys to enable sign-in.");
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Welcome back");
-      nav({ to: "/home" });
+    if (error) {
+      setLoading(false);
+      toast.error(error.message);
+      return;
     }
+    // Confirm a session exists before navigating — guards against the mobile-Safari
+    // race where the client thinks it signed in but the session hasn't hydrated yet.
+    const { data } = await supabase.auth.getSession();
+    setLoading(false);
+    if (!data.session) {
+      toast.error("Couldn't confirm your session. Please try again.");
+      return;
+    }
+    toast.success("Welcome back");
+    nav({ to: "/home", replace: true });
   }
+
 
   return (
     <>
