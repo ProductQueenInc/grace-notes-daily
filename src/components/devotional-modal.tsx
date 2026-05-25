@@ -1,20 +1,28 @@
-import { X, BookOpen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { X, BookOpen, Heart } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
 import { softGoldConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
-import { Heart } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
-type Devotional = Awaited<ReturnType<typeof generateDevotional>>;
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
 
 export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
-  const [data, setData] = useState<Devotional | null>(null);
+  const { profile } = useAuth();
+  const today = todayISO();
 
-  useEffect(() => {
-    if (open && !data) generateDevotional().then(setData);
-  }, [open, data]);
+  // Shares cache key with home.tsx prefetch - opens instantly if warmed.
+  const { data } = useQuery({
+    queryKey: ["devotional", today],
+    queryFn: () => generateDevotional(profile),
+    enabled: open && !!profile,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+  });
 
   if (!open) return null;
 

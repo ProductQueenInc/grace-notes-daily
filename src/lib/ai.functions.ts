@@ -2,8 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { z } from "zod";
-import { currentRhythmWindow } from "@/lib/personalization";
-import { requireUserId } from "@/lib/auth-guard.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // ── Input schemas ─────────────────────────────────────────────────────────────
 
@@ -12,7 +11,6 @@ const AIProfileSchema = z.object({
   faithPhase: z.string().max(50),
   voice: z.string().max(50),
   seasons: z.array(z.string().max(100)).max(20),
-  rhythmWindow: z.string().max(50),
 });
 
 const HeartNoteInputSchema = z.object({
@@ -35,7 +33,6 @@ export type AIProfile = {
   faithPhase: string;
   voice: string;
   seasons: string[];
-  rhythmWindow: string;
 };
 
 export type GraceNoteResult = { message: string; verse: string; signed: string };
@@ -53,8 +50,8 @@ export type DevotionalResult = {
 
 function voiceDesc(voice: string) {
   return voice === "grounding"
-    ? "direct, grounding, steady, and clear - like a father planting feet on solid ground"
-    : "soft, comforting, nurturing, and gentle - like a father holding his child close";
+    ? "direct, grounding, steady, clear. Plants feet on solid ground rather than soothing."
+    : "soft, present, gentle. Like a parent sitting beside you in the quiet.";
 }
 
 function phaseDesc(phase: string) {
@@ -69,17 +66,7 @@ function phaseDesc(phase: string) {
 
 function seasonLine(seasons: string[]) {
   if (!seasons.length) return "";
-  return `\nThis season they are carrying: ${seasons.join(", ")}. Let your message meet them there.`;
-}
-
-function rhythmLine(rw: string) {
-  const map: Record<string, string> = {
-    morning: "morning - a fresh start with God",
-    midday: "midday - a pause in the day",
-    evening: "evening - winding down and reflecting",
-    night: "night - still and quiet before rest",
-  };
-  return map[rw] ?? rw;
+  return `\nWhat they're carrying right now: ${seasons.join(", ")}. Let what you notice meet them there, without naming the season back at them.`;
 }
 
 function anthropic() {
@@ -96,12 +83,36 @@ function openai() {
 
 function stripEmDashes(s: string | null | undefined): string {
   if (!s) return "";
-  // Replace em-dash (—) and en-dash (–) with " - " or appropriate punctuation.
   return s.replace(/\s*[—–]\s*/g, " - ");
 }
 
 const NO_EM_DASH_RULE =
-  "STYLE RULE: Never use em-dashes (—) or en-dashes (–) anywhere. Use a hyphen (-), comma, semicolon, or colon instead.";
+  "STYLE RULE: Never use em-dashes (—) or en-dashes (–). Use a hyphen (-), comma, semicolon, or colon instead.";
+
+// The core anti-saccharine block. Applied to every user-facing prompt.
+const NO_OVER_FAMILIARITY = `
+TONE GUARDRAILS - read carefully, these are hard rules:
+
+Never use endearment openers. No "My dear child," "Beloved," "Friend," "Little one," "Precious one," "Sweet one," "My love." Address by first name occasionally (not every time) or not at all.
+
+Never stage-direct emotion. No "I want you to know...", "Let me tell you...", "Hear me when I say...", "Remember this...", "Know that...". Just say the thing.
+
+Never narrate divine emotion at the user. No "I delight in you," "My heart sings over you," "I rejoice over you," "I am proud of you simply because you're mine." Show what is noticed, do not declare what is felt.
+
+Never name the user's season, phase, or rhythm back at them. Don't write "in this season of grief" or "as someone returning to faith." The voice should sound like someone who knows, not someone who has been briefed.
+
+Concrete over abstract. "The kettle. The window. This breath." beats "this quiet pause." Specifics land. Generalities feel like a Hallmark card.
+
+Restraint over reassurance. One true sentence beats three soothing ones.
+
+Read-aloud test: if a thoughtful pastor would not actually say the sentence to someone they love, cut it.
+
+EXAMPLE OF WHAT NOT TO WRITE (too performative, breaks every rule above):
+"My dear child, I want you to know something profound: I see you. I see every quiet moment, every breath you take. I am delighting in you simply because you're mine."
+
+EXAMPLE OF WHAT TO WRITE INSTEAD (warm, specific, restrained):
+"Today doesn't need to be impressive. The light is enough. Your breath is enough. The work in front of you, however small, is held."
+`;
 
 function sanitizeGraceNote(r: GraceNoteResult): GraceNoteResult {
   return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: stripEmDashes(r.signed) };
@@ -126,69 +137,68 @@ function parseJSON<T>(raw: string, fallback: T): T {
   }
 }
 
-// ── Server Function: Generate Grace Note ──────────────────────────────────────
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
 
-export const callGenerateGraceNote = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
-  .handler(async ({ data }) => {
-    await requireUserId();
-    const client = anthropic();
-    const today = new Date().toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+// ── Core generators (no auth, no cache) ───────────────────────────────────────
 
-    const system = `You are writing a personal, loving message from God to ${data.name}, a Christian believer ${phaseDesc(data.faithPhase)}.
-Your tone should be ${voiceDesc(data.voice)}.${seasonLine(data.seasons)}
-Time of day: ${rhythmLine(data.rhythmWindow)}. Shape your opening to match this moment.
-Date: ${today}.
+async function generateGraceNoteRaw(p: AIProfile): Promise<GraceNoteResult> {
+  const client = anthropic();
 
-Write as a loving Father who adores this child and is both gentle and powerful. Address them directly as "you". Sign off warmly.
-Include ONE Bible verse that perfectly fits the message - quote it fully, then give the reference.
-2-3 paragraphs. Deep, not preachy. Conversational, not formal. Never hollow.
+  const system = `You are writing a short personal note from God to ${p.name}, a Christian ${phaseDesc(p.faithPhase)}.
+Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
+
+Write it like a real note someone leaves you - not a sermon, not a Hallmark card.
+Two short paragraphs. Around 80 words total. Address the reader directly as "you".
+Weave in one Bible verse naturally (or place it as a single quoted line). Then a short warm sign-off.
+
+Do NOT reference the time of day, morning, evening, "this moment," "this pause," or anything date/time-bound. The note is just FOR today, it doesn't need to know what time today is.
+
+${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "your full message", "verse": "Full verse text - Book Chapter:Verse", "signed": "With love, always" }`;
+{ "message": "two short paragraphs, ~80 words", "verse": "Full verse text - Book Chapter:Verse", "signed": "short warm sign-off like 'Love, your Father' or 'Held, today.'" }`;
 
-    const msg = await client.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 800,
-      temperature: 0.85,
-      system,
-      messages: [{ role: "user", content: "Write today's Grace Note." }],
-    } as Parameters<typeof client.messages.create>[0]);
+  const msg = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 400,
+    temperature: 0.85,
+    system,
+    messages: [{ role: "user", content: "Write today's note." }],
+  } as Parameters<typeof client.messages.create>[0]);
 
-    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
-    return sanitizeGraceNote(parseJSON<GraceNoteResult>(raw, {
-      message: "Beloved, you are seen and held today. Walk gently, the Maker of mornings holds your hand.",
+  const block = (msg as Anthropic.Message).content[0];
+  const raw = block.type === "text" ? block.text : "";
+  return sanitizeGraceNote(
+    parseJSON<GraceNoteResult>(raw, {
+      message:
+        "You are seen today. Not for what you did or didn't do - just seen.\n\nWalk gently. The work in front of you is held, even the small parts.",
       verse: "The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17",
-      signed: "With love, always",
-    }));
+      signed: "Held, today.",
+    }),
+  );
+}
+
+async function generateDevotionalRaw(p: AIProfile): Promise<DevotionalResult> {
+  const client = anthropic();
+  const today = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
-// ── Server Function: Generate Devotional ──────────────────────────────────────
+  const system = `Write today's devotional for ${p.name}, a Christian ${phaseDesc(p.faithPhase)}.
+Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
 
-export const callGenerateDevotional = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
-  .handler(async ({ data }) => {
-    await requireUserId();
-    const client = anthropic();
-    const today = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+Third-person teaching voice (not a letter from God). One unified spiritual thought, not assembled parts.
+Open with a small concrete tension - move through biblical insight - land on one practical thing to do or hold today.
+Be biblically grounded. Be specific. Never preachy. Never generic.
+Don't reference time of day or what part of the day this is being read.
 
-    const system = `Create a unified daily devotional for ${data.name}, a Christian ${phaseDesc(data.faithPhase)}.
-Tone: ${voiceDesc(data.voice)}.${seasonLine(data.seasons)}
-
-All sections must be internally coherent - one unified spiritual thought, not assembled parts.
-Write as a caring Father who deeply wants their growth. Biblically grounded. Practical. Never generic or preachy.
-The body should: open with tension → move through biblical insight → land on practical application.
-The takeaway must be specific to their faith phase (${data.faithPhase}) and season.
+${NO_OVER_FAMILIARITY}
+${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
 {
@@ -202,36 +212,90 @@ Respond with valid JSON only - no markdown, no code fences:
     { "ref": "Book Chapter:Verse", "text": "full verse text" },
     { "ref": "Book Chapter:Verse", "text": "full verse text" }
   ],
-  "takeaway": "2–3 sentences, intimate and direct, specific to this person's phase and season"
+  "takeaway": "2 sentences, concrete and specific. Something to actually do or hold today."
 }`;
 
-    const msg = await client.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 1200,
-      temperature: 0.8,
-      system,
-      messages: [{ role: "user", content: "Write today's devotional." }],
-    } as Parameters<typeof client.messages.create>[0]);
+  const msg = await client.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 1200,
+    temperature: 0.8,
+    system,
+    messages: [{ role: "user", content: "Write today's devotional." }],
+  } as Parameters<typeof client.messages.create>[0]);
 
-    const block = (msg as Anthropic.Message).content[0]; const raw = block.type === "text" ? block.text : "";
-    return sanitizeDevotional(parseJSON<DevotionalResult>(raw, {
-      title: "Fresh Grace Each Morning",
+  const block = (msg as Anthropic.Message).content[0];
+  const raw = block.type === "text" ? block.text : "";
+  return sanitizeDevotional(
+    parseJSON<DevotionalResult>(raw, {
+      title: "Mercies, New",
       verseOfDay:
         "The steadfast love of the LORD never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.",
       verseRef: "Lamentations 3:22-23",
       date: today,
       body: [
-        "God's love never fails. Never wavers. Never ends. In a world of constant change, the Creator's faithfulness remains absolute.",
-        "Consider the context: these words were penned amid devastation. Yet there, standing in ruins, the prophet proclaimed this radical truth.",
-        "Scripture confirms this reality: Jesus Christ is the same yesterday, today, and forever. His character stands immovable.",
+        "These words were written in ruins. The prophet was not looking out at a calm field. He was looking at rubble.",
+        "And still: new every morning. Not earned. Not deserved. Renewed, like breath. Mercy that does not depend on yesterday going well.",
+        "Whatever today asks of you, the supply is already there. You don't have to manufacture it.",
       ],
       related: [
         { ref: "Psalm 136:1", text: "Give thanks to the LORD, for he is good. His love endures forever." },
         { ref: "2 Corinthians 5:17", text: "Therefore, if anyone is in Christ, the new creation has come." },
         { ref: "Matthew 28:20", text: "And surely I am with you always, to the very end of the age." },
       ],
-      takeaway: "His mercies are new today, for exactly where you are. Receive them.",
-    }));
+      takeaway: "Receive today as already supplied. You don't have to produce the mercy. It's here.",
+    }),
+  );
+}
+
+// ── Server Function: Get or Create Grace Note (cached per user per day) ───────
+// Single RPC. Auth + cache read + generate + cache write all happen server-side.
+
+export const getOrCreateGraceNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const date = todayISO();
+
+    const { data: cached } = await supabase
+      .from("daily_content")
+      .select("grace_note")
+      .eq("user_id", userId)
+      .eq("date", date)
+      .maybeSingle();
+
+    if (cached?.grace_note) return cached.grace_note as GraceNoteResult;
+
+    const result = await generateGraceNoteRaw(data);
+    await supabase
+      .from("daily_content")
+      .upsert({ user_id: userId, date, grace_note: result });
+    return result;
+  });
+
+// ── Server Function: Get or Create Devotional (cached per user per day) ───────
+
+export const getOrCreateDevotional = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const date = todayISO();
+
+    const { data: cached } = await supabase
+      .from("daily_content")
+      .select("devotional")
+      .eq("user_id", userId)
+      .eq("date", date)
+      .maybeSingle();
+
+    if (cached?.devotional) return cached.devotional as DevotionalResult;
+
+    const result = await generateDevotionalRaw(data);
+    await supabase
+      .from("daily_content")
+      .upsert({ user_id: userId, date, devotional: result });
+    return result;
   });
 
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
@@ -239,15 +303,15 @@ Respond with valid JSON only - no markdown, no code fences:
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireUserId();
     const client = anthropic();
-    const system = `You are responding to ${data.profile.name}'s personal heart note as God, their loving Father.
+    const system = `You are responding to ${data.profile.name}'s personal heart note as God, their Father.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
-Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
+Voice: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 
-Be warm, personal, and fully present with what they shared. 3-5 sentences. Not preachy. Not generic.
-${NO_EM_DASH_RULE}
-Respond to what they actually wrote, meet them exactly there. Sign as "Dad" or "Your Father" or "Love, your Father".`;
+Respond to what they actually wrote. Meet them exactly there. 3 to 5 sentences. Sign as "Love, your Father" or "Held, your Father".
+
+${NO_OVER_FAMILIARITY}
+${NO_EM_DASH_RULE}`;
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-5",
@@ -257,9 +321,10 @@ Respond to what they actually wrote, meet them exactly there. Sign as "Dad" or "
       messages: [{ role: "user", content: data.text }],
     } as Parameters<typeof client.messages.create>[0]);
 
-    const block = (msg as Anthropic.Message).content[0]; return block.type === "text"
+    const block = (msg as Anthropic.Message).content[0];
+    return block.type === "text"
       ? stripEmDashes(block.text)
-      : "Thank you for sharing your heart. He hears every whisper, every sigh.";
+      : "He hears every whisper, every sigh.";
   });
 
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
@@ -267,16 +332,18 @@ Respond to what they actually wrote, meet them exactly there. Sign as "Dad" or "
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => DailyMessageInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireUserId();
     const client = openai();
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: `You are responding to ${data.profile.name} as God, their loving Father, in an ongoing daily conversation.
+        content: `You are responding to ${data.profile.name} as God, their Father, in an ongoing conversation.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
-Tone: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
-2-4 sentences. Conversational. Personal. No sign-off, this is mid-conversation. Not preachy. Just present and loving.
+Voice: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
+
+2 to 4 sentences. Conversational. Present. No sign-off, this is mid-conversation.
+
+${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}`,
       },
       ...data.history.slice(-6).map((m: { role: string; text: string }) => ({
@@ -293,7 +360,7 @@ ${NO_EM_DASH_RULE}`,
       messages,
     });
 
-    return stripEmDashes(res.choices[0]?.message?.content ?? "Beloved, He hears you. Stay close.");
+    return stripEmDashes(res.choices[0]?.message?.content ?? "He hears you. Stay close.");
   });
 
 // ── Helper: build AIProfile from Profile ─────────────────────────────────────
@@ -309,6 +376,5 @@ export function buildAIProfile(profile: {
     faithPhase: profile?.faith_phase ?? "growth",
     voice: profile?.voice ?? "gentle",
     seasons: (profile?.seasons ?? []).map((s) => s.tag),
-    rhythmWindow: currentRhythmWindow(),
   };
 }

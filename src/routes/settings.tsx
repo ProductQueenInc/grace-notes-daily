@@ -4,17 +4,19 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
-import { LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle } from "lucide-react";
+import {
+  LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
+  Sprout, Wind, Compass as CompassIcon, Anchor,
+} from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Settings /></AppShell></RequireAuth>,
 });
-
-import { Sprout, Wind, Compass as CompassIcon, Anchor } from "lucide-react";
 
 const PHASES = [
   { id: "newbie", icon: Sprout, title: "Newbie" },
@@ -23,31 +25,98 @@ const PHASES = [
   { id: "elder", icon: Anchor, title: "Elder" },
 ] as const;
 
+const VOICES = [
+  { id: "gentle", title: "Gentle", hint: "Soft, present, comforting." },
+  { id: "grounding", title: "Grounding", hint: "Direct, steady, clear." },
+] as const;
+
+const RHYTHMS = [
+  { id: "morning", label: "Morning" },
+  { id: "midday", label: "Midday" },
+  { id: "evening", label: "Evening" },
+  { id: "night", label: "Before bed" },
+] as const;
+
+const SEASONS = [
+  "anxiety", "grief", "joy", "transition", "waiting",
+  "doubt", "burnout", "new beginnings", "loneliness", "gratitude",
+] as const;
+
+const TRANSLATIONS = ["ESV", "NIV", "NKJV", "KJV", "MSG"] as const;
+
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
+
 function Settings() {
   const { user, profile, reloadProfile } = useAuth();
   const nav = useNavigate();
+  const queryClient = useQueryClient();
+
   const [name, setName] = useState("");
   const [phase, setPhase] = useState<string>("growth");
-  const [reminder, setReminder] = useState("morning");
-  const [personalize, setPersonalize] = useState(true);
+  const [voice, setVoice] = useState<string>("gentle");
+  const [rhythms, setRhythms] = useState<string[]>([]);
+  const [seasons, setSeasons] = useState<string[]>([]);
+  const [translation, setTranslation] = useState<string>("NIV");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setName(profile.name || "");
-      setPhase(profile.faith_phase || "growth");
-    }
+    if (!profile) return;
+    setName(profile.name || "");
+    setPhase(profile.faith_phase || "growth");
+    setVoice(profile.voice || "gentle");
+    setRhythms(profile.rhythms || []);
+    setSeasons((profile.seasons || []).map((s) => s.tag));
+    setTranslation(profile.translation || "NIV");
   }, [profile]);
 
-
+  function toggleIn(list: string[], value: string): string[] {
+    return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+  }
 
   async function save() {
     if (!user || !supabaseConfigured) return toast.error("Sign in first.");
-    const { error } = await supabase.from("profiles").update({ name, faith_phase: phase }).eq("id", user.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Saved with care");
-      reloadProfile();
+    setSaving(true);
+
+    // Preserve set_at for existing seasons; stamp new ones with today.
+    const existing = new Map((profile?.seasons || []).map((s) => [s.tag, s.set_at]));
+    const today = todayISO();
+    const seasonsPayload = seasons.map((tag) => ({
+      tag,
+      set_at: existing.get(tag) || today,
+    }));
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        name,
+        faith_phase: phase,
+        voice,
+        rhythms,
+        seasons: seasonsPayload,
+        translation,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      setSaving(false);
+      return toast.error(error.message);
     }
+
+    // Personalization changed - today's cached grace note and devotional are stale.
+    await supabase
+      .from("daily_content")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("date", today);
+
+    queryClient.invalidateQueries({ queryKey: ["grace-note"] });
+    queryClient.invalidateQueries({ queryKey: ["devotional"] });
+
+    toast.success("Saved with care. Today's note will refresh.");
+    reloadProfile();
+    setSaving(false);
   }
 
   async function signOut() {
@@ -63,48 +132,119 @@ function Settings() {
   return (
     <>
       <NatureBackground />
-      <section className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-10">
+      <section className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-10 pb-12">
         <PageHeader
           icon={SettingsIcon}
           eyebrow="Personalize"
           title="Settings"
-          subtitle="Make GraceNotes Daily truly yours."
+          subtitle="Shape how GraceNotes Daily meets you."
         />
 
+        {/* Identity */}
         <div className="glass rounded-3xl p-5 sm:p-6 space-y-5 mb-5">
           <div>
             <label className="text-sm font-medium block mb-1">Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border" />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border"
+            />
           </div>
+
           <div>
             <label className="text-sm font-medium block mb-2">Your faith phase</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {PHASES.map((p) => (
-                <button key={p.id} onClick={() => setPhase(p.id)} className={`rounded-2xl p-3 min-h-16 text-center border-2 transition ${phase === p.id ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}>
+                <button
+                  key={p.id}
+                  onClick={() => setPhase(p.id)}
+                  className={`rounded-2xl p-3 min-h-16 text-center border-2 transition ${phase === p.id ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
+                >
                   <p.icon className="w-6 h-6 mx-auto text-grace" strokeWidth={1.75} />
                   <div className="text-xs font-semibold mt-1">{p.title}</div>
                 </button>
               ))}
             </div>
           </div>
-          <button onClick={save} className="w-full py-3 min-h-12 rounded-full bg-grace text-white font-semibold">Save changes</button>
+
+          <div>
+            <label className="text-sm font-medium block mb-2">Voice you want to be met with</label>
+            <div className="grid grid-cols-2 gap-2">
+              {VOICES.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setVoice(v.id)}
+                  className={`rounded-2xl p-3 text-left border-2 transition ${voice === v.id ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
+                >
+                  <div className="font-semibold text-sm">{v.title}</div>
+                  <div className="text-xs text-foreground/65">{v.hint}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium block mb-2">What you're carrying right now</label>
+            <p className="text-xs text-foreground/60 mb-2">Pick anything that fits. We use these to shape what your note notices - never to name them back at you.</p>
+            <div className="flex flex-wrap gap-2">
+              {SEASONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSeasons((prev) => toggleIn(prev, s))}
+                  className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${seasons.includes(s) ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium block mb-2">Bible translation</label>
+            <div className="flex flex-wrap gap-2">
+              {TRANSLATIONS.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTranslation(t)}
+                  className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${translation === t ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={save}
+            disabled={saving}
+            className="w-full py-3 min-h-12 rounded-full bg-grace text-white font-semibold disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
         </div>
 
-        <div className="glass rounded-3xl p-5 sm:p-6 space-y-4 mb-5">
-
-          <Row label="Daily reminder" hint="When should we nudge you?">
-            <select value={reminder} onChange={(e) => setReminder(e.target.value)} className="px-3 py-2 min-h-10 rounded-full bg-white/80 border border-border text-sm">
-              <option value="morning">Morning</option>
-              <option value="midday">Midday</option>
-              <option value="evening">Evening</option>
-              <option value="off">Off</option>
-            </select>
-          </Row>
-          <Row label="Personalize content" hint="Tailor grace notes to your phase.">
-            <Toggle checked={personalize} onChange={setPersonalize} />
-          </Row>
+        {/* Rhythm preferences - stored, not yet acted on */}
+        <div className="glass rounded-3xl p-5 sm:p-6 mb-5">
+          <div className="mb-2">
+            <div className="font-medium">Your rhythm</div>
+            <div className="text-xs text-foreground/65 mt-1">
+              When do you most want to be met? We'll use these times when we add gentle reminders. For now, your daily note is here whenever you open the app.
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {RHYTHMS.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRhythms((prev) => toggleIn(prev, r.id))}
+                className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${rhythms.includes(r.id) ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* Info & Legal */}
         <div className="glass rounded-3xl p-5 sm:p-6 space-y-2 mb-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-foreground/40 px-1 pb-1">Info & Legal</p>
           <Link to="/about" className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
@@ -131,25 +271,5 @@ function Settings() {
         </div>
       </section>
     </>
-  );
-}
-
-function Row({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <div className="font-medium">{label}</div>
-        <div className="text-xs text-foreground/60">{hint}</div>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (b: boolean) => void }) {
-  return (
-    <button onClick={() => onChange(!checked)} className={`w-11 h-6 rounded-full transition ${checked ? "bg-grace" : "bg-muted"}`}>
-      <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
-    </button>
   );
 }
