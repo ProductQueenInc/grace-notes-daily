@@ -373,6 +373,7 @@ You finished. Not perfectly, but finished, which is its own kind of faithfulness
 `;
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
   .handler(async ({ data }) => {
     const client = anthropic();
