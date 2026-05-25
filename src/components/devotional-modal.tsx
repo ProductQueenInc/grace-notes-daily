@@ -1,4 +1,4 @@
-import { X, BookOpen, Heart } from "lucide-react";
+import { X, BookOpen, Heart, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
 import { softGoldConfetti } from "@/lib/confetti";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
 import { useAuth } from "@/hooks/use-auth";
+import { useHabits } from "@/hooks/use-habits";
 import { localTodayISO } from "@/lib/today";
 
 function todayISO() {
