@@ -103,6 +103,44 @@ function Home() {
                 <div className="flex items-center gap-2 font-semibold text-white min-w-0">
                   <Icon icon={MessageCircle} size="md" tone="inherit" />
                   <span className="truncate">Today's Grace Note</span>
+
+                  {/* Info: explains personalization, links to settings */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        aria-label="About today's Grace Note"
+                        className="ml-1 text-white/55 hover:text-white/90 shrink-0"
+                      >
+                        <Icon icon={Info} size="sm" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="bottom"
+                      align="start"
+                      className="max-w-[280px] text-sm bg-black/85 text-white border-white/10"
+                    >
+                      <p className="leading-relaxed">
+                        Today's note is gently shaped by what you shared when you
+                        joined — your faith phase, voice, and any seasons you
+                        named. It's a soft lens, not a script.
+                      </p>
+                      <Link
+                        to="/settings"
+                        className="mt-3 inline-block text-gold font-semibold hover:underline"
+                      >
+                        Update your preferences →
+                      </Link>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Flag: opens Tally feedback form (has "Flag content" option) */}
+                  <button
+                    onClick={() => openTallyForm("VL4NY6")}
+                    aria-label="Flag this note"
+                    className="text-white/55 hover:text-white/90 shrink-0"
+                  >
+                    <Icon icon={Flag} size="sm" />
+                  </button>
                 </div>
                 <button onClick={() => setShowVerse((v) => !v)} className="shrink-0 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
                   {showVerse ? "Hide Verse" : "Show Verse"}
@@ -117,11 +155,21 @@ function Home() {
                 ) : (
                   <>
                     <p className="text-white/90 leading-relaxed font-display text-xl">{graceNote.message}</p>
-                    {showVerse && (
-                      <div className="mt-4 border-l-4 border-gold pl-4 py-2 italic text-white/80">
-                        {graceNote.verse}
-                      </div>
-                    )}
+                    {showVerse && (() => {
+                      // verse is stored as "Full verse text - Book Chapter:Verse".
+                      // Split on the LAST " - " so verse text containing hyphens stays intact.
+                      const raw = graceNote.verse || "";
+                      const idx = raw.lastIndexOf(" - ");
+                      const hasSplit = idx > 0 && idx < raw.length - 3;
+                      const text = hasSplit ? raw.slice(0, idx).trim() : "";
+                      const ref = hasSplit ? raw.slice(idx + 3).trim() : raw.trim();
+                      return (
+                        <div className="mt-4 border-l-4 border-gold pl-4 py-2 italic text-white/85">
+                          {text && <p className="mb-1">&ldquo;{text}&rdquo;</p>}
+                          <p className="text-sm not-italic font-semibold text-white/70">{ref}</p>
+                        </div>
+                      );
+                    })()}
                     <p className="text-right text-sm text-white/55 italic mt-4">- {graceNote.signed}</p>
                   </>
                 )}
