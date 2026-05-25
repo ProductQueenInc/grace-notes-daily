@@ -21,6 +21,10 @@ const HeartNoteInputSchema = z.object({
   profile: AIProfileSchema,
 });
 
+const SummarizeInputSchema = z.object({
+  text: z.string().min(1).max(5000),
+});
+
 const DailyMessageInputSchema = z.object({
   text: z.string().min(1).max(2000),
   profile: AIProfileSchema,
