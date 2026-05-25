@@ -63,14 +63,20 @@ function Login() {
   return (
     <>
       <NatureBackground />
-      <div className="min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md glass rounded-3xl p-8 fade-up">
-          <Link to="/" className="flex items-center justify-center gap-2 text-grace mb-2">
-            <DoveMark variant="green" className="w-10 h-10" />
-            <span className="font-display text-2xl">GraceNotes Daily</span>
+      <div
+        className="min-h-screen flex items-center justify-center px-4 py-12"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 3rem)" }}
+      >
+        <div className="w-full max-w-md glass rounded-3xl p-7 sm:p-8 fade-up">
+          <Link to="/" className="flex flex-col items-center gap-2 text-grace mb-3">
+            <span className="w-16 h-16 rounded-full bg-white/85 shadow-soft flex items-center justify-center">
+              <DoveMark variant="green" className="w-10 h-10" />
+            </span>
+            <span className="font-display text-xl">GraceNotes Daily</span>
           </Link>
           <h1 className="font-display text-3xl text-center text-grace mb-1">Welcome back</h1>
           <p className="text-center text-sm text-foreground/70 mb-6">He's been waiting for you.</p>
+
 
           <button onClick={withGoogle} className="w-full mb-4 py-3 rounded-full bg-white border border-border flex items-center justify-center gap-3 font-medium hover:bg-white/90 transition">
             <GoogleIcon /> Continue with Google
