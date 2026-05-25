@@ -72,7 +72,12 @@ function Login() {
 
           <form onSubmit={withEmail} className="space-y-3">
             <input value={email} onChange={(e) => setEmail(e.target.value)} required type="email" placeholder="Email" className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace" />
-            <input value={password} onChange={(e) => setPassword(e.target.value)} required type="password" placeholder="Password" className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace" />
+            <div className="relative">
+              <input value={password} onChange={(e) => setPassword(e.target.value)} required type={showPassword ? "text" : "password"} placeholder="Password" className="w-full px-4 py-3 pr-12 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace" />
+              <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute inset-y-0 right-3 flex items-center text-foreground/60 hover:text-foreground">
+                <Icon icon={showPassword ? EyeOff : Eye} size="md" />
+              </button>
+            </div>
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-foreground/70">
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="accent-[color:var(--grace)]" />
