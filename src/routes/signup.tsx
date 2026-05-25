@@ -46,7 +46,7 @@ function Signup() {
     setLoading(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Welcome. Check your inbox to confirm.");
+      toast.success("Welcome.");
       nav({ to: "/onboarding" });
     }
   }
