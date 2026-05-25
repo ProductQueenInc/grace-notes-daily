@@ -140,22 +140,35 @@ function Landing() {
       </section>
 
       {/* FEATURES */}
-      <section className="px-6 pb-24">
-        <div className="max-w-6xl mx-auto">
+      <section className="pb-24 sm:px-6">
+        <div className="max-w-6xl mx-auto px-6 sm:px-0">
           <SectionTitle eyebrow="What's inside" title="Everything you need for a gentle rhythm with God" />
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
-            {features.map((f) => (
-              <div key={f.title} className="glass rounded-3xl p-6 text-foreground hover:scale-[1.01] transition">
-                <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
-                  <f.icon className="w-5 h-5" />
-                </span>
-                <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
-                <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
+        </div>
+        {/* Mobile: horizontal snap rail. Tablet+: grid */}
+        <div className="mt-10 sm:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-6 pb-3 -mx-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {features.map((f) => (
+            <div key={f.title} className="glass rounded-3xl p-6 text-foreground min-w-[78vw] snap-start">
+              <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5" />
+              </span>
+              <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
+              <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="max-w-6xl mx-auto hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
+          {features.map((f) => (
+            <div key={f.title} className="glass rounded-3xl p-6 text-foreground hover:scale-[1.01] transition">
+              <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5" />
+              </span>
+              <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
+              <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
+
 
       {/* PHASES */}
       <section className="px-6 pb-24">
