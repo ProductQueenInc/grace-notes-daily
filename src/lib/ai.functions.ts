@@ -219,10 +219,11 @@ Respond with valid JSON only - no markdown, no code fences:
   const msg = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 1200,
-    temperature: 0.8,
+    temperature: 0.7,
     system,
     messages: [{ role: "user", content: "Write today's devotional." }],
   } as Parameters<typeof client.messages.create>[0]);
+
 
   const block = (msg as Anthropic.Message).content[0];
   const raw = block.type === "text" ? block.text : "";
