@@ -54,3 +54,7 @@ export async function respondToDailyMessage(
     },
   });
 }
+
+export async function summarizeHeartNote(text: string): Promise<string> {
+  return callSummarizeHeartNote({ data: { text } });
+}
