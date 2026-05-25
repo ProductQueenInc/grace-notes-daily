@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="max-w-7xl mx-auto px-6 py-12 grid gap-10 md:grid-cols-5">
         <div>
           <div className="flex items-center gap-2 text-white">
-            <DoveMark variant="white" className="w-10 h-10" />
+            <DoveMark variant="medallion" className="w-10 h-10" />
             <span className="font-display text-2xl">GraceNotes Daily</span>
             <span className="text-gold"></span>
           </div>
