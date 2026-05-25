@@ -66,7 +66,7 @@ function DailyDevotion() {
       <NatureBackground />
       <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
         <Link to="/" className="flex items-center gap-2">
-          <Heart className="w-5 h-5 fill-current" />
+          <DoveMark variant="medallion" className="w-10 h-10" />
           <span className="font-display text-2xl">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
