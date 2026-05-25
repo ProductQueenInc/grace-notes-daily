@@ -61,35 +61,48 @@ function Onboarding() {
   }
 
   async function finish() {
-    if (!user || !phase || !voice) return;
+    if (!user) {
+      toast.error("You're not signed in. Please sign in again.");
+      nav({ to: "/login" });
+      return;
+    }
+    if (!phase) { toast.error("Please pick where you are in your faith."); setStep(2); return; }
+    if (!voice) { toast.error("Please pick a voice."); setStep(5); return; }
+
     setSaving(true);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const seasonObjs = seasons.map((tag) => ({ tag, set_at: new Date().toISOString() }));
 
-    if (supabaseConfigured) {
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        name,
-        faith_phase: phase,
-        onboarded: true,
-        rhythms,
-        seasons: seasonObjs,
-        voice,
-        timezone,
-      });
-      if (error) {
-        setSaving(false);
-        toast.error(error.message);
-        return;
+    try {
+      if (supabaseConfigured) {
+        const { error } = await supabase.from("profiles").upsert({
+          id: user.id,
+          name,
+          faith_phase: phase,
+          onboarded: true,
+          rhythms,
+          seasons: seasonObjs,
+          voice,
+          timezone,
+        });
+        if (error) {
+          console.error("[onboarding] upsert failed", error);
+          toast.error(`Could not save: ${error.message}`);
+          setSaving(false);
+          return;
+        }
+      } else {
+        writeProfileExtras(user.id, { rhythms, seasons: seasonObjs, voice, timezone, translation: null });
       }
-    } else {
-      // Offline fallback - keep localStorage until Supabase is configured
-      writeProfileExtras(user.id, { rhythms, seasons: seasonObjs, voice, timezone, translation: null });
-    }
 
-    setSaving(false);
-    await reloadProfile();
-    nav({ to: "/home" });
+      await reloadProfile();
+      setSaving(false);
+      nav({ to: "/home" });
+    } catch (e) {
+      console.error("[onboarding] finish crashed", e);
+      toast.error(e instanceof Error ? e.message : "Something went wrong saving your profile.");
+      setSaving(false);
+    }
   }
 
   const canNext: Record<number, boolean> = {
