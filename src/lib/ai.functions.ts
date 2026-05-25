@@ -80,9 +80,10 @@ function seasonLine(seasons: string[]) {
 function anthropic() {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY is not set");
-  // 25s timeout + 1 retry: keeps mobile UX responsive instead of letting a stalled
+  // 18s timeout + 1 retry: keeps mobile UX responsive instead of letting a stalled
   // request hang the spinner indefinitely.
-  return new Anthropic({ apiKey: key, timeout: 25_000, maxRetries: 1 });
+  return new Anthropic({ apiKey: key, timeout: 18_000, maxRetries: 1 });
+
 }
 
 function openai() {
