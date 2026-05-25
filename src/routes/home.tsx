@@ -103,7 +103,7 @@ function Home() {
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
                 <div className="flex items-center gap-2 font-semibold text-white min-w-0">
-                  <Icon icon={MessageCircle} size="md" tone="inherit" />
+                  <DoveMark variant="gold" className="w-6 h-6 shrink-0" alt="" />
                   <span className="truncate">Today's Grace Note</span>
 
                   {/* Info: explains personalization, links to settings */}
