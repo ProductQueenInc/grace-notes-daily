@@ -291,7 +291,7 @@ export const getOrCreateDevotional = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const date = todayISO();
+    const date = data.clientDate ?? todayISO();
 
     const { data: cached } = await supabase
       .from("daily_content")
