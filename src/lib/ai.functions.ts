@@ -94,7 +94,8 @@ function openai() {
   return new OpenAI({ apiKey: key });
 }
 
-function stripEmDashes(s: string): string {
+function stripEmDashes(s: string | null | undefined): string {
+  if (!s) return "";
   // Replace em-dash (—) and en-dash (–) with " - " or appropriate punctuation.
   return s.replace(/\s*[—–]\s*/g, " - ");
 }
