@@ -1,66 +1,48 @@
 ## Goal
 
-Make heart-note replies feel authentic across any user/entry — not just ones that happen to match the model's poetic defaults. Reduce cost/latency by reserving Sonnet for the devotional only.
+Replace default Supabase auth emails with GraceNotes Daily–branded templates. Polish the two flows users actually see during onboarding (signup confirmation + password reset). Leave the other four as clean branded defaults.
 
-## Changes (all in `src/lib/ai.functions.ts`)
+## Sender
 
-### 1. Show, don't tell — add concrete example replies to the heart-note prompt
+- **From:** `GraceNotes Daily <hello@notify.gracenotesdaily.com>`
+- **Reply-To:** none for now (replies bounce — these are system emails, not conversational)
+- Tomorrow: set up `hello@gracenotesdaily.com` → `cindy@product-queen.com` forwarding at the registrar, then I'll add it as Reply-To.
 
-Append a `GOOD EXAMPLES` block to the `callRespondToHeartNote` system prompt with 3–4 short, varied samples covering different note types so the model has a target shape, not just a list of forbidden moves:
+## What gets scaffolded
 
-- **Grief / hard day** — flat, present, no climb. ~3 sentences, no sign-off.
-- **Gratitude / good news** — warm but restrained, mirrors one concrete noun from the note.
-- **Doubt / questioning** — steady, doesn't reassure or resolve. Ends with a short held line.
-- **Milestone / launch** — acknowledges the work itself, not "the spark in your writing."
+One pass creates 6 React Email templates + the auth-email-hook server route:
 
-Each example will be 2–4 plain sentences, no bold, no name-as-opener, no aphoristic climb, optional one-line sign-off on only one of them — so the model sees that the sign-off really is optional.
+1. **`signup.tsx`** — polished copy (primary onboarding email)
+2. **`recovery.tsx`** — polished copy (password reset)
+3. `magic-link.tsx` — branded shell, default body
+4. `email-change.tsx` — branded shell, default body
+5. `invite.tsx` — branded shell, default body
+6. `reauthentication.tsx` — branded shell, default body
 
-### 2. Output guard + single retry
+## Brand styling (applied to all 6)
 
-After the Anthropic call, run the reply text through a small validator that flags the known failure modes:
+- White email body background (#ffffff) — hard rule, regardless of app theme
+- Text-based "GraceNotes Daily" wordmark header in `--grace` (#285c37) — no image, avoids broken-image fallbacks in email clients
+- Fraunces for headings with Georgia fallback; Nunito for body with system-ui fallback (email clients don't reliably load Google Fonts)
+- `--grace` headings, `--gold` (#debe36) on the primary CTA button
+- Soft footer: "GraceNotes Daily · gracenotesdaily.com"
+- Generous padding, calm spacing — matches the in-app glass surfaces in feel
 
-- Starts with `**Name**` or `Name.` as a standalone first beat
-- Contains `**` anywhere (bold markdown)
-- Contains `I see it.` / `I see you.` / `I notice` as an opener
-- Contains the aphoristic pattern `…doesn't mean…. It means…`
-- Contains rhetorical triplets like `Every X… Every Y… Every Z…`
-- Longer than ~5 sentences
+## Polish copy (the two that matter)
 
-If any flag trips, re-run the call **once** with a short corrective system addendum ("Your previous reply broke rule X. Rewrite shorter, flatter, no bold, no name opener."). If the retry still fails the bold/name checks, sanitize in code (strip `**`, drop a leading `Name.` line) and return. Never loop more than once — cost + latency cap.
+**Signup confirmation** — warm, one-line welcome + CTA "Confirm your email". Reverent, no exclamation points, no marketing language. Tone matches the app: held, seen, welcome.
 
-### 3. Lower temperature
+**Password reset** — short, calm, security-aware. CTA "Set a new password". Mentions the link expires and that they can ignore the email if they didn't request it.
 
-- Heart-note reply: `0.8 → 0.6`
-- Daily-message chat: `0.9 → 0.7`
-- Grace note: `0.85 → 0.7`
-- Devotional: `0.8 → 0.7`
+The other four get the branded shell with Supabase's default body copy, lightly cleaned.
 
-Creative flourish was the wrong dial. Grounded specificity is what we want, and lower temp pushes the model toward its more literal, less performative register.
+## After scaffolding
 
-### 4. Model swap — Sonnet only where it earns its keep
+- Templates live in `supabase/functions/_shared/email-templates/*.tsx` and can be edited any time
+- Server route deploys with the app on next publish — no separate deploy step
+- DNS for `notify.gracenotesdaily.com` continues verifying in the background; setup status is visible in Cloud → Emails
+- Emails start sending automatically once DNS verification completes
 
-| Server fn | Current | New |
-|---|---|---|
-| `callRespondToHeartNote` | `claude-sonnet-4-5` | `claude-haiku-4-5` |
-| `callRespondToDailyMessage` | `gpt-4o-mini` (OpenAI) | unchanged — already light |
-| `generateGraceNoteRaw` | `claude-haiku-4-5` | unchanged |
-| `generateDevotionalRaw` | `claude-sonnet-4-5` | **unchanged** — devotional is the only place that benefits from Sonnet's depth (longer body, scripture weaving, three related verses) |
+## Tomorrow
 
-Heart-note replies are 3–4 sentences with strict constraints — a shaping problem, not a reasoning problem. Haiku 4.5 handles that well, especially with the new examples + retry guard compensating for any drop in nuance. Net effect: faster replies, lower spend, tone stays on target.
-
-### 5. Clear today's cached row again
-
-After deploy, run the same `DELETE FROM public.heart_notes WHERE date = CURRENT_DATE` so you can test the new prompt + model end-to-end without yesterday's cache.
-
-## Files touched
-
-- `src/lib/ai.functions.ts` — examples block, validator + single retry, temps lowered, model swap on heart-note fn
-- One-line SQL to clear today's cache
-
-No DB schema changes, no new dependencies, no frontend changes.
-
-## What this does NOT do
-
-- Doesn't add per-user style learning (would need a feedback table — separate phase)
-- Doesn't A/B different models per user — single model per server fn for now
-- Doesn't change the daily-message chat behavior beyond temperature
+Once `hello@gracenotesdaily.com` forwarding is live, one small edit to the auth-email-hook adds `Reply-To: hello@gracenotesdaily.com` to all 6 templates.
