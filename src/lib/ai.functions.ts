@@ -11,6 +11,9 @@ const AIProfileSchema = z.object({
   faithPhase: z.string().max(50),
   voice: z.string().max(50),
   seasons: z.array(z.string().max(100)).max(20),
+  // Client-supplied local date (YYYY-MM-DD). Used as the cache key so the
+  // grace note / devotional roll over at the user's LOCAL midnight, not UTC.
+  clientDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 const HeartNoteInputSchema = z.object({
