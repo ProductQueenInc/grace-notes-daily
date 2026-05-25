@@ -57,57 +57,67 @@ function About() {
 
           {/* Founder story */}
           <div className="glass-parchment rounded-3xl p-10 md:p-14 text-foreground space-y-5">
-            <h2 className="font-display text-3xl text-grace">Why I built this</h2>
+            <h2 className="font-display text-3xl text-grace">Why I Built This</h2>
 
             <p className="text-foreground/75 leading-relaxed">
-              My name is Cindy, a tech builder at Product Queen Inc. I build apps that solve a problem for me first, and hopefully for other people next.
+              My name is Cindy, a tech builder at{" "}
+              <a href="https://www.product-queen.com" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Product Queen Inc.</a>{" "}
+              I build products that solve a problem I have first, and then share them publicly if they turn out useful beyond my close friends and family.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
-              I created GraceNotes Daily because I had just returned to my Christian faith, and I was struggling to build
-              the routine I needed to stay close to God. I would open my Bible and not know where to start. That uncertainty
-              would derail me; I'd spend so much time figuring out what would speak to my spirit that day, often come up
-              empty, and get distracted. I needed something that would meet me where I was, without requiring me to already
-              know what I needed.
+              The urge to build GraceNotes Daily was unrelenting; it practically begged to exist. Every morning after I
+              found my way back to my Christian faith, it would sit heavily on my heart.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
-              I wanted to talk to God a bit more, and a bit more intentionally. After praying in the morning and listening
-              to some gospel music, I wanted to sit down and tell God how my heart was feeling in that moment, and see
-              what He had in mind for me. So I built something that could hold that conversation, track that journey, and
-              let me feel like I was genuinely growing.
+              I was struggling to build the routine I needed to stay close to God. I would open my Bible and not know
+              where to start. That uncertainty would derail me; I'd spend so much time trying to figure out what might
+              speak to my spirit that day that I'd often get distracted or come up empty altogether. I needed something
+              that would meet me where I was, without requiring me to already know what I needed.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
-              The more GraceNotes Daily became a habit in my own day, the more I felt that other people would benefit
-              from it too. So I built it for myself first, and I'm now building it for you.
+              I wanted to talk to God more intentionally. After praying in the morning and listening to gospel music, I
+              found myself wanting a space where I could sit down, tell God honestly how my heart felt in that moment, and
+              reflect on what He might be trying to show me. So I built something that could hold that conversation, track
+              that journey, and help me feel like I was genuinely growing in faith instead of just trying to "be disciplined."
+            </p>
+
+            <p className="text-foreground/75 leading-relaxed">
+              The more GraceNotes Daily became part of my own life, the more I felt other people might need it too. So I
+              built it for myself first, and now I'm building it for you.
             </p>
 
             <blockquote className="border-l-2 border-gold pl-5 py-1">
               <p className="text-foreground/80 italic leading-relaxed font-display text-lg">
-                "My life's mission is to build beautiful products, beautiful experiences, and beautiful spaces.
-                I hope this soul and beauty I tried to bring to GraceNotes Daily translates to you wherever
-                you experience it for yourself. It has been the delight of my lifetime bringing this to life."
+                "My life's mission is to build beautiful products, beautiful experiences, and beautiful spaces. I hope
+                the soul and care I tried to pour into GraceNotes Daily reaches you wherever you experience it for
+                yourself. Bringing this to life has genuinely been one of the great delights of my life."
               </p>
             </blockquote>
 
             <p className="text-foreground/75 leading-relaxed">
-              I've been working for 9 years in tech, having transitioned from a background in law. Being a multi-passionate
-              citizen of the world, I travel across Africa and Europe exploring all my God-given gifts and talents. I'm also
-              a student pilot, a tennis player, an artist, and a commercial interior designer as the curator of{" "}
-              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>.
-              My ultimate goal is to embody and manifest everything God had in mind for me when He created me.
+              I've spent the last 9 years working in tech after transitioning from a background in law. I'm deeply
+              multi-passionate and endlessly curious, and I spend a lot of my time travelling across Africa and Europe
+              exploring the different gifts God has placed in my life.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
-              I work with a small, trusted team as this product grows. Everything we build here is held to one standard:
-              that GraceNotes Daily remains a welcoming, soft, safe space for other Christians who simply want to be
-              more intimate with their Father.
+              Beyond tech, I'm also a student pilot, tennis player, artist, and commercial interior designer at{" "}
+              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>.
+              My ultimate goal is simple: to fully become everything God had in mind when He created me.
+            </p>
+
+            <p className="text-foreground/75 leading-relaxed">
+              As GraceNotes Daily grows, I work with a small and trusted team to bring it to life thoughtfully. Everything
+              we build is held to one standard: that this remains a soft, welcoming, safe space for Christians who simply
+              want to grow closer to their Father.
             </p>
 
             <p className="text-foreground/70 text-sm">
-              Want to know more about the products I build?{" "}
-              <a href="https://www.product-queen.com" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Visit product-queen.com</a>
+              Want to explore more of the products I build? Visit{" "}
+              <a href="https://www.product-queen.com" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Product Queen</a>.
             </p>
           </div>
 
