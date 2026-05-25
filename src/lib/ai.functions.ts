@@ -427,6 +427,7 @@ ${NO_EM_DASH_RULE}`;
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => DailyMessageInputSchema.parse(data))
   .handler(async ({ data }) => {
     const client = openai();
