@@ -8,6 +8,7 @@ import { Compass, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } fr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { summarizeHeartNote } from "@/lib/ai-stubs";
 
 export const Route = createFileRoute("/journey")({
   head: () => ({ meta: [{ title: "Journey - GraceNotes Daily" }] }),
