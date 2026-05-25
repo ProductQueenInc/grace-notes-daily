@@ -92,15 +92,11 @@ function About() {
             </blockquote>
 
             <p className="text-foreground/75 leading-relaxed">
-              I have spent nine years working in tech, having transitioned from a background in law. I am based in Nairobi,
-              Kenya, though I travel widely. Outside of building products, I am a student pilot, a tennis player, an artist,
-              and a commercial interior designer;{" "}
-              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>{" "}
-              is my interior design brand.
-            </p>
-
-            <p className="text-foreground/75 leading-relaxed">
-              My ultimate goal in all of it is to embody and manifest everything God had in mind for me when He created me.
+              I've been working for 9 years in tech, having transitioned from a background in law. Being a multi-passionate
+              citizen of the world, I travel across Africa and Europe exploring all my God-given gifts and talents. I'm also
+              a student pilot, a tennis player, an artist, and a commercial interior designer as the curator of{" "}
+              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>.
+              My ultimate goal is to embody and manifest everything God had in mind for me when He created me.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
