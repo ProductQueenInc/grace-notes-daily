@@ -11,14 +11,8 @@ import { Toaster } from "sonner";
 import { MessageCircle } from "lucide-react";
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    Tally?: {
-      openPopup: (formId: string, options?: Record<string, unknown>) => void;
-      loadEmbeds?: () => void;
-    };
-  }
-}
+import { openTallyPopup, ensureTallyScript } from "@/lib/tally";
+
 
 import appCss from "../styles.css?url";
 
