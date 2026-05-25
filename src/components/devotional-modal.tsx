@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
 import { useAuth } from "@/hooks/use-auth";
+import { localTodayISO } from "@/lib/today";
 
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {

@@ -11,6 +11,9 @@ const AIProfileSchema = z.object({
   faithPhase: z.string().max(50),
   voice: z.string().max(50),
   seasons: z.array(z.string().max(100)).max(20),
+  // Client-supplied local date (YYYY-MM-DD). Used as the cache key so the
+  // grace note / devotional roll over at the user's LOCAL midnight, not UTC.
+  clientDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 const HeartNoteInputSchema = z.object({
@@ -33,6 +36,7 @@ export type AIProfile = {
   faithPhase: string;
   voice: string;
   seasons: string[];
+  clientDate?: string;
 };
 
 export type GraceNoteResult = { message: string; verse: string; signed: string };
@@ -262,7 +266,7 @@ export const getOrCreateGraceNote = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const date = todayISO();
+    const date = data.clientDate ?? todayISO();
 
     const { data: cached } = await supabase
       .from("daily_content")
@@ -287,7 +291,7 @@ export const getOrCreateDevotional = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => AIProfileSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const date = todayISO();
+    const date = data.clientDate ?? todayISO();
 
     const { data: cached } = await supabase
       .from("daily_content")

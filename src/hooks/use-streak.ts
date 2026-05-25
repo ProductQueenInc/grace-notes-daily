@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { isoForDate } from "@/lib/today";
 
 /**
  * Returns the current consecutive gold-day streak.
  * A gold day = devotional + daily_message + journal all true.
- * Counts backwards from today; breaks on any gap.
+ * Counts backwards from today (in the user's LOCAL timezone) and breaks on
+ * any gap. Using UTC dates here would mis-attribute days near midnight.
  */
 export function useStreak() {
   const [streak, setStreak] = useState(0);
@@ -32,7 +34,7 @@ export function useStreak() {
 
           for (const row of rows) {
             const rowDate = (row.date as string).slice(0, 10);
-            const expected = cursor.toISOString().slice(0, 10);
+            const expected = isoForDate(cursor);
             if (rowDate === expected) {
               count++;
               cursor.setDate(cursor.getDate() - 1);
@@ -47,3 +49,4 @@ export function useStreak() {
 
   return streak;
 }
+

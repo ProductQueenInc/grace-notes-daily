@@ -9,6 +9,7 @@ import { respondToHeartNote } from "@/lib/ai-stubs";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { BookHeart, Send } from "lucide-react";
+import { localTodayISO } from "@/lib/today";
 
 export const Route = createFileRoute("/heart-notes")({
   head: () => ({ meta: [{ title: "Heart Notes - GraceNotes Daily" }] }),
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/heart-notes")({
 const LIMIT = 250;
 
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 function HeartNotes() {

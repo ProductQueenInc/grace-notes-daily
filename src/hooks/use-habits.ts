@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { localTodayISO } from "@/lib/today";
 
 export type HabitKey = "devotional" | "dailyMessage" | "journal";
 export type HabitState = Record<HabitKey, boolean>;
@@ -7,14 +8,14 @@ export type HabitState = Record<HabitKey, boolean>;
 const EMPTY: HabitState = { devotional: false, dailyMessage: false, journal: false };
 
 // ── localStorage helpers (fallback when not authenticated) ────────────────────
+// Keys are local-date based so they roll over at the user's midnight, not UTC.
 
 function todayKey() {
-  const d = new Date();
-  return `gn:habits:${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  return `gn:habits:${localTodayISO()}`;
 }
 
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 function readLocal(): HabitState {
