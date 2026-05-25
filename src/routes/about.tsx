@@ -9,7 +9,7 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About - GraceNotes Daily" },
-      { name: "description", content: "GraceNotes Daily was built by Product Queen — a Nairobi-based product builder who came back to faith and couldn't find an app that met her gently. So she built one." },
+      { name: "description", content: "GraceNotes Daily was built by Product Queen, a Nairobi-based product builder who came back to faith and couldn't find an app that met her gently. So she built one." },
       { property: "og:title", content: "About GraceNotes Daily" },
       { property: "og:description", content: "A soft, daily companion for your walk with God. Built by someone who needed it first." },
     ],
@@ -66,14 +66,14 @@ function About() {
             <p className="text-foreground/75 leading-relaxed">
               I created GraceNotes Daily because I had just returned to my Christian faith, and I was struggling to build
               the routine I needed to stay close to God. I would open my Bible and not know where to start. That uncertainty
-              would derail me — I'd spend so much time figuring out what would speak to my spirit that day, often come up
+              would derail me; I'd spend so much time figuring out what would speak to my spirit that day, often come up
               empty, and get distracted. I needed something that would meet me where I was, without requiring me to already
               know what I needed.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
               I wanted to talk to God a bit more, and a bit more intentionally. After praying in the morning and listening
-              to some gospel music, I wanted to sit down and tell God how my heart was feeling in that moment — and see
+              to some gospel music, I wanted to sit down and tell God how my heart was feeling in that moment, and see
               what He had in mind for me. So I built something that could hold that conversation, track that journey, and
               let me feel like I was genuinely growing.
             </p>
@@ -85,16 +85,22 @@ function About() {
 
             <blockquote className="border-l-2 border-gold pl-5 py-1">
               <p className="text-foreground/80 italic leading-relaxed font-display text-lg">
-                "My life's mission is to build beautiful <strong className="not-italic">products</strong>, beautiful experiences, and beautiful spaces.
-                GraceNotes Daily has been an absolute delight of a lifetime to be part of."
+                "My life's mission is to build beautiful products, beautiful experiences, and beautiful spaces.
+                I hope this soul and beauty I tried to bring to GraceNotes Daily translates to you wherever
+                you experience it for yourself. It has been the delight of my lifetime bringing this to life."
               </p>
             </blockquote>
 
             <p className="text-foreground/75 leading-relaxed">
               I have spent nine years working in tech, having transitioned from a background in law. I am based in Nairobi,
               Kenya, though I travel widely. Outside of building products, I am a student pilot, a tennis player, an artist,
-              and a home designer; I also curate{" "}
-              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>.
+              and a commercial interior designer;{" "}
+              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>{" "}
+              is my interior design brand.
+            </p>
+
+            <p className="text-foreground/75 leading-relaxed">
+              My ultimate goal in all of it is to embody and manifest everything God had in mind for me when He created me.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
