@@ -246,13 +246,13 @@ function Header() {
   const isLoggedIn = !loading && !!session;
 
   return (
-    <header className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 text-white relative z-10">
+    <header className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-2 sm:gap-3 text-white relative z-10">
       <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group min-w-0">
         <DoveMark
           variant="medallion"
-          className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 transition-transform group-hover:scale-105"
+          className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 transition-transform group-hover:scale-105"
         />
-        <span className="font-display text-lg sm:text-2xl tracking-tight whitespace-nowrap">
+        <span className="font-display text-[1.6rem] leading-none sm:text-3xl tracking-tight whitespace-nowrap">
           GraceNotes Daily
         </span>
       </Link>
