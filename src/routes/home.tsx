@@ -120,15 +120,16 @@ function Home() {
                       className="max-w-[280px] text-sm bg-black/85 text-white border-white/10"
                     >
                       <p className="leading-relaxed">
-                        Today's note is gently shaped by what you shared when you
-                        joined — your faith phase, voice, and any seasons you
-                        named. It's a soft lens, not a script.
+                        This note is written using what you told us at sign-up —
+                        your faith phase, the voice you chose, and any seasons you
+                        picked. If any of that has changed, update it and the next
+                        note will reflect it.
                       </p>
                       <Link
                         to="/settings"
                         className="mt-3 inline-block text-gold font-semibold hover:underline"
                       >
-                        Update your preferences →
+                        Edit your preferences →
                       </Link>
                     </PopoverContent>
                   </Popover>
