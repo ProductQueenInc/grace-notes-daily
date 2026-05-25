@@ -174,7 +174,7 @@ function Landing() {
       <section className="px-6 pb-24">
         <div className="max-w-6xl mx-auto glass rounded-3xl p-8 md:p-14">
           <SectionTitle
-            eyebrow="No matter where you are"
+            eyebrow="Every step of the way"
             title="Tell us where you are. We'll meet you there."
             subtitle="We'll tailor your experience to your journey, from day one."
             dark
