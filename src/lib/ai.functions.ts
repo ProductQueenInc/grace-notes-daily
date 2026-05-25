@@ -443,9 +443,10 @@ ${NO_EM_DASH_RULE}`,
     const res = await client.chat.completions.create({
       model: "gpt-4o-mini",
       max_tokens: 200,
-      temperature: 0.9,
+      temperature: 0.7,
       messages,
     });
+
 
     return stripEmDashes(res.choices[0]?.message?.content ?? "He hears you. Stay close.");
   });
