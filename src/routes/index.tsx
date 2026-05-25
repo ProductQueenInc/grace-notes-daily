@@ -89,6 +89,9 @@ const faqs = [
 ];
 
 function Landing() {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   return (
     <>
       <NatureBackground />
@@ -110,18 +113,12 @@ function Landing() {
             GraceNotes Daily is a soft, gentle companion for your walk with God - meeting you with
             reflection, prayer, and presence, wherever you are.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex justify-center">
             <Link
-              to="/signup"
-              className="px-7 py-3.5 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition"
+              to={isLoggedIn ? "/home" : "/signup"}
+              className="px-8 py-4 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition text-base"
             >
-              Begin your journey
-            </Link>
-            <Link
-              to="/login"
-              className="px-7 py-3.5 rounded-full glass text-grace font-semibold hover:bg-white/80 transition"
-            >
-              I already have an account
+              {isLoggedIn ? "Open your space →" : "Begin your journey"}
             </Link>
           </div>
           <p className="text-xs text-white/70 mt-5 flex items-center justify-center gap-1.5">
@@ -129,6 +126,7 @@ function Landing() {
           </p>
         </div>
       </section>
+
 
       {/* SOFT REASSURANCE STRIP */}
       <section className="px-6 pb-16">
