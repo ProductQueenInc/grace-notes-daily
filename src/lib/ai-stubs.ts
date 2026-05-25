@@ -8,21 +8,27 @@ import {
   type GraceNoteResult,
   type DevotionalResult,
 } from "@/lib/ai.functions";
+import { localTodayISO } from "@/lib/today";
 
 // Thin wrappers around the server functions.
-// Caching, auth, and the AI call all happen server-side in one RPC.
+// We pass the client's LOCAL date so the server-side daily_content cache keys
+// roll over at the user's midnight, not UTC midnight.
 
 export async function generateGraceNote(
   profileOrName: Profile | string | null,
 ): Promise<GraceNoteResult> {
   const profile = typeof profileOrName === "string" || !profileOrName ? null : profileOrName;
-  return getOrCreateGraceNote({ data: buildAIProfile(profile) });
+  return getOrCreateGraceNote({
+    data: { ...buildAIProfile(profile), clientDate: localTodayISO() },
+  });
 }
 
 export async function generateDevotional(
   profile?: Profile | null,
 ): Promise<DevotionalResult> {
-  return getOrCreateDevotional({ data: buildAIProfile(profile ?? null) });
+  return getOrCreateDevotional({
+    data: { ...buildAIProfile(profile ?? null), clientDate: localTodayISO() },
+  });
 }
 
 export async function respondToHeartNote(
