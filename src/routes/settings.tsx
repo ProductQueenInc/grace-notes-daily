@@ -132,7 +132,7 @@ function Settings() {
   return (
     <>
       <NatureBackground />
-      <section className="max-w-2xl mx-auto px-4 md:px-8 pt-6 md:pt-10 pb-12">
+      <section className="max-w-2xl mx-auto px-4 md:px-8 md:pt-10 pb-12" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 3.5rem, 4rem)" }}>
         <PageHeader
           icon={SettingsIcon}
           eyebrow="Personalize"
