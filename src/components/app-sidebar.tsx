@@ -28,7 +28,7 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useStreak } from "@/hooks/use-streak";
-import doveLogo from "@/assets/dove-logo.png";
+import doveLogo from "@/assets/round-transparent-green-dove.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,8 +100,8 @@ export function AppSidebar() {
                 aria-label="GraceNotes Daily home"
                 className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
               >
-                <span className="w-9 h-9 aspect-square rounded-full flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-gold/30 shadow-[0_0_18px_-6px_var(--gold)]">
-                  <img src={doveLogo} alt="" className="w-9 h-9 object-cover" />
+                <span className="w-9 h-9 aspect-square rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white ring-1 ring-gold/40 shadow-[0_0_18px_-6px_var(--gold)]">
+                  <img src={doveLogo} alt="" className="w-8 h-8 object-contain" />
                 </span>
                 {!collapsed && (
                   <span className="font-display text-lg text-white tracking-tight truncate">

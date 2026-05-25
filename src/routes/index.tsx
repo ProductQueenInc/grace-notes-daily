@@ -89,6 +89,9 @@ const faqs = [
 ];
 
 function Landing() {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   return (
     <>
       <NatureBackground />
@@ -110,18 +113,12 @@ function Landing() {
             GraceNotes Daily is a soft, gentle companion for your walk with God - meeting you with
             reflection, prayer, and presence, wherever you are.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex justify-center">
             <Link
-              to="/signup"
-              className="px-7 py-3.5 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition"
+              to={isLoggedIn ? "/home" : "/signup"}
+              className="px-8 py-4 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition text-base"
             >
-              Begin your journey
-            </Link>
-            <Link
-              to="/login"
-              className="px-7 py-3.5 rounded-full glass text-grace font-semibold hover:bg-white/80 transition"
-            >
-              I already have an account
+              {isLoggedIn ? "Open your space →" : "Begin your journey"}
             </Link>
           </div>
           <p className="text-xs text-white/70 mt-5 flex items-center justify-center gap-1.5">
@@ -129,6 +126,7 @@ function Landing() {
           </p>
         </div>
       </section>
+
 
       {/* SOFT REASSURANCE STRIP */}
       <section className="px-6 pb-16">
@@ -142,22 +140,35 @@ function Landing() {
       </section>
 
       {/* FEATURES */}
-      <section className="px-6 pb-24">
-        <div className="max-w-6xl mx-auto">
+      <section className="pb-24 sm:px-6">
+        <div className="max-w-6xl mx-auto px-6 sm:px-0">
           <SectionTitle eyebrow="What's inside" title="Everything you need for a gentle rhythm with God" />
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
-            {features.map((f) => (
-              <div key={f.title} className="glass rounded-3xl p-6 text-foreground hover:scale-[1.01] transition">
-                <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
-                  <f.icon className="w-5 h-5" />
-                </span>
-                <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
-                <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
+        </div>
+        {/* Mobile: horizontal snap rail. Tablet+: grid */}
+        <div className="mt-10 sm:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-6 pb-3 -mx-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {features.map((f) => (
+            <div key={f.title} className="glass rounded-3xl p-6 text-foreground min-w-[78vw] snap-start">
+              <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5" />
+              </span>
+              <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
+              <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="max-w-6xl mx-auto hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
+          {features.map((f) => (
+            <div key={f.title} className="glass rounded-3xl p-6 text-foreground hover:scale-[1.01] transition">
+              <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5" />
+              </span>
+              <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
+              <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
+
 
       {/* PHASES */}
       <section className="px-6 pb-24">
@@ -217,10 +228,10 @@ function Landing() {
             One small, sacred pause a day. No pressure, no performance - just presence.
           </p>
           <Link
-            to="/signup"
+            to={isLoggedIn ? "/home" : "/signup"}
             className="inline-block px-8 py-4 rounded-full bg-grace text-white font-semibold shadow-xl hover:opacity-95 transition"
           >
-            Begin your journey →
+            {isLoggedIn ? "Open your space →" : "Begin your journey →"}
           </Link>
         </div>
       </section>
@@ -236,10 +247,9 @@ function Header() {
 
   return (
     <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
-      <Link to="/" className="flex items-center gap-2">
-        <DoveMark variant="white" className="w-10 h-10" />
-        <span className="font-display text-2xl">GraceNotes Daily</span>
-        <span className="text-gold"></span>
+      <Link to="/" className="flex items-center gap-2.5 group">
+        <DoveMark variant="white" className="w-9 h-9 transition-transform group-hover:scale-105" />
+        <span className="font-display text-2xl tracking-tight">GraceNotes Daily</span>
       </Link>
       <nav className="hidden md:flex items-center gap-1">
         <a href="#faq" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">FAQ</a>
