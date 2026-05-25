@@ -16,13 +16,6 @@ export const Route = createFileRoute("/contact")({
   component: Contact,
 });
 
-declare global {
-  interface Window {
-    Tally?: {
-      openPopup: (formId: string, options?: Record<string, unknown>) => void;
-    };
-  }
-}
 
 function Contact() {
   const { session, loading } = useAuth();
