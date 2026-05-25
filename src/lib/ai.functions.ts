@@ -481,3 +481,37 @@ export function buildAIProfile(profile: {
     seasons: (profile?.seasons ?? []).map((s) => s.tag),
   };
 }
+
+// ── Server Function: Summarize Heart Note (title for Journey page) ────────────
+// Called lazily when an expired heart note first lands on the Journey page.
+
+export const callSummarizeHeartNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => SummarizeInputSchema.parse(data))
+  .handler(async ({ data }) => {
+    const client = anthropic();
+    const system = `Write a 4 to 7 word title for this personal reflection. Plain, specific, gentle. No quotes, no trailing punctuation, no clichés like "Finding peace" or "A moment of grace". Title-case the first word only. Reply with just the title, nothing else.
+
+${NO_EM_DASH_RULE}`;
+
+    try {
+      const msg = await client.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 40,
+        temperature: 0.5,
+        system,
+        messages: [{ role: "user", content: data.text }],
+      } as Parameters<typeof client.messages.create>[0]);
+      const block = (msg as Anthropic.Message).content[0];
+      const raw = block.type === "text" ? block.text : "";
+      const cleaned = stripEmDashes(raw)
+        .replace(/^["'`]+|["'`]+$/g, "")
+        .replace(/[.!?]+\s*$/g, "")
+        .split("\n")[0]
+        .trim();
+      return cleaned || "Heart Note";
+    } catch {
+      return "Heart Note";
+    }
+  });
+
