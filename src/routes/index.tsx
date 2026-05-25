@@ -228,10 +228,10 @@ function Landing() {
             One small, sacred pause a day. No pressure, no performance - just presence.
           </p>
           <Link
-            to="/signup"
+            to={isLoggedIn ? "/home" : "/signup"}
             className="inline-block px-8 py-4 rounded-full bg-grace text-white font-semibold shadow-xl hover:opacity-95 transition"
           >
-            Begin your journey →
+            {isLoggedIn ? "Open your space →" : "Begin your journey →"}
           </Link>
         </div>
       </section>
