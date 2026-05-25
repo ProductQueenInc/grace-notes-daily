@@ -40,7 +40,6 @@ function Journey() {
   const [all, setAll] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState<"all" | "heart-note" | "prayer">("all");
-  const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [page, setPage] = useState(0);
