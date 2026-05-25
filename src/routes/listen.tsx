@@ -115,7 +115,7 @@ function Listen() {
   return (
     <>
       <NatureBackground />
-      <section className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-10">
+      <section className="max-w-6xl mx-auto px-4 md:px-8 md:pt-10" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 3.5rem, 4rem)" }}>
         {/* Header */}
         <div className="mb-8 fade-up">
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/70 mb-2">
