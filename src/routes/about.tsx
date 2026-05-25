@@ -3,6 +3,7 @@ import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { Sparkles } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -17,6 +18,9 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   return (
     <>
       <NatureBackground />
@@ -26,7 +30,11 @@ function About() {
           <span className="font-display text-2xl">GraceNotes Daily</span>
           <span className="text-gold"></span>
         </Link>
-        <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
+        {isLoggedIn ? (
+          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Open app</Link>
+        ) : (
+          <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
+        )}
       </header>
 
       <section className="px-6 py-16">
@@ -52,7 +60,7 @@ function About() {
             <h2 className="font-display text-3xl text-grace">Why I built this</h2>
 
             <p className="text-foreground/75 leading-relaxed">
-              My name is Product Queen. I build apps that solve a problem for me first, and hopefully for other people next.
+              My name is Cindy, a tech builder at Product Queen Inc. I build apps that solve a problem for me first, and hopefully for other people next.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
@@ -77,15 +85,16 @@ function About() {
 
             <blockquote className="border-l-2 border-gold pl-5 py-1">
               <p className="text-foreground/80 italic leading-relaxed font-display text-lg">
-                "My life's mission is to build beautiful things, beautiful experiences, and beautiful spaces.
+                "My life's mission is to build beautiful <strong className="not-italic">products</strong>, beautiful experiences, and beautiful spaces.
                 GraceNotes Daily has been an absolute delight of a lifetime to be part of."
               </p>
             </blockquote>
 
             <p className="text-foreground/75 leading-relaxed">
-              I'm a tech enthusiast based in Nairobi, Kenya, though I travel widely. I have a background in technology
-              and, before that, in law. I'm also a student pilot, a tennis player, an artist, and a home designer — and
-              the curator of <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>.
+              I have spent nine years working in tech, having transitioned from a background in law. I am based in Nairobi,
+              Kenya, though I travel widely. Outside of building products, I am a student pilot, a tennis player, an artist,
+              and a home designer; I also curate{" "}
+              <a href="https://www.habitue.design" target="_blank" rel="noopener noreferrer" className="text-grace underline underline-offset-2 hover:text-grace-deep transition">Habitue.Design</a>.
             </p>
 
             <p className="text-foreground/75 leading-relaxed">
@@ -101,7 +110,11 @@ function About() {
           </div>
 
           <div className="flex gap-3 px-1">
-            <Link to="/signup" className="px-6 py-3 rounded-full bg-grace text-white font-semibold hover:opacity-95 transition">Begin your journey</Link>
+            {isLoggedIn ? (
+              <Link to="/home" className="px-6 py-3 rounded-full bg-grace text-white font-semibold hover:opacity-95 transition">Open app</Link>
+            ) : (
+              <Link to="/signup" className="px-6 py-3 rounded-full bg-grace text-white font-semibold hover:opacity-95 transition">Begin your journey</Link>
+            )}
             <Link to="/contact" className="px-6 py-3 rounded-full glass text-grace font-semibold hover:bg-white/80 transition">Say hello</Link>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ChevronDown } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -26,12 +27,23 @@ const faqs = [
 ];
 
 function FAQ() {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   return (
     <>
       <NatureBackground />
       <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
-        <Link to="/" className="flex items-center gap-2"><DoveMark variant="white" className="w-10 h-10" /><span className="font-display text-2xl">GraceNotes Daily</span><span className="text-gold"></span></Link>
-        <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
+        <Link to="/" className="flex items-center gap-2">
+          <DoveMark variant="white" className="w-10 h-10" />
+          <span className="font-display text-2xl">GraceNotes Daily</span>
+          <span className="text-gold"></span>
+        </Link>
+        {isLoggedIn ? (
+          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Open app</Link>
+        ) : (
+          <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
+        )}
       </header>
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto">

@@ -7,6 +7,7 @@ import {
   ChevronDown, Quote, ShieldCheck, Sun, Moon,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -212,6 +213,9 @@ function Landing() {
 }
 
 function Header() {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   return (
     <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
       <Link to="/" className="flex items-center gap-2">
@@ -225,12 +229,20 @@ function Header() {
         <Link to="/contact" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">Contact</Link>
       </nav>
       <div className="flex gap-2">
-        <Link to="/login" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition">
-          Sign in
-        </Link>
-        <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition">
-          Get started
-        </Link>
+        {isLoggedIn ? (
+          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition">
+            Open app
+          </Link>
+        ) : (
+          <>
+            <Link to="/login" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition">
+              Sign in
+            </Link>
+            <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition">
+              Get started
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );

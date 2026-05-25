@@ -9,6 +9,16 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { MessageCircle } from "lucide-react";
+import { useEffect } from "react";
+
+declare global {
+  interface Window {
+    Tally?: {
+      openPopup: (formId: string, options?: Record<string, unknown>) => void;
+      loadEmbeds?: () => void;
+    };
+  }
+}
 
 import appCss from "../styles.css?url";
 
@@ -135,17 +145,33 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Load Tally script programmatically — the scripts[] in head() is unreliable
+  // in the Cloudflare Worker SSR context, so we ensure it loads on the client.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (document.querySelector('script[src*="tally.so/widgets/embed.js"]')) return;
+    const s = document.createElement("script");
+    s.src = "https://tally.so/widgets/embed.js";
+    s.async = true;
+    document.head.appendChild(s);
+  }, []);
+
+  function openFeedback() {
+    if (typeof window !== "undefined" && window.Tally) {
+      window.Tally.openPopup("VL4NY6", {
+        width: 374,
+        emoji: { text: "👋", animation: "wave" },
+      });
+    }
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster position="bottom-center" theme="light" richColors closeButton />
       {/* Floating feedback button — visible on all pages including the authenticated app */}
       <button
-        data-tally-open="VL4NY6"
-        data-tally-width="374"
-        data-tally-emoji-text="👋"
-        data-tally-emoji-animation="wave"
-        data-tally-form-events-forwarding="1"
+        onClick={openFeedback}
         aria-label="Share feedback"
         title="Share feedback"
         className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-gold shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"

@@ -3,6 +3,7 @@ import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { Heart, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/daily-devotional")({
   head: () => ({
@@ -42,6 +43,9 @@ const faqs = [
 ];
 
 function DailyDevotion() {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   return (
     <>
       <script
@@ -64,9 +68,11 @@ function DailyDevotion() {
           <Heart className="w-5 h-5 fill-current" />
           <span className="font-display text-2xl">GraceNotes Daily</span>
         </Link>
-        <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
-          Get started
-        </Link>
+        {isLoggedIn ? (
+          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Open app</Link>
+        ) : (
+          <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
+        )}
       </header>
 
       <section className="px-6 pt-10 pb-6 relative z-10 text-center">
