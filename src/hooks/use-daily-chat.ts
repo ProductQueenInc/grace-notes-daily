@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { callRespondToDailyMessage, buildAIProfile } from "@/lib/ai.functions";
+import { localTodayISO } from "@/lib/today";
 import type { Profile } from "@/hooks/use-auth";
 
 export type ChatRole = "user" | "assistant";
@@ -12,14 +13,15 @@ export interface ChatMessage {
 }
 
 // ── localStorage helpers (fallback) ───────────────────────────────────────────
+// Both the storage key and the DB query use the user's local date so the chat
+// thread truly resets at LOCAL midnight (not UTC midnight).
 
 function todayKey() {
-  const d = new Date();
-  return `gn:daily-message:${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  return `gn:daily-message:${localTodayISO()}`;
 }
 
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 function readLocal(): ChatMessage[] {
