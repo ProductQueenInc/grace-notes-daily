@@ -88,6 +88,7 @@ function Onboarding() {
     }
 
     setSaving(false);
+    await reloadProfile();
     nav({ to: "/home" });
   }
 
