@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
-  ChevronLeft, ChevronRight, Sparkles, Check, Info,
+  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag,
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { pickRhythmGreeting } from "@/lib/personalization";
@@ -21,6 +21,8 @@ import { badgeForCount, badgeLabel, badgeColors, type BadgeTier } from "@/lib/ba
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { openTallyForm } from "@/lib/tally";
 
 function todayISO() {
   return new Date().toISOString().split("T")[0];
