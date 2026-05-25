@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useHabits, type HabitKey } from "@/hooks/use-habits";
 import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { generateGraceNote, respondToDailyMessage } from "@/lib/ai-stubs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { generateGraceNote, generateDevotional, respondToDailyMessage } from "@/lib/ai-stubs";
 import { useStreak } from "@/hooks/use-streak";
 import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
@@ -21,6 +22,10 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
+
 export const Route = createFileRoute("/home")({
   head: () => ({ meta: [{ title: "Home - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Home /></AppShell></RequireAuth>,
@@ -30,8 +35,8 @@ function Home() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const name = profile?.name || "Friend";
+  const queryClient = useQueryClient();
 
-  const [graceNote, setGraceNote] = useState<{ message: string; verse: string; signed: string } | null>(null);
   const [showVerse, setShowVerse] = useState(false);
   const [devotionalOpen, setDevotionalOpen] = useState(false);
 
@@ -40,9 +45,25 @@ function Home() {
   const tier = badgeForCount(completedCount);
   const streak = useStreak();
 
+  const today = todayISO();
+  const { data: graceNote } = useQuery({
+    queryKey: ["grace-note", today],
+    queryFn: () => generateGraceNote(profile),
+    enabled: !!profile,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+  });
+
+  // Warm the devotional cache in the background so the modal opens instantly.
   useEffect(() => {
-    generateGraceNote(profile).then(setGraceNote);
-  }, [profile]);
+    if (!profile) return;
+    queryClient.prefetchQuery({
+      queryKey: ["devotional", today],
+      queryFn: () => generateDevotional(profile),
+      staleTime: Infinity,
+    });
+  }, [profile, today, queryClient]);
+
 
   function handleHabitClick(k: HabitKey) {
     if (k === "devotional") { setDevotionalOpen(true); return; }
