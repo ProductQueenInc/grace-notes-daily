@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcement_dismissals: {
+        Row: {
+          announcement_id: string
+          dismissed_at: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          dismissed_at?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          dismissed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_dismissals_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "system_announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       background_images: {
         Row: {
           created_at: string
@@ -288,6 +314,45 @@ export type Database = {
           translation?: string | null
           updated_at?: string
           voice?: string | null
+        }
+        Relationships: []
+      }
+      system_announcements: {
+        Row: {
+          active: boolean
+          body: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          link_label: string | null
+          link_url: string | null
+          publish_at: string
+          severity: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          link_label?: string | null
+          link_url?: string | null
+          publish_at?: string
+          severity?: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          link_label?: string | null
+          link_url?: string | null
+          publish_at?: string
+          severity?: string
+          title?: string
         }
         Relationships: []
       }
