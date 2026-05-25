@@ -36,6 +36,7 @@ export type AIProfile = {
   faithPhase: string;
   voice: string;
   seasons: string[];
+  clientDate?: string;
 };
 
 export type GraceNoteResult = { message: string; verse: string; signed: string };
