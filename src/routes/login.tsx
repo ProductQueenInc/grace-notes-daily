@@ -94,13 +94,14 @@ function Login() {
                 <Icon icon={showPassword ? EyeOff : Eye} size="md" />
               </button>
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 text-sm">
               <label className="flex items-center gap-2 text-foreground/70">
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="accent-[color:var(--grace)]" />
                 Remember me
               </label>
-              <Link to="/reset-password" className="text-grace hover:underline">Forgot password?</Link>
+              <Link to="/reset-password" className="text-grace hover:underline self-start xs:self-auto">Forgot password?</Link>
             </div>
+
             <button disabled={loading} className="w-full py-3 rounded-full bg-grace text-white font-semibold shadow-soft disabled:opacity-60">
               {loading ? "Signing in..." : "Sign in"}
             </button>
