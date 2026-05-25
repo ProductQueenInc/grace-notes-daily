@@ -12,13 +12,14 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     if (loading) return;
     if (!supabaseConfigured) return; // allow preview without keys
     if (!user) {
-      navigate({ to: "/login" });
+      navigate({ to: "/login", replace: true });
       return;
     }
     if (profile && !profile.onboarded) {
-      navigate({ to: "/onboarding" });
+      navigate({ to: "/onboarding", replace: true });
     }
   }, [user, profile, loading, navigate]);
+
 
   if (loading)
     return (

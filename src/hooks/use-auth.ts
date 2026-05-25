@@ -38,6 +38,9 @@ export function useAuth() {
       setLoading(false);
       return;
     }
+    // CRITICAL: register the listener BEFORE reading the initial session, so we
+    // never miss the very first SIGNED_IN event on mobile Safari (which would
+    // leave the app thinking the user is signed out and bounce them back to /login).
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setUser(s?.user ?? null);
@@ -52,6 +55,7 @@ export function useAuth() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
 
   async function loadProfile(uid: string) {
     const { data } = await supabase

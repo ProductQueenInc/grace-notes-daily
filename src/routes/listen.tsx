@@ -188,27 +188,24 @@ function Listen() {
                   className="relative aspect-video bg-cover bg-center"
                   style={{ backgroundImage: `url(${m.thumb})` }}
                 >
-                  {/* Type badge */}
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/50 text-[10px] font-semibold text-white uppercase tracking-wider">
-                    {m.type}
-                  </span>
-                  {/* Play overlay */}
-                  <div className="absolute inset-0 bg-black/25 group-hover:bg-black/15 transition flex items-center justify-center">
-                    <span className="w-12 h-12 rounded-full bg-white/95 flex items-center justify-center">
-                      <Icon icon={Play} size="md" className="text-grace ml-0.5" tone="inherit" />
-                    </span>
-                  </div>
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition" />
                 </div>
                 {/* Info */}
-                <div className="p-3">
-                  <div className="text-[10px] uppercase tracking-wider text-white/60 mb-0.5">
-                    {m.categories.join(" · ")}
+                <div className="p-3 flex items-start gap-2.5">
+                  <span className="mt-0.5 w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                    <Icon icon={m.type === "audio" ? Headphones : Play} size="sm" tone="active" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-white/60 mb-0.5">
+                      {m.categories.join(" · ")}
+                    </div>
+                    <h3 className="font-semibold text-sm leading-snug text-white truncate">{m.title}</h3>
+                    <p className="text-xs text-white/65 mt-0.5 truncate">{m.speaker}</p>
                   </div>
-                  <h3 className="font-semibold text-sm leading-snug text-white">{m.title}</h3>
-                  <p className="text-xs text-white/65 mt-0.5">{m.speaker}</p>
                 </div>
               </button>
             ))}
+
           </div>
         )}
       </section>

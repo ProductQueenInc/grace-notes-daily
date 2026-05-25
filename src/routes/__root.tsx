@@ -152,10 +152,12 @@ function RootComponent() {
         onClick={openFeedback}
         aria-label="Share feedback"
         title="Share feedback"
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-gold shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+        className="fixed right-4 md:right-6 z-40 w-11 h-11 md:w-12 md:h-12 rounded-full bg-gold shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)" }}
       >
         <MessageCircle className="w-5 h-5 text-white" />
       </button>
+
       <FeedbackDialog />
     </QueryClientProvider>
   );
