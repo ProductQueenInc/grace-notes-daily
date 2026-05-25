@@ -18,6 +18,7 @@ import { useStreak } from "@/hooks/use-streak";
 
 import { PlayerDock } from "@/components/player-dock";
 import { Icon } from "@/components/icon";
+import { SystemBanner } from "@/components/system-banner";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 const MOBILE_TABS = [
@@ -65,6 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="flex-1 fade-up md:pb-12"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6.5rem)" }}
           >
+            <SystemBanner />
             {children}
           </main>
 
