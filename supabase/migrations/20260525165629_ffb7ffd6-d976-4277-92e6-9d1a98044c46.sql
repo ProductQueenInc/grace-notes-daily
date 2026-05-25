@@ -1,0 +1,1 @@
+DELETE FROM public.heart_notes WHERE date = CURRENT_DATE;
