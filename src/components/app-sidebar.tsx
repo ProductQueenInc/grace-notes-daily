@@ -93,16 +93,14 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               tooltip="Home"
-              className="h-12 hover:bg-white/10 text-white transition-colors duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
+              className="h-12 bg-transparent hover:bg-transparent active:bg-transparent text-white transition-transform duration-200 hover:scale-[1.03] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               <Link
                 to="/home"
                 aria-label="GraceNotes Daily home"
                 className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
               >
-                <span className="w-9 h-9 aspect-square flex items-center justify-center shrink-0 shadow-[0_0_18px_-6px_var(--gold)]">
-                  <img src={doveLogo} alt="" className="w-9 h-9 object-contain" />
-                </span>
+                <img src={doveLogo} alt="" className="w-9 h-9 object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
                 {!collapsed && (
                   <span className="font-display text-lg text-white tracking-tight truncate">
                     GraceNotes Daily
