@@ -28,7 +28,7 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useStreak } from "@/hooks/use-streak";
-import doveLogo from "@/assets/round-transparent-green-dove.png";
+import doveLogo from "@/assets/dove-medallion.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
