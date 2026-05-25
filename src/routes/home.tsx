@@ -16,6 +16,7 @@ import {
   ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag,
 } from "lucide-react";
 import { Icon } from "@/components/icon";
+import { DoveMark } from "@/components/dove-mark";
 import { pickRhythmGreeting } from "@/lib/personalization";
 import { badgeForCount, badgeLabel, badgeColors, type BadgeTier } from "@/lib/badges";
 import {
