@@ -52,12 +52,19 @@ function Home() {
   const streak = useStreak();
 
   const today = todayISO();
-  const { data: graceNote } = useQuery({
+  const {
+    data: graceNote,
+    isError: graceError,
+    refetch: refetchGrace,
+    isFetching: graceFetching,
+  } = useQuery({
     queryKey: ["grace-note", today],
     queryFn: () => generateGraceNote(profile),
     enabled: !!profile,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   // Warm the devotional cache in the background so the modal opens instantly.
@@ -84,7 +91,17 @@ function Home() {
   return (
     <TooltipProvider delayDuration={200}>
       <NatureBackground />
-      <section className="max-w-7xl mx-auto px-4 md:px-8 pt-6 md:pt-10">
+      <section
+        className="max-w-7xl mx-auto px-4 md:px-8 md:pt-10"
+        style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 2.25rem, 2.5rem)" }}
+      >
+        {/* Mobile-only streak pill sits above the greeting so it doesn't crowd the system bar. */}
+        <div className="lg:hidden mb-4 flex">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold/20 text-gold text-xs font-semibold backdrop-blur-sm border border-gold/20">
+            <Icon icon={Flame} size="sm" tone="inherit" /> {streak} day
+          </span>
+        </div>
+
         {/* Hero */}
         <div className="mb-8 fade-up max-w-3xl">
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/70 mb-3 flex items-center gap-1.5">
@@ -153,10 +170,24 @@ function Home() {
               </div>
               <div className="p-4 sm:p-6">
                 {!graceNote ? (
-                  <div className="text-center py-10">
-                    <div className="inline-block w-7 h-7 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm text-white/70 mt-2">Loading your fresh grace note…</p>
-                  </div>
+                  graceError && !graceFetching ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-white/80 mb-3">
+                        Today's note didn't come through. The line to the kitchen is quiet for a moment.
+                      </p>
+                      <button
+                        onClick={() => refetchGrace()}
+                        className="px-4 py-2 rounded-full bg-gold text-gold-foreground text-sm font-semibold hover:opacity-95"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <div className="inline-block w-7 h-7 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-white/70 mt-2">Loading your fresh grace note…</p>
+                    </div>
+                  )
                 ) : (
                   <>
                     <p className="text-white/90 leading-relaxed font-display text-xl">{graceNote.message}</p>
