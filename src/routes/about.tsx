@@ -121,14 +121,6 @@ function About() {
             </p>
           </div>
 
-          <div className="flex gap-3 px-1">
-            {isLoggedIn ? (
-              <Link to="/home" className="px-6 py-3 rounded-full bg-grace text-white font-semibold hover:opacity-95 transition">Open app</Link>
-            ) : (
-              <Link to="/signup" className="px-6 py-3 rounded-full bg-grace text-white font-semibold hover:opacity-95 transition">Begin your journey</Link>
-            )}
-            <Link to="/contact" className="px-6 py-3 rounded-full glass text-grace font-semibold hover:bg-white/80 transition">Say hello</Link>
-          </div>
         </div>
       </section>
 
