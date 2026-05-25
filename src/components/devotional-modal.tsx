@@ -89,12 +89,18 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
               {data.takeaway}
             </div>
 
-            <button
-              onClick={receive}
-              className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full gradient-gold text-gold-foreground font-semibold shadow-lg hover:scale-[1.02] transition flex items-center justify-center gap-2"
-            >
-              <Icon icon={Heart} size="sm" tone="inherit" /> I Receive This
-            </button>
+            {received ? (
+              <div className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
+                <Icon icon={Check} size="sm" tone="inherit" /> Received today
+              </div>
+            ) : (
+              <button
+                onClick={receive}
+                className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full gradient-gold text-gold-foreground font-semibold shadow-lg hover:scale-[1.02] transition flex items-center justify-center gap-2"
+              >
+                <Icon icon={Heart} size="sm" tone="inherit" /> I Receive This
+              </button>
+            )}
           </div>
         )}
       </ReadingSurface>
