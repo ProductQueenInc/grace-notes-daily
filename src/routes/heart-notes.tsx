@@ -105,14 +105,13 @@ function HeartNotes() {
               <p className="text-xs uppercase tracking-wider text-foreground/55 mb-2">Your note</p>
               <p className="text-foreground/85 whitespace-pre-wrap">{submitted}</p>
             </div>
-            <div className="glass rounded-3xl p-5 sm:p-6 border-l-4 border-grace">
-              <p className="text-xs uppercase tracking-wider text-grace mb-2">A gentle reply</p>
+            <div className="glass rounded-3xl p-5 sm:p-6 border-l-4 border-gold">
               {loading ? (
                 <div className="flex items-center gap-2 text-foreground/60">
                   <div className="w-4 h-4 border-2 border-grace border-t-transparent rounded-full animate-spin" /> Listening…
                 </div>
               ) : (
-                <p className="font-display text-lg text-foreground/85 italic">{response}</p>
+                <p className="font-display text-lg text-foreground/85 italic whitespace-pre-wrap">{response}</p>
               )}
             </div>
           </div>
