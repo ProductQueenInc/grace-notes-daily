@@ -170,10 +170,24 @@ function Home() {
               </div>
               <div className="p-4 sm:p-6">
                 {!graceNote ? (
-                  <div className="text-center py-10">
-                    <div className="inline-block w-7 h-7 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm text-white/70 mt-2">Loading your fresh grace note…</p>
-                  </div>
+                  graceError && !graceFetching ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-white/80 mb-3">
+                        Today's note didn't come through. The line to the kitchen is quiet for a moment.
+                      </p>
+                      <button
+                        onClick={() => refetchGrace()}
+                        className="px-4 py-2 rounded-full bg-gold text-gold-foreground text-sm font-semibold hover:opacity-95"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <div className="inline-block w-7 h-7 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-white/70 mt-2">Loading your fresh grace note…</p>
+                    </div>
+                  )
                 ) : (
                   <>
                     <p className="text-white/90 leading-relaxed font-display text-xl">{graceNote.message}</p>
