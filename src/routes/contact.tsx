@@ -4,6 +4,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { Mail } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
+import { openTallyPopup } from "@/lib/tally";
+
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
