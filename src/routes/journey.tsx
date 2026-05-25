@@ -4,7 +4,8 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useMemo, useState } from "react";
-import { Compass, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from "lucide-react";
+import { Compass, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
