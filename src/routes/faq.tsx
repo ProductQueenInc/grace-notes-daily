@@ -22,7 +22,6 @@ const faqs = [
   { q: "How is it different from a Bible app?", a: "Bible apps focus on text. GraceNotes Daily focuses on tenderness - a daily message written to you, journaling that listens, and prayer that celebrates with you." },
   { q: "Is my data private?", a: "Yes. Your reflections and prayers are private to your account. We never sell your data and you can delete your account at any time." },
   { q: "Do I need to be a 'good Christian' to use this?", a: "Not at all. The whole point is grace. Whether you're brand new, returning, growing, or seasoned - you're welcome." },
-  { q: "Is it free?", a: "Yes, the core daily experience is free. Premium options may come later, but the daily grace will always remain accessible." },
   { q: "How does the streak work?", a: "Each day has three soft practices: read your Grace Note, receive the devotional, and write a heart note. Complete all three for a 'gold day' - but there's no shame in missing a day." },
 ];
 

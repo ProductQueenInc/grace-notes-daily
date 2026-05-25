@@ -35,7 +35,7 @@ const phases = [
 ];
 
 const features = [
-  { icon: Sparkles, title: "Daily Grace Notes", desc: "A personal, AI-crafted message of love each morning - written like a letter just for you." },
+  { icon: Sparkles, title: "Daily Grace Notes", desc: "A fresh word of love each morning - written to meet you exactly where you are." },
   { icon: BookHeart, title: "Heart Notes", desc: "A gentle journaling space. Pour out your heart and receive a quiet, grace-filled reply." },
   { icon: HandHeart, title: "Prayer Tracker", desc: "Hold your prayers in one place. Celebrate the answers with confetti and thanksgiving." },
   { icon: Compass, title: "Your Journey", desc: "Look back on how far you've come - every note, prayer, and answered moment." },
@@ -70,10 +70,6 @@ const faqs = [
     q: "Do I need to be a 'good Christian' to use this?",
     a: "Not at all. The whole point is grace. Whether you're brand new, returning, growing, or seasoned in faith - you're welcome here exactly as you are.",
   },
-  {
-    q: "Is it free?",
-    a: "Yes, the core daily experience is free. We're a small team building this with love - premium options may come later, but the daily grace will always remain accessible.",
-  },
 ];
 
 function Landing() {
@@ -103,7 +99,7 @@ function Landing() {
               to="/signup"
               className="px-7 py-3.5 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition"
             >
-              Begin your journey - free
+              Begin your journey
             </Link>
             <Link
               to="/login"
@@ -152,8 +148,8 @@ function Landing() {
         <div className="max-w-6xl mx-auto glass rounded-3xl p-8 md:p-14">
           <SectionTitle
             eyebrow="No matter where you are"
-            title="Wherever you are on the journey, you belong"
-            subtitle="GraceNotes Daily walks with you - at every phase of faith."
+            title="Tell us where you are. We'll meet you there."
+            subtitle="During sign-up, we ask a few gentle questions so every grace note, devotional, and reply feels written just for you."
           />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
             {phases.map((p) => (
@@ -205,7 +201,7 @@ function Landing() {
             to="/signup"
             className="inline-block px-8 py-4 rounded-full bg-grace text-white font-semibold shadow-xl hover:opacity-95 transition"
           >
-            Start your free journey →
+            Begin your journey →
           </Link>
         </div>
       </section>

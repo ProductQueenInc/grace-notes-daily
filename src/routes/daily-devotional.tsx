@@ -9,13 +9,13 @@ export const Route = createFileRoute("/daily-devotional")({
     meta: [
       { title: "Daily Devotional App for Christians | GraceNotes Daily" },
       { name: "description", content: "Build a daily quiet time habit that actually sticks. GraceNotes Daily gives you guided devotionals every morning so you always know what to do today." },
-      { property: "og:title", content: "GraceNotes Daily — A devotion a day keeps the devil away." },
+      { property: "og:title", content: "Daily Devotional App for Christians | GraceNotes Daily" },
       { property: "og:description", content: "Build a daily quiet time habit that actually sticks. GraceNotes Daily gives you guided devotionals every morning so you always know what to do today." },
       { property: "og:image", content: "https://www.gracenotesdaily.com/og/daily-devotional.png" },
       { property: "og:url", content: "https://www.gracenotesdaily.com/daily-devotional" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "GraceNotes Daily — A devotion a day keeps the devil away." },
+      { name: "twitter:title", content: "Daily Devotional App for Christians | GraceNotes Daily" },
       { name: "twitter:image", content: "https://www.gracenotesdaily.com/og/daily-devotional.png" },
     ],
   }),
@@ -75,7 +75,7 @@ function DailyDevotion() {
           Showing Up Is the Practice
         </h1>
         <p className="mt-4 text-white/80 text-lg max-w-xl mx-auto">
-          A devotion a day keeps the devil away.
+          The thing that orients your day, before the day gets to you.
         </p>
       </section>
 

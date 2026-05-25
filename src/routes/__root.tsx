@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
+import { MessageCircle } from "lucide-react";
 
 import appCss from "../styles.css?url";
 
@@ -91,6 +92,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "GraceNotes Daily | Christian Devotional & Prayer Journal" },
       { name: "twitter:description", content: "Your daily companion in faith. GraceNotes Daily combines guided devotionals, prayer journaling, and answered prayer tracking in one quiet, beautiful space." },
     ],
+    scripts: [
+      { src: "https://tally.so/widgets/embed.js", async: true },
+    ],
     links: [
       { rel: "manifest", href: "/manifest.json" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
@@ -135,6 +139,19 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster position="bottom-center" theme="light" richColors closeButton />
+      {/* Floating feedback button — visible on all pages including the authenticated app */}
+      <button
+        data-tally-open="VL4NY6"
+        data-tally-width="374"
+        data-tally-emoji-text="👋"
+        data-tally-emoji-animation="wave"
+        data-tally-form-events-forwarding="1"
+        aria-label="Share feedback"
+        title="Share feedback"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-gold shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+      >
+        <MessageCircle className="w-5 h-5 text-white" />
+      </button>
     </QueryClientProvider>
   );
 }
