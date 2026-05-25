@@ -1,67 +1,61 @@
-## What's actually happening
+## 1. Heart-note reply — tone + format
 
-### 1. The "Add your Supabase keys" toast on Google sign-in
+Edit `src/lib/ai.functions.ts → callRespondToHeartNote`:
 
-This message is a **stale frontend guard** in `src/lib/supabase.ts` + `src/routes/login.tsx`, not a real configuration problem.
+- Cut target length to **3–4 sentences**.
+- Drop the required `"Love, your Father" / "Held, your Father"` close — make sign-off optional, one short line at most, no bolding.
+- Add explicit bans to the existing `NO_OVER_FAMILIARITY` block (or a new "Heart-note-specific" addendum):
+  - No bold markdown anywhere (`**name**`, `**sign-off**`).
+  - No name-as-opener (the model keeps writing "**Cindy.**" as the first beat).
+  - No aphoristic climbs ("X doesn't mean Y. It means Z.").
+  - No rhetorical lists of "Every… Every… Every…".
+  - No "I see it" / "I see you" stage direction.
+  - Reply to what they actually wrote with concrete language — mirror a noun or verb from their note when natural.
+- Lower `max_tokens` from 300 → 220 so the model can't pad.
+- Keep the em-dash sanitizer.
 
-- The published bundle DOES have `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (verified — backend is healthy, secrets are set, the auth provider is Enabled).
-- But `src/lib/supabase.ts` only checks `VITE_SUPABASE_ANON_KEY || VITE_SUPABASE_PUBLISHABLE_KEY`. Under some build paths the publishable-key fallback isn't being picked up at runtime in `supabaseConfigured`, so the toast fires before the OAuth call even starts.
-- Even if the toast didn't fire, Google sign-in with **your own Google credentials** only works once the Client ID + Secret are pasted into Cloud → Users → Auth Settings → Google. If those aren't filled in yet, the managed Lovable credentials are used as fallback (which work, but the consent screen says "Lovable" not "GraceNotes Daily").
+Result: closer to a steady friend texting back than a poetic monologue.
 
-### 2. Why you can't select `www.gracenotesdaily.com` as the published domain
+## 2. Heart-note reply — remove label
 
-The publish dialog you screenshotted only shows the `.lovable.app` URL because that's the **default**. The custom domain IS connected (the project knows about `www.gracenotesdaily.com` — `/terms` and `/privacy` load on it right now). You just need to set it as the **Primary** domain, which is done inside "Manage 2 domains", not the publish dialog.
+Edit `src/routes/heart-notes.tsx`:
 
----
+- Delete the `<p className="text-xs uppercase tracking-wider text-grace mb-2">A gentle reply</p>` line.
+- Keep the gold left border + italic Fraunces styling — that visual treatment alone signals it's the reply.
+- Light spacing tweak so the reply doesn't sit too tight at the top.
 
-## Code changes (small)
+## 3. Journey card — kill the duplicate prayer body
 
-**Goal:** stop the misleading toast, and let Google sign-in proceed even if the env guard is wrong.
+Edit `src/routes/journey.tsx`:
 
-1. `src/lib/supabase.ts` — extend `supabaseConfigured` to also accept SSR fallbacks and the publishable-key env that Cloud actually ships:
-   ```ts
-   const url = import.meta.env.VITE_SUPABASE_URL;
-   const key =
-     import.meta.env.VITE_SUPABASE_ANON_KEY ||
-     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-   export const supabaseConfigured = Boolean(url && key);
-   ```
-   (The file already does this — but double-check the build-time output and remove the placeholder fallback so `supabaseConfigured` reflects reality.)
+- For `type === "prayer"` rows, the `title` already contains the truncated prayer text. When expanded, do **not** render the full `body` paragraph again — only render the gratitude block (`extra`).
+- Heart-note rows continue to show title (preview) + full body on expand — they're genuinely different content.
 
-2. `src/routes/login.tsx` and `src/routes/signup.tsx` — in `withGoogle()`, **don't** gate on `supabaseConfigured`. The Lovable OAuth broker doesn't need our Supabase client to start the redirect; it only needs it after the callback. Replace the early return with a `try/catch` that surfaces the real error if one happens.
+## 4. Journey filters — remove date filter, fix dropdown padding
 
-That's the whole code surface. No backend changes needed.
+Edit `src/routes/journey.tsx`:
 
----
+- Remove the `<input type="date">` chip and the `dateFilter` state + filtering logic entirely.
+- Replace the native `<select>` with the shadcn `Select` component (matches the rest of the app, gives proper chevron + padding, themed colors). Falls back to keeping the native select with `appearance-none pr-9` and a positioned `ChevronDown` icon if shadcn Select doesn't fit the glass-on-hue look — I'll pick whichever reads cleaner.
+- Add `Calendar`/`X` imports cleanup (no longer needed).
 
-## Steps only you can do (in this order — I checked, all are necessary)
+Navigation in this view is now: search + type filter + pagination (previous/next). That covers the stated fallback.
 
-### A. Make `www.gracenotesdaily.com` your primary published domain
-1. In Lovable, open the **Publish** dialog (top right).
-2. Click **"Manage 2 domains"** (the link under your `.lovable.app` URL — visible in your screenshot).
-3. Find `www.gracenotesdaily.com` in the list → open the **⋯ menu** → click **"Set as Primary"**.
-4. Click **Update / Republish**.
-   After this, `www.gracenotesdaily.com` becomes the canonical URL and the `.lovable.app` one redirects to it.
+## 5. PWA install — ready to test
 
-### B. Paste your Google credentials into Lovable Cloud (only needed for branded consent screen)
-Only do this if your Google Cloud Console OAuth client is fully created. If not, you can skip — the managed Lovable Google credentials already work.
-1. Lovable → **Cloud → Users → Auth Settings (gear icon) → Sign-in Methods → Google**.
-2. Paste **Client ID** and **Client Secret** from Google Cloud Console → APIs & Services → Credentials.
-3. Copy the **callback URL** shown on that same Lovable screen (it ends in `/auth/v1/callback`) and paste it into Google Cloud Console → your OAuth Client ID → **Authorized redirect URIs**.
-4. Save on both sides.
+Already in place:
+- `public/manifest.json` with name, short_name, start_url `/home`, standalone display, theme color, all icons.
+- `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` all present.
+- `<link rel="manifest">` and `<link rel="apple-touch-icon">` + `theme-color` meta wired in `src/routes/__root.tsx`.
 
-### C. Verify sign-in
-1. Open `https://www.gracenotesdaily.com/login` in an incognito window.
-2. Click "Continue with Google".
-   - With my code change, you'll either land on the Google consent screen (success), or you'll see the real error message (which I can then debug from).
-   - The "Add your Supabase keys" toast will be gone.
+No code change needed. After publishing, on iPhone Safari: Share → Add to Home Screen. On Android Chrome: install prompt should appear, or use ⋮ → Install app. The app launches standalone (no browser chrome), opens to `/home`, and the green status bar tint matches.
 
----
+If the install button doesn't show on Android, it's almost always a service-worker requirement — that's the only remaining piece for a "true" installable PWA on Chrome. Out of scope for this turn; flag it if you'd like a follow-up.
 
-## What I will NOT touch
-- `src/integrations/lovable/index.ts` (auto-generated)
-- `src/integrations/supabase/client.ts` (auto-generated)
-- Database, RLS, server functions, AI wiring (Claude Code's lane per CLAUDE.md)
+## Files touched
 
-## Handover to Claude Code?
-Not needed. This is a frontend guard + dashboard configuration issue, not a backend bug. Once you do steps A + B + C above and I push the small login/supabase.ts tweak, Google sign-in will work.
+- `src/lib/ai.functions.ts` — heart-note prompt + token cap
+- `src/routes/heart-notes.tsx` — remove label
+- `src/routes/journey.tsx` — drop duplicate prayer body, remove date filter, polish dropdown
+
+No DB changes, no new dependencies.

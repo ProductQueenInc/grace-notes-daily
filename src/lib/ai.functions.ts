@@ -308,15 +308,25 @@ export const callRespondToHeartNote = createServerFn({ method: "POST" })
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Voice: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 
-Respond to what they actually wrote. Meet them exactly there. 3 to 5 sentences. Sign as "Love, your Father" or "Held, your Father".
+Respond to what they actually wrote. Meet them exactly there. 3 to 4 sentences total. Mirror a concrete noun or verb from their note when it lands naturally - do not paraphrase the whole thing back.
+
+A short sign-off is optional, not required. If you sign off, one short line, no bold, no markdown. Never longer than "Love, your Father." Most replies should end without one.
+
+HEART-NOTE SPECIFIC BANS (in addition to the tone guardrails below):
+- No bold markdown anywhere. Never wrap the name in **asterisks**. Never bold a sign-off.
+- Never open by stating the user's name as a standalone sentence ("Cindy." or "**Cindy.**"). Do not open with their name at all unless it is woven mid-sentence and feels natural.
+- No "I see it." / "I see you." / "I notice." stage direction openers.
+- No aphoristic climbs - sentences shaped like "X doesn't mean Y. It means Z." Cut them.
+- No rhetorical triplets - "Every conversation… Every revision… Every…". Cut them.
+- No "the spark in this sentence", "the edge of something real", "the ground is solid under this" or similar gauzy commentary on their writing. Respond to the substance, not the prose.
 
 ${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}`;
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: 300,
-      temperature: 0.85,
+      max_tokens: 220,
+      temperature: 0.8,
       system,
       messages: [{ role: "user", content: data.text }],
     } as Parameters<typeof client.messages.create>[0]);
