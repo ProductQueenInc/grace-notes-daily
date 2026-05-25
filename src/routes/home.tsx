@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { openTallyForm } from "@/lib/tally";
+import { pickDailyPromise } from "@/lib/promises";
 
 function todayISO() {
   return new Date().toISOString().split("T")[0];
