@@ -247,10 +247,9 @@ function Header() {
 
   return (
     <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
-      <Link to="/" className="flex items-center gap-2">
-        <DoveMark variant="white" className="w-10 h-10" />
-        <span className="font-display text-2xl">GraceNotes Daily</span>
-        <span className="text-gold"></span>
+      <Link to="/" className="flex items-center gap-2.5 group">
+        <DoveMark variant="white" className="w-9 h-9 transition-transform group-hover:scale-105" />
+        <span className="font-display text-2xl tracking-tight">GraceNotes Daily</span>
       </Link>
       <nav className="hidden md:flex items-center gap-1">
         <a href="#faq" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">FAQ</a>
