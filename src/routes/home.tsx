@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { openTallyForm } from "@/lib/tally";
+import { pickDailyPromise } from "@/lib/promises";
 
 function todayISO() {
   return new Date().toISOString().split("T")[0];
@@ -120,7 +121,7 @@ function Home() {
                       className="max-w-[280px] text-sm bg-black/85 text-white border-white/10"
                     >
                       <p className="leading-relaxed">
-                        This note is written using what you told us at sign-up —
+                        This note is written using what you told us at sign-up:
                         your faith phase, the voice you chose, and any seasons you
                         picked. If any of that has changed, update it and the next
                         note will reflect it.
@@ -239,8 +240,9 @@ function Home() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-white/60 mt-10 mb-4 flex items-center justify-center gap-1.5">
-          <Icon icon={Sparkles} size="sm" className="text-gold" /> Walk gently. You are loved.
+        <p className="text-center text-sm md:text-base text-white/75 italic font-display mt-10 mb-4 flex items-center justify-center gap-2 px-4">
+          <Icon icon={Sparkles} size="sm" className="text-gold shrink-0" />
+          <span>{pickDailyPromise()}</span>
         </p>
       </section>
 
