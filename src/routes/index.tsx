@@ -174,7 +174,7 @@ function Landing() {
       <section className="px-6 pb-24">
         <div className="max-w-6xl mx-auto glass rounded-3xl p-8 md:p-14">
           <SectionTitle
-            eyebrow="No matter where you are"
+            eyebrow="Every step of the way"
             title="Tell us where you are. We'll meet you there."
             subtitle="We'll tailor your experience to your journey, from day one."
             dark
@@ -225,7 +225,7 @@ function Landing() {
           <Moon className="w-7 h-7 text-gold mx-auto mb-3" />
           <h2 className="font-display text-3xl md:text-5xl text-grace mb-3">Begin gently. Stay softly.</h2>
           <p className="text-foreground/70 mb-7 max-w-xl mx-auto">
-            One small, sacred pause a day. No pressure, no performance - just presence.
+            One small, sacred pause a day. Yours to keep, at your own pace.
           </p>
           <Link
             to={isLoggedIn ? "/home" : "/signup"}

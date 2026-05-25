@@ -92,7 +92,7 @@ function Home() {
             {pickRhythmGreeting(profile)}.
           </h1>
           <p className="text-white/80 mt-3 text-base md:text-lg max-w-xl">
-            Your daily space for spiritual growth and reflection. Walk gently - you are loved.
+            Your daily space for spiritual growth and reflection.
           </p>
         </div>
 
@@ -103,7 +103,7 @@ function Home() {
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
                 <div className="flex items-center gap-2 font-semibold text-white min-w-0">
-                  <DoveMark variant="gold" className="w-6 h-6 shrink-0" alt="" />
+                  <DoveMark variant="medallion" className="w-8 h-8 shrink-0 drop-shadow-sm" alt="" />
                   <span className="truncate">Today's Grace Note</span>
 
                   {/* Info: explains personalization, links to settings */}

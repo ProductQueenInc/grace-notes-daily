@@ -41,8 +41,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-5 text-xs text-white/60 flex flex-wrap items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} GraceNotes Daily. Walk gently - you are loved.</span>
-          <span className="flex items-center gap-1"><span className="text-gold"></span> Made with grace</span>
+          <span>© {new Date().getFullYear()} GraceNotes Daily</span>
         </div>
       </div>
     </footer>
