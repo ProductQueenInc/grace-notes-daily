@@ -66,7 +66,7 @@ function phaseDesc(phase: string) {
 
 function seasonLine(seasons: string[]) {
   if (!seasons.length) return "";
-  return `\nWhat they're carrying right now: ${seasons.join(", ")}. Let what you notice meet them there, without naming the season back at them.`;
+  return `\nBackground context (may be old, may no longer apply today): ${seasons.join(", ")}. Let this gently shape what you notice. Never name the season back. Never assume it's still true today.`;
 }
 
 function anthropic() {
