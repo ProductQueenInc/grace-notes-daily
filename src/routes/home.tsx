@@ -84,7 +84,17 @@ function Home() {
   return (
     <TooltipProvider delayDuration={200}>
       <NatureBackground />
-      <section className="max-w-7xl mx-auto px-4 md:px-8 pt-6 md:pt-10">
+      <section
+        className="max-w-7xl mx-auto px-4 md:px-8 md:pt-10"
+        style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 2.25rem, 2.5rem)" }}
+      >
+        {/* Mobile-only streak pill sits above the greeting so it doesn't crowd the system bar. */}
+        <div className="lg:hidden mb-4 flex">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold/20 text-gold text-xs font-semibold backdrop-blur-sm border border-gold/20">
+            <Icon icon={Flame} size="sm" tone="inherit" /> {streak} day
+          </span>
+        </div>
+
         {/* Hero */}
         <div className="mb-8 fade-up max-w-3xl">
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/70 mb-3 flex items-center gap-1.5">
