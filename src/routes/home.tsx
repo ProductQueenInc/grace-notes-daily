@@ -26,8 +26,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { openTallyForm } from "@/lib/tally";
 import { pickDailyPromise } from "@/lib/promises";
 
+import { localTodayISO } from "@/lib/today";
+
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 export const Route = createFileRoute("/home")({
