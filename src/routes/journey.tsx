@@ -123,19 +123,18 @@ function Journey() {
   const filtered = useMemo(() => {
     let rows = all;
     if (type !== "all") rows = rows.filter((e) => e.type === type);
-    if (dateFilter) rows = rows.filter((e) => e.isoDate === dateFilter);
     if (q.trim()) {
       const needle = q.toLowerCase();
       rows = rows.filter((e) => (e.title + " " + e.body + " " + (e.extra ?? "")).toLowerCase().includes(needle));
     }
     return rows;
-  }, [all, type, dateFilter, q]);
+  }, [all, type, q]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageRows = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
-  useEffect(() => { setPage(0); }, [type, dateFilter, q]);
+  useEffect(() => { setPage(0); }, [type, q]);
 
   return (
     <>
@@ -160,36 +159,23 @@ function Journey() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-sm">
-              <CalendarIcon className="w-4 h-4" />
-              <input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
-              />
-              {dateFilter && (
-                <button onClick={() => setDateFilter("")} aria-label="Clear date" className="text-white/70 hover:text-white">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </label>
-
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as typeof type)}
-              className="px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-sm focus:outline-none focus:ring-2 focus:ring-gold"
-            >
-              <option value="all" className="text-foreground">All entries</option>
-              <option value="heart-note" className="text-foreground">Heart Notes</option>
-              <option value="prayer" className="text-foreground">Answered Prayers</option>
-            </select>
+            <Select value={type} onValueChange={(v) => setType(v as typeof type)}>
+              <SelectTrigger className="w-auto h-auto px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-sm gap-2 focus:ring-2 focus:ring-gold">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All entries</SelectItem>
+                <SelectItem value="heart-note">Heart Notes</SelectItem>
+                <SelectItem value="prayer">Answered Prayers</SelectItem>
+              </SelectContent>
+            </Select>
 
             <span className="ml-auto text-xs text-white/70">
               {filtered.length} {filtered.length === 1 ? "entry" : "entries"}
             </span>
           </div>
         </div>
+
 
         {loading ? (
           <div className="text-center py-16">
