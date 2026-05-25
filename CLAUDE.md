@@ -2,9 +2,20 @@
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to Claude Code. The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
-Last updated: 2026-05-24.
+Last updated: 2026-05-25.
 
 > **Checkpoint:** "MVP UI" — this version of the app (sidebar polish, settings dark-mode removed, em-dash sanitizer live, all backend hooks wired) is the rollback target. Use the History tab to revert here if anything downstream breaks.
+
+## Recent changes (2026-05-25) — QA + copy polish pass
+- About page: full founder story (Product Queen), links to product-queen.com and Habitue.Design.
+- Contact page: replaced custom form with Tally popup (form ID: VL4NY6).
+- Floating feedback button: gold MessageCircle bubble, fixed bottom-right, all pages (public + authenticated) via `__root.tsx`.
+- Tally embed.js loaded globally in `<head>` via `__root.tsx` scripts.
+- Daily devotional: removed off-brand subheadline; og:title and twitter:title updated to match.
+- Homepage: removed all "free" references, updated "AI-crafted" to experience-first language.
+- Phases section: title updated to "Tell us where you are. We'll meet you there." with onboarding-explaining subtitle.
+- "Divine Habit Streaks" renamed to "Daily Rhythms" across homepage, in-app home screen, and FAQ.
+- FAQ: removed "Is it free?" question from both homepage and /faq.
 
 ## Recent changes (2026-05-24)
 - Removed Dark mode toggle from Settings (deferred until proper dark theme tokens land).
@@ -38,10 +49,12 @@ Last updated: 2026-05-24.
 ### ⏳ Needs Cindy before going live
 | # | Action | Where |
 |---|--------|-------|
-| 1 | Add ANTHROPIC_API_KEY as Wrangler secret | Terminal: `npx wrangler secret put ANTHROPIC_API_KEY` |
-| 2 | Add OPENAI_API_KEY as Wrangler secret | Terminal: `npx wrangler secret put OPENAI_API_KEY` |
+| 1 | ~~Add ANTHROPIC_API_KEY as Wrangler secret~~ | **Done — set via Lovable environment variables** |
+| 2 | ~~Add OPENAI_API_KEY as Wrangler secret~~ | **Done — set via Lovable environment variables** |
 | 3 | Add gracenotesdaily.com to Supabase Auth redirect URLs | Supabase → Auth → URL Configuration |
 | 4 | Drop icon-192.png + icon-512.png into /public/icons/ | For PWA install prompt |
+
+> **Deployment note (2026-05-25):** The live site at gracenotesdaily.com is currently hosted and deployed by **Lovable**, not via `wrangler deploy`. The GitHub repo is the source of truth for code, but changes only go live when published through Lovable. There is no GitHub Actions CI/CD pipeline yet. To deploy code changes made outside Lovable (e.g. via Claude Code): open Lovable, pull/sync from GitHub, then publish. Future goal: set up a GitHub Actions workflow that runs `npm run build && npx wrangler deploy` on push to main, so GitHub push = live deploy.
 
 ### ❌ Not started (later phases)
 - Push notifications (VAPID keys + Supabase Edge Function)
