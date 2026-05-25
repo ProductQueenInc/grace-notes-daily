@@ -15,6 +15,8 @@ function todayISO() {
 
 export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
   const { profile } = useAuth();
+  const { habits } = useHabits();
+  const received = habits.devotional;
   const today = todayISO();
 
   // Shares cache key with home.tsx prefetch - opens instantly if warmed.
