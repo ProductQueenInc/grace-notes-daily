@@ -23,12 +23,13 @@ export function openTallyForm(formId: string): void {
 }
 
 export function tallyEmbedUrl(formId: string): string {
-  // alignLeft + transparentBackground keep the iframe visually unobtrusive.
-  // hideTitle removes Tally's duplicate header since our Dialog has its own.
+  // We intentionally do NOT pass transparentBackground — that caused Tally to
+  // inherit the dialog's cream background and render its own labels in a near-
+  // identical tone (invisible text). Letting Tally use its default white shell
+  // keeps form text readable.
   const params = new URLSearchParams({
     alignLeft: "1",
     hideTitle: "1",
-    transparentBackground: "1",
   });
   return `https://tally.so/embed/${formId}?${params.toString()}`;
 }
