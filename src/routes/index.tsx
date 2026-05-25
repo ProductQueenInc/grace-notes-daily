@@ -137,7 +137,7 @@ function Landing() {
           <p className="font-display text-2xl md:text-3xl text-grace leading-snug max-w-3xl mx-auto">
             "Come to me, all who are weary and burdened, and I will give you rest."
           </p>
-          <p className="text-sm text-foreground/60 mt-3">- Matthew 11:28</p>
+          <p className="text-sm text-foreground/75 mt-3">- Matthew 11:28</p>
         </div>
       </section>
 
@@ -165,14 +165,15 @@ function Landing() {
           <SectionTitle
             eyebrow="No matter where you are"
             title="Tell us where you are. We'll meet you there."
-            subtitle="During sign-up, we ask a few gentle questions so every grace note, devotional, and reply feels written just for you."
+            subtitle="We'll tailor your experience to your journey, from day one."
+            dark
           />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
             {phases.map((p) => (
               <div key={p.title} className="rounded-2xl bg-white/70 border border-white/40 p-6 text-center hover:bg-white transition">
                 <p.icon className="w-7 h-7 mx-auto text-grace mb-2" strokeWidth={1.75} />
                 <div className="font-semibold text-grace">{p.title}</div>
-                <div className="text-xs text-foreground/65 mt-1">{p.desc}</div>
+                <div className="text-xs text-foreground/80 mt-1">{p.desc}</div>
               </div>
             ))}
           </div>
@@ -188,9 +189,9 @@ function Landing() {
               <div key={s.who} className="glass rounded-3xl p-6 text-foreground">
                 <Quote className="w-5 h-5 text-gold mb-3" />
                 <p className="font-display text-lg text-grace leading-snug">"{s.verse}"</p>
-                <p className="text-xs text-gold font-semibold mt-2">{s.ref}</p>
-                <p className="text-xs text-foreground/60 mt-1">– {s.who}</p>
-                <p className="text-sm text-foreground/70 leading-relaxed mt-3">{s.outcome}</p>
+                <p className="text-xs text-grace-deep font-bold mt-2">{s.ref}</p>
+                <p className="text-xs text-foreground/80 mt-1">– {s.who}</p>
+                <p className="text-sm text-foreground/80 leading-relaxed mt-3">{s.outcome}</p>
               </div>
             ))}
           </div>
@@ -265,16 +266,22 @@ function Header() {
   );
 }
 
-function SectionTitle({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) {
+function SectionTitle({
+  eyebrow, title, subtitle, dark,
+}: {
+  eyebrow?: string; title: string; subtitle?: string; dark?: boolean;
+}) {
   return (
     <div className="text-center">
       {eyebrow && (
-        <p className="text-[11px] uppercase tracking-[0.2em] text-white font-semibold drop-shadow mb-3">
+        <p className={`text-[11px] uppercase tracking-[0.2em] font-semibold drop-shadow mb-3 ${dark ? "text-grace-deep" : "text-white"}`}>
           {eyebrow}
         </p>
       )}
-      <h2 className="font-display text-3xl md:text-5xl text-white drop-shadow leading-tight">{title}</h2>
-      {subtitle && <p className="text-white/85 mt-3 max-w-2xl mx-auto">{subtitle}</p>}
+      <h2 className={`font-display text-3xl md:text-5xl drop-shadow leading-tight ${dark ? "text-grace" : "text-white"}`}>{title}</h2>
+      {subtitle && (
+        <p className={`mt-3 max-w-2xl mx-auto ${dark ? "text-foreground/75" : "text-white/85"}`}>{subtitle}</p>
+      )}
     </div>
   );
 }
