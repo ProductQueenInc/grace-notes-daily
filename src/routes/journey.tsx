@@ -59,7 +59,7 @@ function Journey() {
       // Heart notes: only entries from BEFORE today (today's stays on its page)
       const heartReq = supabase
         .from("heart_notes")
-        .select("id, body, ai_response, date, created_at")
+        .select("id, body, ai_response, summary, date, created_at")
         .eq("user_id", uid)
         .lt("date", today)
         .order("date", { ascending: false });
