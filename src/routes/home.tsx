@@ -92,7 +92,7 @@ function Home() {
             {pickRhythmGreeting(profile)}.
           </h1>
           <p className="text-white/80 mt-3 text-base md:text-lg max-w-xl">
-            Your daily space for spiritual growth and reflection. Walk gently - you are loved.
+            Your daily space for spiritual growth and reflection.
           </p>
         </div>
 
