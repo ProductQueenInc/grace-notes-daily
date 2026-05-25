@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { NatureBackground } from "@/components/nature-background";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { DoveMark } from "@/components/dove-mark";
+import { Icon } from "@/components/icon";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Create your account - GraceNotes Daily" }] }),
