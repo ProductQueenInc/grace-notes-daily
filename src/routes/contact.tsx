@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Mail } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
-import { openTallyPopup } from "@/lib/tally";
+import { openTallyForm } from "@/lib/tally";
 
 
 export const Route = createFileRoute("/contact")({
@@ -24,10 +24,7 @@ function Contact() {
   const isLoggedIn = !loading && !!session;
 
   function openForm() {
-    void openTallyPopup("VL4NY6", {
-      width: 374,
-      emoji: { text: "👋", animation: "wave" },
-    });
+    openTallyForm("VL4NY6");
   }
 
 
