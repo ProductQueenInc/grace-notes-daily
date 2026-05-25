@@ -1,18 +1,34 @@
-// Tally helper.
+// In-app Tally feedback dialog state.
 //
-// We deliberately do NOT use Tally's popup embed (window.Tally.openPopup).
-// The embed mounts an iframe that talks to its parent via iframe-resizer.
-// When our app is itself rendered inside an iframe (the Lovable preview,
-// some in-app webviews, or any embedded context), that handshake never
-// completes and the popup spins forever with "No response from iFrame".
-//
-// Opening the hosted form in a new tab works everywhere — preview,
-// published site, mobile — and submissions still land in the same Tally
-// inbox. Keep the surface tiny and consistent.
+// We render Tally's hosted form inside an iframe in a Radix Dialog so the
+// experience stays inside the app (no new tab, no popup handshake issues).
+import { create } from "zustand";
 
-const HOSTED_URL_BASE = "https://tally.so/r";
+type FeedbackStore = {
+  open: boolean;
+  formId: string | null;
+  openFeedback: (formId: string) => void;
+  closeFeedback: () => void;
+};
+
+export const useFeedbackDialog = create<FeedbackStore>((set) => ({
+  open: false,
+  formId: null,
+  openFeedback: (formId) => set({ open: true, formId }),
+  closeFeedback: () => set({ open: false }),
+}));
 
 export function openTallyForm(formId: string): void {
-  if (typeof window === "undefined") return;
-  window.open(`${HOSTED_URL_BASE}/${formId}`, "_blank", "noopener,noreferrer");
+  useFeedbackDialog.getState().openFeedback(formId);
+}
+
+export function tallyEmbedUrl(formId: string): string {
+  // alignLeft + transparentBackground keep the iframe visually unobtrusive.
+  // hideTitle removes Tally's duplicate header since our Dialog has its own.
+  const params = new URLSearchParams({
+    alignLeft: "1",
+    hideTitle: "1",
+    transparentBackground: "1",
+  });
+  return `https://tally.so/embed/${formId}?${params.toString()}`;
 }
