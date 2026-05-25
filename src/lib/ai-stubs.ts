@@ -4,6 +4,7 @@ import {
   getOrCreateDevotional,
   callRespondToHeartNote,
   callRespondToDailyMessage,
+  callSummarizeHeartNote,
   buildAIProfile,
   type GraceNoteResult,
   type DevotionalResult,
