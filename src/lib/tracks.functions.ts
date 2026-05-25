@@ -5,7 +5,10 @@ export type DBTrack = {
   id: string;
   title: string;
   speaker: string;
-  theme: "Worship" | "Prayer" | "Teaching" | "Rest";
+  /** Array of category strings, e.g. ["Praise", "Worship"] */
+  categories: string[] | null;
+  /** "video" for YouTube content, "audio" for uploaded audio files */
+  type: "video" | "audio" | null;
   youtube_id: string | null;
   audio_url: string | null;
   thumb: string;
@@ -22,7 +25,7 @@ export const getTracks = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = createClient(url, key);
   const { data, error } = await supabase
     .from("tracks")
-    .select("id,title,speaker,theme,youtube_id,audio_url,thumb")
+    .select("id,title,speaker,categories,type,youtube_id,audio_url,thumb")
     .eq("published", true)
     .order("sort_order", { ascending: true });
 

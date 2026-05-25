@@ -4,9 +4,13 @@ export type Track = {
   id: string;
   title: string;
   speaker: string;
-  theme: string;
-  /** YouTube id or audio URL */
+  /** One or more of: "Praise" | "Worship" | "Preaching" | "Podcast" */
+  categories: string[];
+  /** Whether this is a video or audio-only track */
+  type: "video" | "audio";
+  /** YouTube video id (when type === "video") */
   youtubeId?: string;
+  /** URL to audio file (when type === "audio") */
   audioUrl?: string;
   thumb: string;
 };
