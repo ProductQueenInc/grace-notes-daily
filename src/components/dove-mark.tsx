@@ -2,14 +2,16 @@ import doveWhite from "@/assets/transparent-white-dove.png";
 import doveGold from "@/assets/transparent-gold-dove.png";
 import doveGreen from "@/assets/transparent-green-dove.png";
 import doveGreenRound from "@/assets/round-transparent-green-dove.png";
+import doveMedallion from "@/assets/dove-medallion.png";
 
-type Variant = "white" | "gold" | "green" | "green-round";
+type Variant = "white" | "gold" | "green" | "green-round" | "medallion";
 
 const SRC: Record<Variant, string> = {
   white: doveWhite,
   gold: doveGold,
   green: doveGreen,
   "green-round": doveGreenRound,
+  medallion: doveMedallion,
 };
 
 interface DoveMarkProps {
