@@ -373,6 +373,7 @@ You finished. Not perfectly, but finished, which is its own kind of faithfulness
 `;
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
   .handler(async ({ data }) => {
     const client = anthropic();
@@ -426,6 +427,7 @@ ${NO_EM_DASH_RULE}`;
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => DailyMessageInputSchema.parse(data))
   .handler(async ({ data }) => {
     const client = openai();
