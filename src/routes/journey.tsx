@@ -30,7 +30,10 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  // Use local date — UTC midnight rollover would leak today's in-progress
+  // entries onto the Journey page.
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 function truncate(s: string, n: number) {
   return s.length <= n ? s : s.slice(0, n).trimEnd() + "…";
