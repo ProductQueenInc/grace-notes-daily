@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 import { MessageCircle } from "lucide-react";
 
 import { openTallyForm } from "@/lib/tally";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 
 
 
@@ -155,6 +156,8 @@ function RootComponent() {
       >
         <MessageCircle className="w-5 h-5 text-white" />
       </button>
+      <FeedbackDialog />
     </QueryClientProvider>
   );
 }
+
