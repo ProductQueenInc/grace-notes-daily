@@ -63,9 +63,7 @@ function Signup() {
       >
         <div className="w-full max-w-md glass rounded-3xl p-7 sm:p-8 fade-up">
           <Link to="/" className="flex flex-col items-center gap-2 text-grace mb-3">
-            <span className="w-16 h-16 rounded-full bg-white/85 shadow-soft flex items-center justify-center">
-              <DoveMark variant="green" className="w-10 h-10" />
-            </span>
+            <DoveMark variant="medallion" className="w-20 h-20 drop-shadow-md" />
             <span className="font-display text-xl">GraceNotes Daily</span>
           </Link>
           <h1 className="font-display text-3xl text-center text-grace mb-1">Begin your journey</h1>
