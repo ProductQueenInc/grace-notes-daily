@@ -40,7 +40,7 @@ const VOICES: { id: Voice; title: string; desc: string; icon: typeof Heart }[] =
 ];
 
 function Onboarding() {
-  const { user, loading } = useAuth();
+  const { user, loading, reloadProfile } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
@@ -88,6 +88,7 @@ function Onboarding() {
     }
 
     setSaving(false);
+    await reloadProfile();
     nav({ to: "/home" });
   }
 
