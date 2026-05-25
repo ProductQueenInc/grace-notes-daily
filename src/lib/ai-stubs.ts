@@ -4,6 +4,7 @@ import {
   getOrCreateDevotional,
   callRespondToHeartNote,
   callRespondToDailyMessage,
+  callSummarizeHeartNote,
   buildAIProfile,
   type GraceNoteResult,
   type DevotionalResult,
@@ -52,4 +53,8 @@ export async function respondToDailyMessage(
       history: history ?? [],
     },
   });
+}
+
+export async function summarizeHeartNote(text: string): Promise<string> {
+  return callSummarizeHeartNote({ data: { text } });
 }

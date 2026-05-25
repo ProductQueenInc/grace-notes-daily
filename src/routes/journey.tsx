@@ -8,6 +8,7 @@ import { Compass, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } fr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { summarizeHeartNote } from "@/lib/ai-stubs";
 
 export const Route = createFileRoute("/journey")({
   head: () => ({ meta: [{ title: "Journey - GraceNotes Daily" }] }),
@@ -58,7 +59,7 @@ function Journey() {
       // Heart notes: only entries from BEFORE today (today's stays on its page)
       const heartReq = supabase
         .from("heart_notes")
-        .select("id, body, ai_response, date, created_at")
+        .select("id, body, ai_response, summary, date, created_at")
         .eq("user_id", uid)
         .lt("date", today)
         .order("date", { ascending: false });
@@ -91,16 +92,45 @@ function Journey() {
       for (const h of hearts ?? []) {
         const iso = (h.date as string) || (h.created_at as string).slice(0, 10);
         const body = (h.body as string) ?? "";
+        const summary = (h.summary as string | null) ?? null;
         entries.push({
           id: `hn-${h.id}`,
           type: "heart-note",
           isoDate: iso,
           date: fmt(iso),
-          title: truncate(body, 60) || "Heart Note",
+          title: summary || truncate(body, 60) || "Heart Note",
           body,
           extra: (h.ai_response as string) || undefined,
         });
       }
+
+      // Lazily generate summaries for older entries that don't have one yet,
+      // then patch them in place so the user sees the AI title without a
+      // reload. One-time per entry — once written it stays.
+      const missingSummary = (hearts ?? []).filter(
+        (h) => !h.summary && ((h.body as string) ?? "").trim().length > 0,
+      );
+      if (missingSummary.length) {
+        void Promise.all(
+          missingSummary.map(async (h) => {
+            try {
+              const title = await summarizeHeartNote(h.body as string);
+              await supabase
+                .from("heart_notes")
+                .update({ summary: title })
+                .eq("id", h.id as string);
+              setAll((prev) =>
+                prev.map((e) =>
+                  e.id === `hn-${h.id}` ? { ...e, title } : e,
+                ),
+              );
+            } catch {
+              // leave the truncated fallback in place on failure
+            }
+          }),
+        );
+      }
+
 
       for (const p of prayers ?? []) {
         const iso = (p.answered_at as string)?.slice(0, 10) ?? today;

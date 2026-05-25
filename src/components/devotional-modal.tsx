@@ -1,4 +1,4 @@
-import { X, BookOpen, Heart } from "lucide-react";
+import { X, BookOpen, Heart, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
 import { softGoldConfetti } from "@/lib/confetti";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
 import { useAuth } from "@/hooks/use-auth";
+import { useHabits } from "@/hooks/use-habits";
 import { localTodayISO } from "@/lib/today";
 
 function todayISO() {
@@ -14,6 +15,8 @@ function todayISO() {
 
 export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
   const { profile } = useAuth();
+  const { habits } = useHabits();
+  const received = habits.devotional;
   const today = todayISO();
 
   // Shares cache key with home.tsx prefetch - opens instantly if warmed.
@@ -86,12 +89,18 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
               {data.takeaway}
             </div>
 
-            <button
-              onClick={receive}
-              className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full gradient-gold text-gold-foreground font-semibold shadow-lg hover:scale-[1.02] transition flex items-center justify-center gap-2"
-            >
-              <Icon icon={Heart} size="sm" tone="inherit" /> I Receive This
-            </button>
+            {received ? (
+              <div className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
+                <Icon icon={Check} size="sm" tone="inherit" /> Received today
+              </div>
+            ) : (
+              <button
+                onClick={receive}
+                className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full gradient-gold text-gold-foreground font-semibold shadow-lg hover:scale-[1.02] transition flex items-center justify-center gap-2"
+              >
+                <Icon icon={Heart} size="sm" tone="inherit" /> I Receive This
+              </button>
+            )}
           </div>
         )}
       </ReadingSurface>
