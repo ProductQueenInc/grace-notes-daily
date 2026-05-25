@@ -233,12 +233,13 @@ Respond with valid JSON only - no markdown, no code fences:
 }`;
 
   const msg = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 1200,
+    model: "claude-haiku-4-5",
+    max_tokens: 900,
     temperature: 0.7,
     system,
     messages: [{ role: "user", content: "Write today's devotional." }],
   } as Parameters<typeof client.messages.create>[0]);
+
 
 
   const block = (msg as Anthropic.Message).content[0];
