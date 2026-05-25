@@ -246,27 +246,33 @@ function Header() {
   const isLoggedIn = !loading && !!session;
 
   return (
-    <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
-      <Link to="/" className="flex items-center gap-2.5 group">
-        <DoveMark variant="medallion" className="w-10 h-10 transition-transform group-hover:scale-105" />
-        <span className="font-display text-2xl tracking-tight">GraceNotes Daily</span>
+    <header className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 text-white relative z-10">
+      <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group min-w-0">
+        <DoveMark
+          variant="medallion"
+          className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 transition-transform group-hover:scale-105"
+        />
+        <span className="font-display text-lg sm:text-2xl tracking-tight whitespace-nowrap">
+          GraceNotes Daily
+        </span>
       </Link>
       <nav className="hidden md:flex items-center gap-1">
         <a href="#faq" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">FAQ</a>
         <Link to="/about" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">About</Link>
         <Link to="/contact" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">Contact</Link>
       </nav>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {isLoggedIn ? (
-          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition">
+          <Link to="/home" className="px-3.5 sm:px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap">
             Open app
           </Link>
         ) : (
           <>
-            <Link to="/login" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition">
+            {/* Desktop shows both; mobile collapses to a single Get started CTA (which also signs in). */}
+            <Link to="/login" className="hidden sm:inline-flex px-4 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition">
               Sign in
             </Link>
-            <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition">
+            <Link to="/signup" className="px-3.5 sm:px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap">
               Get started
             </Link>
           </>
