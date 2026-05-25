@@ -22,13 +22,12 @@ function Contact() {
   const isLoggedIn = !loading && !!session;
 
   function openForm() {
-    if (typeof window !== "undefined" && window.Tally) {
-      window.Tally.openPopup("VL4NY6", {
-        width: 374,
-        emoji: { text: "👋", animation: "wave" },
-      });
-    }
+    void openTallyPopup("VL4NY6", {
+      width: 374,
+      emoji: { text: "👋", animation: "wave" },
+    });
   }
+
 
   return (
     <>
