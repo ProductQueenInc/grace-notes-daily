@@ -52,12 +52,19 @@ function Home() {
   const streak = useStreak();
 
   const today = todayISO();
-  const { data: graceNote } = useQuery({
+  const {
+    data: graceNote,
+    isError: graceError,
+    refetch: refetchGrace,
+    isFetching: graceFetching,
+  } = useQuery({
     queryKey: ["grace-note", today],
     queryFn: () => generateGraceNote(profile),
     enabled: !!profile,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   // Warm the devotional cache in the background so the modal opens instantly.
