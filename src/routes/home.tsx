@@ -147,7 +147,7 @@ function Home() {
             <div className="glass-on-hue rounded-3xl p-5 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-display text-xl text-white">Divine Habit Tracker</h3>
+                  <h3 className="font-display text-xl text-white">Daily Rhythms</h3>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button aria-label="How this works" className="text-white/55 hover:text-white/90">

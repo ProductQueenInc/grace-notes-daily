@@ -40,7 +40,7 @@ const features = [
   { icon: HandHeart, title: "Prayer Tracker", desc: "Hold your prayers in one place. Celebrate the answers with confetti and thanksgiving." },
   { icon: Compass, title: "Your Journey", desc: "Look back on how far you've come - every note, prayer, and answered moment." },
   { icon: Headphones, title: "Listen", desc: "Worship, prayer, and teaching curated to walk with you wherever you are." },
-  { icon: Sun, title: "Divine Habit Streaks", desc: "Three soft, daily practices that build a gentle rhythm with God." },
+  { icon: Sun, title: "Daily Rhythms", desc: "Three soft, daily practices that build a gentle rhythm with God." },
 ];
 
 const testimonials = [
