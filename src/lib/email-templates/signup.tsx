@@ -1,16 +1,18 @@
 import * as React from 'react'
-
 import {
   Body,
   Button,
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from '@react-email/components'
+import { styles } from './_brand'
 
 interface SignupEmailProps {
   siteName: string
@@ -22,34 +24,39 @@ interface SignupEmailProps {
 export const SignupEmail = ({
   siteName,
   siteUrl,
-  recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
-        <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+    <Preview>One small step to begin — confirm your email for {siteName}.</Preview>
+    <Body style={styles.main}>
+      <Container style={styles.container}>
+        <Text style={styles.brandHeader}>GraceNotes Daily</Text>
+        <Heading style={styles.h1}>Welcome in.</Heading>
+        <Text style={styles.text}>
+          We're glad you're here. Confirm your email and your daily space is ready —
+          a quiet note, a verse, and room to breathe.
         </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
+        <Section style={styles.buttonWrap}>
+          <Button style={styles.button} href={confirmationUrl}>
+            Confirm your email
+          </Button>
+        </Section>
+        <Text style={styles.textSoft}>
+          If the button doesn't work, paste this link into your browser:
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+        <Text style={styles.fallbackUrl}>
+          <Link href={confirmationUrl} style={styles.link}>
+            {confirmationUrl}
+          </Link>
+        </Text>
+        <Hr style={styles.divider} />
+        <Text style={styles.footer}>
+          Didn't sign up? You can safely ignore this email — nothing will happen.
+          <br />
+          <Link href={siteUrl} style={styles.footerLink}>
+            gracenotesdaily.com
+          </Link>
         </Text>
       </Container>
     </Body>
@@ -57,28 +64,3 @@ export const SignupEmail = ({
 )
 
 export default SignupEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
