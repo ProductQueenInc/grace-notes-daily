@@ -139,25 +139,19 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  // Load Tally script programmatically — the scripts[] in head() is unreliable
-  // in the Cloudflare Worker SSR context, so we ensure it loads on the client.
+  // Make sure the Tally script is present on first mount so the popup can
+  // open instantly on the first click.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (document.querySelector('script[src*="tally.so/widgets/embed.js"]')) return;
-    const s = document.createElement("script");
-    s.src = "https://tally.so/widgets/embed.js";
-    s.async = true;
-    document.head.appendChild(s);
+    ensureTallyScript();
   }, []);
 
   function openFeedback() {
-    if (typeof window !== "undefined" && window.Tally) {
-      window.Tally.openPopup("VL4NY6", {
-        width: 374,
-        emoji: { text: "👋", animation: "wave" },
-      });
-    }
+    void openTallyPopup("VL4NY6", {
+      width: 374,
+      emoji: { text: "👋", animation: "wave" },
+    });
   }
+
 
   return (
     <QueryClientProvider client={queryClient}>
