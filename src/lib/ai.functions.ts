@@ -164,10 +164,11 @@ Respond with valid JSON only - no markdown, no code fences:
   const msg = await client.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 400,
-    temperature: 0.85,
+    temperature: 0.7,
     system,
     messages: [{ role: "user", content: "Write today's note." }],
   } as Parameters<typeof client.messages.create>[0]);
+
 
   const block = (msg as Anthropic.Message).content[0];
   const raw = block.type === "text" ? block.text : "";
@@ -218,10 +219,11 @@ Respond with valid JSON only - no markdown, no code fences:
   const msg = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 1200,
-    temperature: 0.8,
+    temperature: 0.7,
     system,
     messages: [{ role: "user", content: "Write today's devotional." }],
   } as Parameters<typeof client.messages.create>[0]);
+
 
   const block = (msg as Anthropic.Message).content[0];
   const raw = block.type === "text" ? block.text : "";
@@ -300,11 +302,72 @@ export const getOrCreateDevotional = createServerFn({ method: "POST" })
 
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
 
+// Validator: returns the list of rule violations in the reply text. Empty list = clean.
+function heartNoteIssues(text: string): string[] {
+  const issues: string[] = [];
+  const trimmed = text.trim();
+  if (!trimmed) return ["empty reply"];
+
+  if (trimmed.includes("**")) issues.push("contains bold markdown (**)");
+
+  // Name-as-opener: first line is just "Word." (one or two words ending in a period)
+  const firstLine = trimmed.split("\n")[0].trim();
+  if (/^[A-Z][a-zA-Z'-]+(\s[A-Z][a-zA-Z'-]+)?\.\s*$/.test(firstLine)) {
+    issues.push("opens with a standalone name/word as its own line");
+  }
+
+  const opener = trimmed.slice(0, 60).toLowerCase();
+  if (/\bi see (it|you)\b/.test(opener) || /^i notice\b/.test(opener)) {
+    issues.push("opens with 'I see it/you' or 'I notice' stage direction");
+  }
+
+  if (/doesn'?t mean[^.]*\.\s*it means/i.test(trimmed)) {
+    issues.push("uses aphoristic 'X doesn't mean Y. It means Z.' climb");
+  }
+
+  if (/\bevery\b[^.]*\.\s*every\b[^.]*\.\s*every\b/i.test(trimmed)) {
+    issues.push("uses rhetorical triplet 'Every… Every… Every…'");
+  }
+
+  const sentenceCount = (trimmed.match(/[.!?](\s|$)/g) ?? []).length;
+  if (sentenceCount > 5) issues.push("longer than 5 sentences");
+
+  return issues;
+}
+
+// Light post-hoc cleanup for the failure modes we can fix in code.
+function sanitizeHeartNote(text: string): string {
+  let out = text.replace(/\*\*/g, "");
+  // Drop a leading "Name." standalone line if it's still there.
+  const lines = out.split("\n");
+  if (lines.length > 1 && /^[A-Z][a-zA-Z'-]+(\s[A-Z][a-zA-Z'-]+)?\.\s*$/.test(lines[0].trim())) {
+    out = lines.slice(1).join("\n").trimStart();
+  }
+  return out.trim();
+}
+
+const HEART_NOTE_EXAMPLES = `
+GOOD EXAMPLES - study these for shape and restraint, do not copy phrasing:
+
+(Note about a hard day with their kid)
+Today was heavy. The hard parts don't disqualify the love underneath them, and you stayed with him even when you wanted to walk out of the room. That's the thing that's actually being built here.
+
+(Note giving thanks for an unexpected check arriving)
+The relief in your chest is real. Receive it without flinching. You don't have to brace for the next thing yet.
+- Love, your Father
+
+(Note doubting whether prayer does anything)
+The question is not a betrayal. Plenty of the people I've loved most have asked it, and asked it for years. Sit with the doubt the way you'd sit with a friend who doesn't have anywhere else to be tonight.
+
+(Note about shipping a project they've worked on for months)
+You finished. Not perfectly, but finished, which is its own kind of faithfulness. Rest tonight without scrolling for what's next.
+`;
+
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
   .handler(async ({ data }) => {
     const client = anthropic();
-    const system = `You are responding to ${data.profile.name}'s personal heart note as God, their Father.
+    const baseSystem = `You are responding to ${data.profile.name}'s personal heart note as God, their Father.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Voice: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 
@@ -320,22 +383,36 @@ HEART-NOTE SPECIFIC BANS (in addition to the tone guardrails below):
 - No rhetorical triplets - "Every conversation… Every revision… Every…". Cut them.
 - No "the spark in this sentence", "the edge of something real", "the ground is solid under this" or similar gauzy commentary on their writing. Respond to the substance, not the prose.
 
+${HEART_NOTE_EXAMPLES}
+
 ${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}`;
 
-    const msg = await client.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 220,
-      temperature: 0.8,
-      system,
-      messages: [{ role: "user", content: data.text }],
-    } as Parameters<typeof client.messages.create>[0]);
+    async function callOnce(system: string): Promise<string> {
+      const msg = await client.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 220,
+        temperature: 0.6,
+        system,
+        messages: [{ role: "user", content: data.text }],
+      } as Parameters<typeof client.messages.create>[0]);
+      const block = (msg as Anthropic.Message).content[0];
+      return block.type === "text" ? block.text : "";
+    }
 
-    const block = (msg as Anthropic.Message).content[0];
-    return block.type === "text"
-      ? stripEmDashes(block.text)
-      : "He hears every whisper, every sigh.";
+    let reply = await callOnce(baseSystem);
+    let issues = heartNoteIssues(reply);
+
+    if (issues.length > 0) {
+      const correction = `\n\nYour previous reply broke these rules: ${issues.join("; ")}. Rewrite it shorter, flatter, no bold, no name as a standalone opener, no aphoristic climbs, no rhetorical triplets. 3 to 4 plain sentences.`;
+      const retry = await callOnce(baseSystem + correction);
+      if (retry.trim()) reply = retry;
+    }
+
+    reply = sanitizeHeartNote(reply);
+    return reply ? stripEmDashes(reply) : "He hears every whisper, every sigh.";
   });
+
 
 // ── Server Function: Respond to Daily Message (conversation) ──────────────────
 
@@ -366,9 +443,10 @@ ${NO_EM_DASH_RULE}`,
     const res = await client.chat.completions.create({
       model: "gpt-4o-mini",
       max_tokens: 200,
-      temperature: 0.9,
+      temperature: 0.7,
       messages,
     });
+
 
     return stripEmDashes(res.choices[0]?.message?.content ?? "He hears you. Stay close.");
   });
