@@ -151,15 +151,20 @@ Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
 
 Write it like a real note someone leaves you - not a sermon, not a Hallmark card.
 Two short paragraphs. Around 80 words total. Address the reader directly as "you".
-Weave in one Bible verse naturally (or place it as a single quoted line). Then a short warm sign-off.
+
+Do NOT quote, paraphrase, or include the Bible verse inside the "message" field. The verse goes in its own "verse" field and is shown separately when the reader chooses to reveal it. The message must stand on its own without the verse text.
+
+Then a short warm sign-off.
 
 Do NOT reference the time of day, morning, evening, "this moment," "this pause," or anything date/time-bound. The note is just FOR today, it doesn't need to know what time today is.
+
+Do NOT speak as if you know what is happening in the reader's life today. What's in their profile may be days or weeks old. Offer something nourishing and grounded that gently hints at what they shared, without claiming a steady view into their actual day. Avoid lines like "the anxiety you're carrying" or "the loneliness you feel" — you don't know if that's true right now.
 
 ${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "two short paragraphs, ~80 words", "verse": "Full verse text - Book Chapter:Verse", "signed": "short warm sign-off like 'Love, your Father' or 'Held, today.'" }`;
+{ "message": "two short paragraphs, ~80 words, NO verse text inside", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "short warm sign-off like 'Love, your Father' or 'Held, today.'" }`;
 
   const msg = await client.messages.create({
     model: "claude-haiku-4-5",
