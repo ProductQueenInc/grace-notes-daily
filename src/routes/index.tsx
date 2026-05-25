@@ -44,10 +44,25 @@ const features = [
   { icon: Sun, title: "Daily Rhythms", desc: "Three soft, daily practices that build a gentle rhythm with God." },
 ];
 
-const testimonials = [
-  { quote: "It feels like a friend gently reminding me I'm loved every morning.", who: "Anna, returning to faith" },
-  { quote: "My quiet time with God finally has a soft, beautiful home.", who: "Joseph, growing deeper" },
-  { quote: "I've never felt more held by an app. It doesn't push - it whispers.", who: "Mariam, newbie" },
+const bibleStories = [
+  {
+    verse: "I seek you earnestly; my soul thirsts for you, my whole being longs for you.",
+    ref: "Psalm 63:1",
+    who: "David, shepherd, king, psalmist",
+    outcome: "His daily walks with God produced 73 Psalms and a kingdom.",
+  },
+  {
+    verse: "She was deeply distressed and prayed to the Lord and wept bitterly.",
+    ref: "1 Samuel 1:10",
+    who: "Hannah, a woman who brought everything",
+    outcome: "That specific, honest prayer became the prophet Samuel.",
+  },
+  {
+    verse: "Three times a day he got down on his knees and prayed, giving thanks to his God.",
+    ref: "Daniel 6:10",
+    who: "Daniel, statesman, prophet, exile",
+    outcome: "Even when prayer was illegal, his daily rhythm outlasted four empires.",
+  },
 ];
 
 const faqs = [
@@ -164,16 +179,18 @@ function Landing() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* BIBLE STORIES */}
       <section className="px-6 pb-24">
         <div className="max-w-6xl mx-auto">
-          <SectionTitle eyebrow="Loved by quiet hearts" title="A daily soft place to land" />
+          <SectionTitle eyebrow="In good company" title="Daily time with God has always changed things" />
           <div className="grid md:grid-cols-3 gap-4 mt-10">
-            {testimonials.map((t) => (
-              <div key={t.who} className="glass rounded-3xl p-6 text-foreground">
+            {bibleStories.map((s) => (
+              <div key={s.who} className="glass rounded-3xl p-6 text-foreground">
                 <Quote className="w-5 h-5 text-gold mb-3" />
-                <p className="font-display text-lg text-grace leading-snug">{t.quote}</p>
-                <p className="text-xs text-foreground/60 mt-4">- {t.who}</p>
+                <p className="font-display text-lg text-grace leading-snug">"{s.verse}"</p>
+                <p className="text-xs text-gold font-semibold mt-2">{s.ref}</p>
+                <p className="text-xs text-foreground/60 mt-1">– {s.who}</p>
+                <p className="text-sm text-foreground/70 leading-relaxed mt-3">{s.outcome}</p>
               </div>
             ))}
           </div>
