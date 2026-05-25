@@ -1,0 +1,1 @@
+ALTER TABLE public.heart_notes ADD COLUMN summary text;
