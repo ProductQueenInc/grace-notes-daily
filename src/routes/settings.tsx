@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
-import { LogOut, Settings as SettingsIcon, Trash2 } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings - GraceNotes Daily" }] }),
@@ -103,6 +103,22 @@ function Settings() {
           <Row label="Personalize content" hint="Tailor grace notes to your phase.">
             <Toggle checked={personalize} onChange={setPersonalize} />
           </Row>
+        </div>
+
+        <div className="glass rounded-3xl p-5 sm:p-6 space-y-2 mb-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground/40 px-1 pb-1">Info & Legal</p>
+          <Link to="/about" className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
+            <Info className="w-4 h-4 text-grace" /> About GraceNotes Daily
+          </Link>
+          <Link to="/faq" className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
+            <HelpCircle className="w-4 h-4 text-grace" /> FAQ
+          </Link>
+          <Link to="/terms" className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
+            <FileText className="w-4 h-4 text-grace" /> Terms of Use
+          </Link>
+          <Link to="/privacy" className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
+            <ShieldCheck className="w-4 h-4 text-grace" /> Privacy Policy
+          </Link>
         </div>
 
         <div className="glass rounded-3xl p-5 sm:p-6 space-y-2">

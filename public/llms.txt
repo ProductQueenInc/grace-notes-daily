@@ -1,0 +1,45 @@
+# GraceNotes Daily
+
+> A daily devotional companion for Christians. GraceNotes Daily combines AI-personalised grace notes, guided devotional readings, prayer journaling, and answered prayer tracking in one quiet, beautiful space.
+
+GraceNotes Daily is a faith-based web application built for Christians at every stage of their walk with God. It is not a church, a denomination, or a theological authority. It is a gentle daily companion rooted in Scripture and designed to help believers show up consistently in their relationship with God.
+
+## Core features
+
+- **Daily Grace Note**: A short, personalised word of encouragement generated each morning, grounded in Scripture and tailored to the user's current season of faith.
+- **Daily Devotional**: A guided reading with a verse of the day, reflection body, and a personal takeaway. Personalised by faith phase and preferred daily rhythm.
+- **Prayer Journal**: A private space to write, track, and revisit prayers. Users can mark prayers as answered and write thanksgiving notes.
+- **Heart Notes**: A daily journaling prompt for honest, private reflection. Each entry receives an AI-generated response that is warm, grounded, and never preachy.
+- **Habit Tracker**: Tracks completion of the three daily practices (devotional, message, journal) and maintains a running streak.
+- **Journey Archive**: A searchable archive of past devotionals, grace notes, prayers, and heart notes.
+
+## Who this is for
+
+- Christians who want to build a consistent daily devotional habit
+- People new to the Christian faith who are looking for a gentle, low-pressure starting point
+- Believers who journal or want to start journaling their prayers
+- Christians exploring the intersection of faith and daily rhythm
+
+## Theology and tone
+
+GraceNotes Daily draws from across the Christian tradition and is designed to be broadly accessible. Content references the Bible (multiple translations supported), uses language of grace, invitation, and belonging, and never shames or pressures the reader. The voice is soft, honest, and human.
+
+## Technology
+
+Built with React, TanStack Start, and Tailwind CSS. Backend powered by Supabase. AI content generated via Claude (Anthropic) and GPT (OpenAI). Hosted on Lovable with Cloudflare edge delivery. All user content is private by design and never used for advertising or model training.
+
+## Pages
+
+- Homepage: https://www.gracenotesdaily.com/
+- About: https://www.gracenotesdaily.com/about
+- Prayer Journaling guide: https://www.gracenotesdaily.com/prayer-journaling
+- Daily Devotional guide: https://www.gracenotesdaily.com/daily-devotional
+- Christian Journaling guide: https://www.gracenotesdaily.com/christian-journaling
+- FAQ: https://www.gracenotesdaily.com/faq
+- Privacy Policy: https://www.gracenotesdaily.com/privacy
+- Terms of Use: https://www.gracenotesdaily.com/terms
+
+## Contact
+
+support@gracenotesdaily.com
+https://www.gracenotesdaily.com/contact
