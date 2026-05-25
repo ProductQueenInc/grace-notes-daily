@@ -9,9 +9,9 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { MessageCircle } from "lucide-react";
-import { useEffect } from "react";
 
-import { openTallyPopup, ensureTallyScript } from "@/lib/tally";
+import { openTallyForm } from "@/lib/tally";
+
 
 
 import appCss from "../styles.css?url";
@@ -96,9 +96,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "GraceNotes Daily | Christian Devotional & Prayer Journal" },
       { name: "twitter:description", content: "Your daily companion in faith. GraceNotes Daily combines guided devotionals, prayer journaling, and answered prayer tracking in one quiet, beautiful space." },
     ],
-    scripts: [
-      { src: "https://tally.so/widgets/embed.js", async: true },
-    ],
     links: [
       { rel: "manifest", href: "/manifest.json" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
@@ -139,18 +136,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  // Make sure the Tally script is present on first mount so the popup can
-  // open instantly on the first click.
-  useEffect(() => {
-    ensureTallyScript();
-  }, []);
-
   function openFeedback() {
-    void openTallyPopup("VL4NY6", {
-      width: 374,
-      emoji: { text: "👋", animation: "wave" },
-    });
+    openTallyForm("VL4NY6");
   }
+
 
 
   return (
