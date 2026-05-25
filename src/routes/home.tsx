@@ -67,15 +67,21 @@ function Home() {
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
-  // Warm the devotional cache in the background so the modal opens instantly.
+  // Warm the devotional cache in the background AFTER the grace note settles, so
+  // the two AI calls don't compete for the same mobile connection on first load.
   useEffect(() => {
     if (!profile) return;
-    queryClient.prefetchQuery({
-      queryKey: ["devotional", today],
-      queryFn: () => generateDevotional(profile),
-      staleTime: Infinity,
-    });
-  }, [profile, today, queryClient]);
+    if (graceFetching) return;
+    const t = setTimeout(() => {
+      queryClient.prefetchQuery({
+        queryKey: ["devotional", today],
+        queryFn: () => generateDevotional(profile),
+        staleTime: Infinity,
+      });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [profile, today, queryClient, graceFetching]);
+
 
 
   function handleHabitClick(k: HabitKey) {

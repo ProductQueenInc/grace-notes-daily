@@ -80,9 +80,10 @@ function seasonLine(seasons: string[]) {
 function anthropic() {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY is not set");
-  // 25s timeout + 1 retry: keeps mobile UX responsive instead of letting a stalled
+  // 18s timeout + 1 retry: keeps mobile UX responsive instead of letting a stalled
   // request hang the spinner indefinitely.
-  return new Anthropic({ apiKey: key, timeout: 25_000, maxRetries: 1 });
+  return new Anthropic({ apiKey: key, timeout: 18_000, maxRetries: 1 });
+
 }
 
 function openai() {
@@ -232,12 +233,13 @@ Respond with valid JSON only - no markdown, no code fences:
 }`;
 
   const msg = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 1200,
+    model: "claude-haiku-4-5",
+    max_tokens: 900,
     temperature: 0.7,
     system,
     messages: [{ role: "user", content: "Write today's devotional." }],
   } as Parameters<typeof client.messages.create>[0]);
+
 
 
   const block = (msg as Anthropic.Message).content[0];
