@@ -1,61 +1,66 @@
-## 1. Heart-note reply — tone + format
+## Goal
 
-Edit `src/lib/ai.functions.ts → callRespondToHeartNote`:
+Make heart-note replies feel authentic across any user/entry — not just ones that happen to match the model's poetic defaults. Reduce cost/latency by reserving Sonnet for the devotional only.
 
-- Cut target length to **3–4 sentences**.
-- Drop the required `"Love, your Father" / "Held, your Father"` close — make sign-off optional, one short line at most, no bolding.
-- Add explicit bans to the existing `NO_OVER_FAMILIARITY` block (or a new "Heart-note-specific" addendum):
-  - No bold markdown anywhere (`**name**`, `**sign-off**`).
-  - No name-as-opener (the model keeps writing "**Cindy.**" as the first beat).
-  - No aphoristic climbs ("X doesn't mean Y. It means Z.").
-  - No rhetorical lists of "Every… Every… Every…".
-  - No "I see it" / "I see you" stage direction.
-  - Reply to what they actually wrote with concrete language — mirror a noun or verb from their note when natural.
-- Lower `max_tokens` from 300 → 220 so the model can't pad.
-- Keep the em-dash sanitizer.
+## Changes (all in `src/lib/ai.functions.ts`)
 
-Result: closer to a steady friend texting back than a poetic monologue.
+### 1. Show, don't tell — add concrete example replies to the heart-note prompt
 
-## 2. Heart-note reply — remove label
+Append a `GOOD EXAMPLES` block to the `callRespondToHeartNote` system prompt with 3–4 short, varied samples covering different note types so the model has a target shape, not just a list of forbidden moves:
 
-Edit `src/routes/heart-notes.tsx`:
+- **Grief / hard day** — flat, present, no climb. ~3 sentences, no sign-off.
+- **Gratitude / good news** — warm but restrained, mirrors one concrete noun from the note.
+- **Doubt / questioning** — steady, doesn't reassure or resolve. Ends with a short held line.
+- **Milestone / launch** — acknowledges the work itself, not "the spark in your writing."
 
-- Delete the `<p className="text-xs uppercase tracking-wider text-grace mb-2">A gentle reply</p>` line.
-- Keep the gold left border + italic Fraunces styling — that visual treatment alone signals it's the reply.
-- Light spacing tweak so the reply doesn't sit too tight at the top.
+Each example will be 2–4 plain sentences, no bold, no name-as-opener, no aphoristic climb, optional one-line sign-off on only one of them — so the model sees that the sign-off really is optional.
 
-## 3. Journey card — kill the duplicate prayer body
+### 2. Output guard + single retry
 
-Edit `src/routes/journey.tsx`:
+After the Anthropic call, run the reply text through a small validator that flags the known failure modes:
 
-- For `type === "prayer"` rows, the `title` already contains the truncated prayer text. When expanded, do **not** render the full `body` paragraph again — only render the gratitude block (`extra`).
-- Heart-note rows continue to show title (preview) + full body on expand — they're genuinely different content.
+- Starts with `**Name**` or `Name.` as a standalone first beat
+- Contains `**` anywhere (bold markdown)
+- Contains `I see it.` / `I see you.` / `I notice` as an opener
+- Contains the aphoristic pattern `…doesn't mean…. It means…`
+- Contains rhetorical triplets like `Every X… Every Y… Every Z…`
+- Longer than ~5 sentences
 
-## 4. Journey filters — remove date filter, fix dropdown padding
+If any flag trips, re-run the call **once** with a short corrective system addendum ("Your previous reply broke rule X. Rewrite shorter, flatter, no bold, no name opener."). If the retry still fails the bold/name checks, sanitize in code (strip `**`, drop a leading `Name.` line) and return. Never loop more than once — cost + latency cap.
 
-Edit `src/routes/journey.tsx`:
+### 3. Lower temperature
 
-- Remove the `<input type="date">` chip and the `dateFilter` state + filtering logic entirely.
-- Replace the native `<select>` with the shadcn `Select` component (matches the rest of the app, gives proper chevron + padding, themed colors). Falls back to keeping the native select with `appearance-none pr-9` and a positioned `ChevronDown` icon if shadcn Select doesn't fit the glass-on-hue look — I'll pick whichever reads cleaner.
-- Add `Calendar`/`X` imports cleanup (no longer needed).
+- Heart-note reply: `0.8 → 0.6`
+- Daily-message chat: `0.9 → 0.7`
+- Grace note: `0.85 → 0.7`
+- Devotional: `0.8 → 0.7`
 
-Navigation in this view is now: search + type filter + pagination (previous/next). That covers the stated fallback.
+Creative flourish was the wrong dial. Grounded specificity is what we want, and lower temp pushes the model toward its more literal, less performative register.
 
-## 5. PWA install — ready to test
+### 4. Model swap — Sonnet only where it earns its keep
 
-Already in place:
-- `public/manifest.json` with name, short_name, start_url `/home`, standalone display, theme color, all icons.
-- `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` all present.
-- `<link rel="manifest">` and `<link rel="apple-touch-icon">` + `theme-color` meta wired in `src/routes/__root.tsx`.
+| Server fn | Current | New |
+|---|---|---|
+| `callRespondToHeartNote` | `claude-sonnet-4-5` | `claude-haiku-4-5` |
+| `callRespondToDailyMessage` | `gpt-4o-mini` (OpenAI) | unchanged — already light |
+| `generateGraceNoteRaw` | `claude-haiku-4-5` | unchanged |
+| `generateDevotionalRaw` | `claude-sonnet-4-5` | **unchanged** — devotional is the only place that benefits from Sonnet's depth (longer body, scripture weaving, three related verses) |
 
-No code change needed. After publishing, on iPhone Safari: Share → Add to Home Screen. On Android Chrome: install prompt should appear, or use ⋮ → Install app. The app launches standalone (no browser chrome), opens to `/home`, and the green status bar tint matches.
+Heart-note replies are 3–4 sentences with strict constraints — a shaping problem, not a reasoning problem. Haiku 4.5 handles that well, especially with the new examples + retry guard compensating for any drop in nuance. Net effect: faster replies, lower spend, tone stays on target.
 
-If the install button doesn't show on Android, it's almost always a service-worker requirement — that's the only remaining piece for a "true" installable PWA on Chrome. Out of scope for this turn; flag it if you'd like a follow-up.
+### 5. Clear today's cached row again
+
+After deploy, run the same `DELETE FROM public.heart_notes WHERE date = CURRENT_DATE` so you can test the new prompt + model end-to-end without yesterday's cache.
 
 ## Files touched
 
-- `src/lib/ai.functions.ts` — heart-note prompt + token cap
-- `src/routes/heart-notes.tsx` — remove label
-- `src/routes/journey.tsx` — drop duplicate prayer body, remove date filter, polish dropdown
+- `src/lib/ai.functions.ts` — examples block, validator + single retry, temps lowered, model swap on heart-note fn
+- One-line SQL to clear today's cache
 
-No DB changes, no new dependencies.
+No DB schema changes, no new dependencies, no frontend changes.
+
+## What this does NOT do
+
+- Doesn't add per-user style learning (would need a feedback table — separate phase)
+- Doesn't A/B different models per user — single model per server fn for now
+- Doesn't change the daily-message chat behavior beyond temperature
