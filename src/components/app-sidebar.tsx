@@ -100,8 +100,8 @@ export function AppSidebar() {
                 aria-label="GraceNotes Daily home"
                 className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
               >
-                <span className="w-9 h-9 aspect-square rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white ring-1 ring-gold/40 shadow-[0_0_18px_-6px_var(--gold)]">
-                  <img src={doveLogo} alt="" className="w-8 h-8 object-contain" />
+                <span className="w-9 h-9 aspect-square flex items-center justify-center shrink-0 shadow-[0_0_18px_-6px_var(--gold)]">
+                  <img src={doveLogo} alt="" className="w-9 h-9 object-contain" />
                 </span>
                 {!collapsed && (
                   <span className="font-display text-lg text-white tracking-tight truncate">
