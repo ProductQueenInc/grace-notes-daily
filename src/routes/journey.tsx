@@ -201,11 +201,13 @@ function Journey() {
                         <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
                         {isOpen && (
                           <>
-                            <p className="text-sm text-foreground/80 mt-2 whitespace-pre-wrap">{e.body}</p>
+                            {e.type === "heart-note" && (
+                              <p className="text-sm text-foreground/80 mt-2 whitespace-pre-wrap">{e.body}</p>
+                            )}
                             {e.extra && (
                               <div className="mt-3 border-l-4 border-gold pl-3 py-1">
                                 <p className="text-[11px] uppercase tracking-wider text-gold-foreground/70 font-semibold">{replyLabel}</p>
-                                <p className="text-sm italic text-foreground/80 mt-1">{e.extra}</p>
+                                <p className="text-sm italic text-foreground/80 mt-1 whitespace-pre-wrap">{e.extra}</p>
                               </div>
                             )}
                           </>
