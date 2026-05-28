@@ -47,10 +47,16 @@ export function useAuth() {
       if (s?.user) loadProfile(s.user.id);
       else setProfile(null);
     });
-    supabase.auth.getSession().then(({ data }) => {
+    // Await the profile fetch so `loading` only becomes false AFTER the
+    // profile is ready. This prevents the flash where the home screen
+    // renders briefly with `profile=null` (showing "Friend") before the
+    // DB row arrives and RequireAuth can enforce onboarding.
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
-      if (data.session?.user) loadProfile(data.session.user.id);
+      if (data.session?.user) {
+        await loadProfile(data.session.user.id);
+      }
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();

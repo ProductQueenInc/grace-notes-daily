@@ -115,7 +115,7 @@ function Landing() {
           </p>
           <div className="flex justify-center">
             <Link
-              to={isLoggedIn ? "/home" : "/signup"}
+              to={isLoggedIn ? "/home" : "/login"}
               className="px-8 py-4 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition text-base"
             >
               {isLoggedIn ? "Open your space →" : "Begin your journey"}
@@ -228,7 +228,7 @@ function Landing() {
             One small, sacred pause a day. Yours to keep, at your own pace.
           </p>
           <Link
-            to={isLoggedIn ? "/home" : "/signup"}
+            to={isLoggedIn ? "/home" : "/login"}
             className="inline-block px-8 py-4 rounded-full bg-grace text-white font-semibold shadow-xl hover:opacity-95 transition"
           >
             {isLoggedIn ? "Open your space →" : "Begin your journey →"}
@@ -262,21 +262,15 @@ function Header() {
         <Link to="/contact" className="px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">Contact</Link>
       </nav>
       <div className="flex items-center gap-2 shrink-0">
-        {isLoggedIn ? (
-          <Link to="/home" className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap">
-            <span className="sm:hidden">Open</span><span className="hidden sm:inline">Open app</span>
-          </Link>
-        ) : (
-          <>
-            {/* Desktop shows both; mobile collapses to a single compact CTA (which also signs in). */}
-            <Link to="/login" className="hidden sm:inline-flex px-4 py-2 rounded-full text-sm font-medium hover:bg-white/10 transition">
-              Sign in
-            </Link>
-            <Link to="/signup" className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap">
-              <span className="sm:hidden">Start</span><span className="hidden sm:inline">Get started</span>
-            </Link>
-          </>
-        )}
+        <Link
+          to={isLoggedIn ? "/home" : "/login"}
+          className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap"
+        >
+          {isLoggedIn
+            ? <><span className="sm:hidden">Open</span><span className="hidden sm:inline">Open app</span></>
+            : <><span className="sm:hidden">Start</span><span className="hidden sm:inline">Get started</span></>
+          }
+        </Link>
       </div>
     </header>
   );
