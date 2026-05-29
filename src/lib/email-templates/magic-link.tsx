@@ -1,35 +1,40 @@
 import * as React from 'react'
+
 import {
-  Body, Button, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text,
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Preview,
+  Text,
 } from '@react-email/components'
-import { styles } from './_brand'
 
 interface MagicLinkEmailProps {
   siteName: string
-  siteUrl: string
-  recipient: string
   confirmationUrl: string
 }
 
-export const MagicLinkEmail = ({ siteName, siteUrl, confirmationUrl }: MagicLinkEmailProps) => (
+export const MagicLinkEmail = ({
+  siteName,
+  confirmationUrl,
+}: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your sign-in link for {siteName}.</Preview>
-    <Body style={styles.main}>
-      <Container style={styles.container}>
-        <Text style={styles.brandHeader}>GraceNotes Daily</Text>
-        <Heading style={styles.h1}>Your sign-in link</Heading>
-        <Text style={styles.text}>Tap below to sign in. The link works once and expires soon.</Text>
-        <Section style={styles.buttonWrap}>
-          <Button style={styles.button} href={confirmationUrl}>Sign in</Button>
-        </Section>
-        <Text style={styles.fallbackUrl}>
-          <Link href={confirmationUrl} style={styles.link}>{confirmationUrl}</Link>
+    <Preview>Your login link for {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Your login link</Heading>
+        <Text style={text}>
+          Click the button below to log in to {siteName}. This link will expire
+          shortly.
         </Text>
-        <Hr style={styles.divider} />
-        <Text style={styles.footer}>
-          Didn't request this? You can ignore the email.<br />
-          <Link href={siteUrl} style={styles.footerLink}>gracenotesdaily.com</Link>
+        <Button style={button} href={confirmationUrl}>
+          Log In
+        </Button>
+        <Text style={footer}>
+          If you didn't request this link, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -37,3 +42,27 @@ export const MagicLinkEmail = ({ siteName, siteUrl, confirmationUrl }: MagicLink
 )
 
 export default MagicLinkEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
