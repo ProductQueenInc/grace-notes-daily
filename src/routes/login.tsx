@@ -127,6 +127,20 @@ function Auth() {
             <p className="text-sm text-foreground/70 leading-relaxed">
               We sent a confirmation link to <strong>{email}</strong>. Click it to complete your account and begin your journey.
             </p>
+            <p className="text-xs text-foreground/55 mt-3">
+              Didn't get it? Check your spam folder, or resend below.
+            </p>
+            <button
+              onClick={resendConfirmation}
+              disabled={resending || resendCooldown > 0}
+              className="mt-4 w-full py-2.5 rounded-full border border-grace/40 text-grace text-sm font-semibold hover:bg-grace/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resending
+                ? "Resending…"
+                : resendCooldown > 0
+                  ? `Resend in ${resendCooldown}s`
+                  : "Resend confirmation email"}
+            </button>
             <p className="text-xs text-foreground/50 mt-4">
               Already confirmed?{" "}
               <button
