@@ -19,7 +19,7 @@ function ResetPassword() {
 
   async function requestReset(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabaseConfigured) return toast.error("Add Supabase keys first.");
+    if (!supabaseConfigured) return toast.error("Password reset is temporarily unavailable. Please try again shortly.");
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -31,7 +31,7 @@ function ResetPassword() {
 
   async function updatePass(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabaseConfigured) return toast.error("Add Supabase keys first.");
+    if (!supabaseConfigured) return toast.error("Password reset is temporarily unavailable. Please try again shortly.");
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setLoading(false);
