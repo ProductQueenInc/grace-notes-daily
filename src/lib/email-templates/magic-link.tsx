@@ -6,20 +6,19 @@ import { styles } from './_brand'
 
 interface MagicLinkEmailProps {
   siteName: string
-  siteUrl: string
-  recipient: string
+  siteUrl?: string
   confirmationUrl: string
 }
 
-export const MagicLinkEmail = ({ siteName, siteUrl, confirmationUrl }: MagicLinkEmailProps) => (
+export const MagicLinkEmail = ({ siteName, siteUrl = 'https://gracenotesdaily.com', confirmationUrl }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your sign-in link for {siteName}.</Preview>
+    <Preview>Your sign-in link for {siteName}</Preview>
     <Body style={styles.main}>
       <Container style={styles.container}>
         <Text style={styles.brandHeader}>GraceNotes Daily</Text>
-        <Heading style={styles.h1}>Your sign-in link</Heading>
-        <Text style={styles.text}>Tap below to sign in. The link works once and expires soon.</Text>
+        <Heading style={styles.h1}>Welcome back.</Heading>
+        <Text style={styles.text}>Tap the button below to sign in. This link will expire shortly.</Text>
         <Section style={styles.buttonWrap}>
           <Button style={styles.button} href={confirmationUrl}>Sign in</Button>
         </Section>
@@ -28,7 +27,8 @@ export const MagicLinkEmail = ({ siteName, siteUrl, confirmationUrl }: MagicLink
         </Text>
         <Hr style={styles.divider} />
         <Text style={styles.footer}>
-          Didn't request this? You can ignore the email.<br />
+          Didn't request this? You can safely ignore this email.
+          <br />
           <Link href={siteUrl} style={styles.footerLink}>gracenotesdaily.com</Link>
         </Text>
       </Container>
