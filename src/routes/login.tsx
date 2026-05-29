@@ -40,7 +40,7 @@ function Auth() {
 
   async function withEmail(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabaseConfigured) return toast.error("Add your Supabase keys to enable sign-in.");
+    if (!supabaseConfigured) return toast.error("Sign-in is temporarily unavailable. Please try again shortly.");
     setLoading(true);
 
     if (isNewUser) {
