@@ -1,8 +1,16 @@
 import * as React from 'react'
+
 import {
-  Body, Button, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text,
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Text,
 } from '@react-email/components'
-import { styles } from './_brand'
 
 interface InviteEmailProps {
   siteName: string
@@ -10,28 +18,31 @@ interface InviteEmailProps {
   confirmationUrl: string
 }
 
-export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailProps) => (
+export const InviteEmail = ({
+  siteName,
+  siteUrl,
+  confirmationUrl,
+}: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You're invited to {siteName}</Preview>
-    <Body style={styles.main}>
-      <Container style={styles.container}>
-        <Text style={styles.brandHeader}>GraceNotes Daily</Text>
-        <Heading style={styles.h1}>You're invited in.</Heading>
-        <Text style={styles.text}>
-          A soft, daily space has been opened for you. Accept your invitation below to create your account.
+    <Preview>You've been invited to join {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>You've been invited</Heading>
+        <Text style={text}>
+          You've been invited to join{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          . Click the button below to accept the invitation and create your
+          account.
         </Text>
-        <Section style={styles.buttonWrap}>
-          <Button style={styles.button} href={confirmationUrl}>Accept invitation</Button>
-        </Section>
-        <Text style={styles.fallbackUrl}>
-          <Link href={confirmationUrl} style={styles.link}>{confirmationUrl}</Link>
-        </Text>
-        <Hr style={styles.divider} />
-        <Text style={styles.footer}>
-          Not expecting this? You can safely ignore this email.
-          <br />
-          <Link href={siteUrl} style={styles.footerLink}>gracenotesdaily.com</Link>
+        <Button style={button} href={confirmationUrl}>
+          Accept Invitation
+        </Button>
+        <Text style={footer}>
+          If you weren't expecting this invitation, you can safely ignore this
+          email.
         </Text>
       </Container>
     </Body>
@@ -39,3 +50,28 @@ export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailP
 )
 
 export default InviteEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
