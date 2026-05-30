@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 import {
   Body, Button, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text,
 } from '@react-email/components'
@@ -6,11 +7,13 @@ import { styles } from './_brand'
 
 interface RecoveryEmailProps {
   siteName: string
-  siteUrl: string
   confirmationUrl: string
 }
 
-export const RecoveryEmail = ({ siteName, siteUrl, confirmationUrl }: RecoveryEmailProps) => (
+export const RecoveryEmail = ({
+  siteName,
+  confirmationUrl,
+}: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Reset your password for {siteName}</Preview>
@@ -19,7 +22,7 @@ export const RecoveryEmail = ({ siteName, siteUrl, confirmationUrl }: RecoveryEm
         <Text style={styles.brandHeader}>GraceNotes Daily</Text>
         <Heading style={styles.h1}>Let's get you back in.</Heading>
         <Text style={styles.text}>
-          We received a request to reset your password. Tap the button below to choose a new one — it only takes a moment.
+          We received a request to reset your password. Tap the button below to choose a new one. It only takes a moment.
         </Text>
         <Section style={styles.buttonWrap}>
           <Button style={styles.button} href={confirmationUrl}>Reset your password</Button>
@@ -30,9 +33,7 @@ export const RecoveryEmail = ({ siteName, siteUrl, confirmationUrl }: RecoveryEm
         </Text>
         <Hr style={styles.divider} />
         <Text style={styles.footer}>
-          Didn't ask for this? You can safely ignore this email — your password stays the same.
-          <br />
-          <Link href={siteUrl} style={styles.footerLink}>gracenotesdaily.com</Link>
+          Didn't ask for this? You can safely ignore this email. Your password stays the same.
         </Text>
       </Container>
     </Body>

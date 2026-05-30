@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 import {
   Body, Button, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text,
 } from '@react-email/components'
@@ -10,29 +11,26 @@ interface InviteEmailProps {
   confirmationUrl: string
 }
 
-export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailProps) => (
+export const InviteEmail = ({
+  siteName,
+  siteUrl,
+  confirmationUrl,
+}: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You're invited to {siteName}</Preview>
+    <Preview>You've been invited to join {siteName}</Preview>
     <Body style={styles.main}>
       <Container style={styles.container}>
         <Text style={styles.brandHeader}>GraceNotes Daily</Text>
-        <Heading style={styles.h1}>You're invited in.</Heading>
+        <Heading style={styles.h1}>You've been invited.</Heading>
         <Text style={styles.text}>
-          A soft, daily space has been opened for you. Accept your invitation below to create your account.
+          You've been invited to join <Link href={siteUrl} style={styles.link}>{siteName}</Link>. Tap below to accept the invitation and create your account.
         </Text>
         <Section style={styles.buttonWrap}>
           <Button style={styles.button} href={confirmationUrl}>Accept invitation</Button>
         </Section>
-        <Text style={styles.fallbackUrl}>
-          <Link href={confirmationUrl} style={styles.link}>{confirmationUrl}</Link>
-        </Text>
         <Hr style={styles.divider} />
-        <Text style={styles.footer}>
-          Not expecting this? You can safely ignore this email.
-          <br />
-          <Link href={siteUrl} style={styles.footerLink}>gracenotesdaily.com</Link>
-        </Text>
+        <Text style={styles.footer}>If you weren't expecting this invitation, you can safely ignore this email.</Text>
       </Container>
     </Body>
   </Html>
