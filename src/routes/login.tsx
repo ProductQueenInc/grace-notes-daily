@@ -24,6 +24,13 @@ function Auth() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
 
+  function editSignupEmail() {
+    setEmailSent(false);
+    setIsNewUser(true);
+    setResendCooldown(0);
+    setResending(false);
+  }
+
   async function resendConfirmation() {
     if (resendCooldown > 0 || resending) return;
     setResending(true);
@@ -140,6 +147,13 @@ function Auth() {
                 : resendCooldown > 0
                   ? `Resend in ${resendCooldown}s`
                   : "Resend confirmation email"}
+            </button>
+            <button
+              type="button"
+              onClick={editSignupEmail}
+              className="mt-3 w-full py-2.5 rounded-full text-grace text-sm font-semibold hover:bg-grace/5 transition"
+            >
+              Edit email address
             </button>
             <p className="text-xs text-foreground/50 mt-4">
               Already confirmed?{" "}
