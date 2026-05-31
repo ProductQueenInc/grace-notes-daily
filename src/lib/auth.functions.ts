@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireTkoebo as requireSupabaseAuth } from "@/lib/auth-tkoebo.server";
 
 // Reads the Cloudflare IP-country header server-side and persists it to the
 // user's profile. Runs on every login; safe to call repeatedly (idempotent update).
