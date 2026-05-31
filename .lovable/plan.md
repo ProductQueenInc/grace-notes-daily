@@ -1,37 +1,27 @@
-## What I got wrong last turn
+I’m sorry this is staring at you right now. The immediate goal is to get you off the error page and stop the Google sign-in loop.
 
-- I added a **second** streak pill above the Home greeting. The floating "🔥 0 days" chip you circled already exists globally in `AppShell` (mobile-only, top-right). One streak indicator is enough.
-- I only padded the Home hero. You asked for the same fix on every page with a hero.
+What I’ll implement after you approve this plan:
 
-## What you actually want
+1. Switch the Google button away from the direct auth call and onto Lovable Cloud’s Google OAuth broker.
+   - This is the supported path for this project.
+   - It avoids relying on a manually configured callback URL in the app code.
 
-Push hero content (eyebrow + headline + subtitle) **down** on mobile so the headline's baseline sits **below** the floating streak chip. The chip should never overlap the title — today "Friend", "a held heart", "Your Journey" all collide with it.
+2. Make the redirect simple and consistent.
+   - Google sign-in will return to the current site origin, then the app can route the signed-in user normally.
+   - This should work for the preview URL and the custom domain.
 
-## Plan
+3. Keep email/password sign-in untouched.
+   - I won’t change the working email flow.
 
-### 1. Remove the duplicate streak pill from Home
-`src/routes/home.tsx` — delete the mobile-only streak pill I added above the greeting. Keep the extra hero top padding.
+4. Verify the login page no longer points Google through the broken direct flow.
+   - I’ll inspect the updated code and, if possible, test the preview flow far enough to confirm it starts correctly.
 
-### 2. Add hero top padding on every page with a hero
-The floating chip sits roughly 56–64px tall including `env(safe-area-inset-top)`. To clear it cleanly on mobile, the hero needs ~`pt-20` (80px) on mobile, reverting to existing desktop padding at `sm:` and up.
+What you should do right now:
 
-Files to touch:
-- `src/routes/home.tsx` — already padded, just verify it clears
-- `src/routes/listen.tsx` — pad hero so "Soundscapes for a held heart" clears chip
-- `src/routes/journey.tsx` — pad hero so "Your Journey" clears chip
-- `src/routes/prayers.tsx` — same treatment
-- Any other authenticated route using a `PageHeader` or inline hero block (I'll scan and apply consistently — likely also `heart-notes.tsx`, `settings.tsx`)
+1. Do not keep retrying the error page.
+2. Come back to the Lovable preview login page.
+3. Approve this plan so I can make the app-side fix.
+4. After I’m done, refresh the preview.
+5. Try “Continue with Google” once.
 
-Cleanest implementation: apply `pt-20 sm:pt-{existing}` to the hero block on each page. If `PageHeader` is the shared primitive on most, I'll add the mobile padding inside `PageHeader` itself so the fix is one place, and only inline-patch the routes that hand-roll their hero (Home).
-
-### 3. No changes to
-- The floating chip itself (size, position, safe-area handling stays as-is)
-- Desktop layout (changes are mobile-only via `sm:` reset)
-- Streak logic, content, or any backend
-
-## What this will NOT do
-- Will not move, resize, or restyle the streak chip
-- Will not add any new chrome
-- Will not touch sidebar, nav, or any non-hero content
-
-Want me to proceed exactly as above?
+Important: if Google still shows an error after this change, the only thing left should be the Google/Lovable Cloud provider configuration, not the app button itself.
