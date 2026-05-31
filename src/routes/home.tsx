@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useHabits, type HabitKey } from "@/hooks/use-habits";
 import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
 import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-note";
 import { useStreak } from "@/hooks/use-streak";
