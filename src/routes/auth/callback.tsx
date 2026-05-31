@@ -17,27 +17,35 @@ function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // onAuthStateChange fires once the session is detected from the URL.
-    // We listen here and forward to /home as soon as it lands.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        subscription.unsubscribe();
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    async function finishAuth() {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+
+      if (data.session) {
         navigate({ to: "/home", replace: true });
-      } else if (event === "INITIAL_SESSION" && !session) {
-        // No session found at all — send back to login
-        subscription.unsubscribe();
-        navigate({ to: "/login", replace: true });
+        return;
       }
+
+      // Give OAuth/email-confirmation redirects time to hydrate the session from
+      // the URL before deciding the user is unauthenticated.
+      timeout = setTimeout(async () => {
+        const { data: latest } = await supabase.auth.getSession();
+        if (!cancelled) navigate({ to: latest.session ? "/home" : "/login", replace: true });
+      }, 4_000);
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session && !cancelled) navigate({ to: "/home", replace: true });
     });
 
-    // Fallback: if we somehow land here without a hash or code, go to login.
-    const timeout = setTimeout(() => {
-      subscription.unsubscribe();
-      navigate({ to: "/login", replace: true });
-    }, 10_000);
+    finishAuth();
 
     return () => {
-      clearTimeout(timeout);
+      cancelled = true;
+      if (timeout) clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, [navigate]);
