@@ -7,7 +7,8 @@ import { useHabits, type HabitKey } from "@/hooks/use-habits";
 import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { generateGraceNote, generateDevotional, respondToDailyMessage } from "@/lib/ai-stubs";
+import { generateDevotional } from "@/lib/ai-stubs";
+import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-note";
 import { useStreak } from "@/hooks/use-streak";
 import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
@@ -57,15 +58,7 @@ function Home() {
     isError: graceError,
     refetch: refetchGrace,
     isFetching: graceFetching,
-  } = useQuery({
-    queryKey: ["grace-note", today],
-    queryFn: () => generateGraceNote(profile),
-    enabled: !!profile,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
-  });
+  } = useDailyGraceNote();
 
   // Warm the devotional cache in the background AFTER the grace note settles, so
   // the two AI calls don't compete for the same mobile connection on first load.
@@ -211,7 +204,7 @@ function Home() {
                   </>
                 )}
 
-                <DailyMessageChat onSent={() => markComplete("dailyMessage")} />
+                <DailyMessageChat graceContext={graceNote ?? null} onSent={() => markComplete("dailyMessage")} />
               </div>
             </div>
 
@@ -290,11 +283,15 @@ function Home() {
   );
 }
 
-function DailyMessageChat({ onSent }: { onSent: () => void }) {
-  const { profile } = useAuth();
-  const { messages, send } = useDailyChat();
+function DailyMessageChat({
+  graceContext,
+  onSent,
+}: {
+  graceContext: DailyGraceNote | null;
+  onSent: () => void;
+}) {
+  const { messages, send, pending, closeReason } = useDailyChat(graceContext);
   const [text, setText] = useState("");
-  const [pending, setPending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -302,13 +299,11 @@ function DailyMessageChat({ onSent }: { onSent: () => void }) {
   }, [messages.length, pending]);
 
   async function onSubmit() {
-    if (!text.trim() || pending) return;
+    if (!text.trim() || pending || closeReason) return;
     const t = text;
     setText("");
-    setPending(true);
     onSent();
-    await send(t, (u) => respondToDailyMessage(u, profile));
-    setPending(false);
+    await send(t);
   }
 
   return (
@@ -323,27 +318,33 @@ function DailyMessageChat({ onSent }: { onSent: () => void }) {
           {messages.map((m) => (
             <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
                   m.role === "user"
                     ? "bg-gold/90 text-gold-foreground rounded-br-sm"
                     : "bg-white/10 text-white/90 rounded-bl-sm border border-white/10"
                 }`}
               >
-                {m.text}
+                {m.text || (m.pending ? (
+                  <span className="inline-flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse [animation-delay:120ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse [animation-delay:240ms]" />
+                  </span>
+                ) : null)}
               </div>
             </div>
           ))}
-          {pending && (
-            <div className="flex justify-start">
-              <div className="bg-white/10 text-white/70 rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm border border-white/10">
-                <span className="inline-flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse [animation-delay:120ms]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse [animation-delay:240ms]" />
-                </span>
-              </div>
-            </div>
-          )}
+        </div>
+      )}
+
+      {closeReason === "crisis" && (
+        <div className="mb-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white/85">
+          This conversation is paused for today. Please reach out to someone who can be with you. A fresh thread will be here tomorrow.
+        </div>
+      )}
+      {closeReason === "inappropriate" && (
+        <div className="mb-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/75">
+          This thread is closed for today. A fresh conversation will be here tomorrow.
         </div>
       )}
 
@@ -355,14 +356,21 @@ function DailyMessageChat({ onSent }: { onSent: () => void }) {
           if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); }
         }}
         rows={2}
-        placeholder={messages.length ? "Keep the conversation going…" : "Share what's on your heart…"}
-        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-gold text-white placeholder:text-white/45 resize-none"
+        disabled={!!closeReason}
+        placeholder={
+          closeReason
+            ? "Conversation paused for today."
+            : messages.length
+            ? "Keep the conversation going…"
+            : "Share what's on your heart…"
+        }
+        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-gold text-white placeholder:text-white/45 resize-none disabled:opacity-60"
       />
       <div className="flex items-center justify-between mt-3">
         <p className="text-xs text-white/55">Conversation resets at midnight</p>
         <button
           onClick={onSubmit}
-          disabled={!text.trim() || pending}
+          disabled={!text.trim() || pending || !!closeReason}
           className="px-5 py-2.5 rounded-full bg-gold text-gold-foreground font-semibold flex items-center gap-2 shadow-soft hover:opacity-95 disabled:opacity-50"
         >
           <Icon icon={Send} size="sm" tone="inherit" /> Send
