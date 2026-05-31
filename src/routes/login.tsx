@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { NatureBackground } from "@/components/nature-background";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { DoveMark } from "@/components/dove-mark";
 import { Icon } from "@/components/icon";
@@ -56,16 +55,17 @@ function Auth() {
 
   async function withGoogle() {
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/home`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/home`,
+          queryParams: { prompt: "select_account" },
+        },
       });
-      if (result.error) {
-        toast.error(result.error.message ?? "Could not start Google sign-in.");
+      if (error) {
+        toast.error(error.message ?? "Could not start Google sign-in.");
         return;
       }
-      if (result.redirected) return;
-      // Session set — navigate home.
-      nav({ to: "/home", replace: true });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not start Google sign-in.");
     }
