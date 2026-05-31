@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireTkoebo as requireSupabaseAuth } from "@/lib/auth-tkoebo.server";
 
 // ── Input schemas ─────────────────────────────────────────────────────────────
 
