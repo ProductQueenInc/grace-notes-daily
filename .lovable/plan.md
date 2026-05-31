@@ -1,27 +1,32 @@
-I’m sorry this is staring at you right now. The immediate goal is to get you off the error page and stop the Google sign-in loop.
+I would not rebuild auth from scratch yet. This looks more likely to be a redirect/session mismatch than a broken login system.
 
-What I’ll implement after you approve this plan:
+Plan:
 
-1. Switch the Google button away from the direct auth call and onto Lovable Cloud’s Google OAuth broker.
-   - This is the supported path for this project.
-   - It avoids relying on a manually configured callback URL in the app code.
+1. **Confirm the actual failure path**
+   - Reproduce Google sign-in in the preview.
+   - Inspect the OAuth callback URL, network requests, and console errors right after account selection.
+   - Check whether the session is missing, delayed, or stored in a different auth client.
 
-2. Make the redirect simple and consistent.
-   - Google sign-in will return to the current site origin, then the app can route the signed-in user normally.
-   - This should work for the preview URL and the custom domain.
+2. **Fix the Google sign-in entry point**
+   - The current code calls the direct Supabase Google OAuth method.
+   - For this project’s managed Google auth, the safer path is the generated `lovable.auth.signInWithOAuth("google", ...)` wrapper.
+   - Update only the Google button flow, not the whole auth UI.
 
-3. Keep email/password sign-in untouched.
-   - I won’t change the working email flow.
+3. **Unify the callback/session handling**
+   - Make `/auth/callback` handle both email confirmation and OAuth consistently.
+   - Ensure it waits for a verified user session before redirecting.
+   - Send users to `/home`, letting `RequireAuth` move unfinished profiles to onboarding.
 
-4. Verify the login page no longer points Google through the broken direct flow.
-   - I’ll inspect the updated code and, if possible, test the preview flow far enough to confirm it starts correctly.
+4. **Check preview vs published behavior**
+   - If Google works on `gracenotesdaily.lovable.app` but fails only on the preview URL, the issue is likely the preview backend/auth configuration rather than app code.
+   - In that case, avoid more auth rewrites and fix the environment/configuration path instead.
 
-What you should do right now:
+5. **Verify email/password separately**
+   - Confirm normal login still signs in and lands on `/home` or `/onboarding`.
+   - Confirm Google does not bounce back to `/login` after account selection.
 
-1. Do not keep retrying the error page.
-2. Come back to the Lovable preview login page.
-3. Approve this plan so I can make the app-side fix.
-4. After I’m done, refresh the preview.
-5. Try “Continue with Google” once.
-
-Important: if Google still shows an error after this change, the only thing left should be the Google/Lovable Cloud provider configuration, not the app button itself.
+What I would avoid:
+- Rebuilding the full auth system.
+- Changing database/profile/onboarding logic.
+- Adding CORS hacks or broad redirect changes.
+- Editing generated auth integration files.
