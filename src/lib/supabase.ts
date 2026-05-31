@@ -11,5 +11,5 @@ export const SUPABASE_PROJECT_ANON_KEY = SUPABASE_ANON_KEY;
 export const supabaseConfigured = true;
 
 export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
 });
