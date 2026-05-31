@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { syncCountryCode } from "@/lib/auth.functions";
 import type { Session, User } from "@supabase/supabase-js";
 
 export type Rhythm = "morning" | "midday" | "evening" | "night";
@@ -77,6 +78,9 @@ export function useAuth() {
       await supabase.from("profiles").insert({ id: uid }).select().maybeSingle();
       setProfile({ id: uid, name: null, faith_phase: null, onboarded: false });
     }
+
+    // Persist country code from Cloudflare header — fire and forget
+    syncCountryCode({ data: {} }).catch(() => {});
   }
 
   return { session, user, profile, loading, reloadProfile: () => user && loadProfile(user.id) };

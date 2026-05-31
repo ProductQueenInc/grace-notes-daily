@@ -1,0 +1,1330 @@
+{
+  "meta": {
+    "version": "1.0",
+    "product": "GraceNotes Daily",
+    "total_verses": 116,
+    "total_themes": 14,
+    "translation": "NIV",
+    "rotation_window_days": 60,
+    "notes": "Verses are selected based on user posture from onboarding, weighted toward matching theme. Same verse not served to same user within rotation_window_days."
+  },
+  "themes": [
+    {
+      "id": 1,
+      "name": "Hope",
+      "description": "When things need to feel possible again",
+      "posture_match": [
+        "hope",
+        "longing",
+        "waiting"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Rest",
+      "description": "Exhaustion, burnout, the need to stop and be held",
+      "posture_match": [
+        "exhaustion",
+        "burnout",
+        "overwhelm"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Worth & Identity",
+      "description": "Feeling not enough, comparison, self-doubt",
+      "posture_match": [
+        "self-doubt",
+        "shame",
+        "unworthiness"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Courage",
+      "description": "Facing something hard or unknown",
+      "posture_match": [
+        "fear",
+        "anxiety"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Peace",
+      "description": "Anxiety, worry, spiralling thoughts",
+      "posture_match": [
+        "anxiety",
+        "worry"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Belonging & Love",
+      "description": "Loneliness, feeling unseen or forgotten",
+      "posture_match": [
+        "loneliness",
+        "disconnection"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Renewal",
+      "description": "Fresh starts, beginning again, new seasons",
+      "posture_match": [
+        "new-beginnings",
+        "returning"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Gratitude",
+      "description": "Noticing goodness, returning to thankfulness",
+      "posture_match": [
+        "gratitude",
+        "contentment"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Patience",
+      "description": "Long seasons of waiting, unresolved things",
+      "posture_match": [
+        "waiting",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Joy",
+      "description": "Lightness, celebration, delight",
+      "posture_match": [
+        "joy",
+        "celebration"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Purpose",
+      "description": "Meaning, direction, feeling lost",
+      "posture_match": [
+        "purpose",
+        "aimlessness"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Presence",
+      "description": "God feels distant, spiritual dryness",
+      "posture_match": [
+        "disconnection",
+        "doubt",
+        "dryness"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Blessing & Favour",
+      "description": "God's generous nature, the floodgates, favour as God's posture toward you",
+      "posture_match": [
+        "abundance",
+        "hope",
+        "faith"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Flourishing & Expansion",
+      "description": "Being enlarged, growing into more, God investing in your capacity",
+      "posture_match": [
+        "growth",
+        "expansion",
+        "purpose"
+      ]
+    }
+  ],
+  "verses": [
+    {
+      "id": 1,
+      "theme": "Hope",
+      "reference": "Jeremiah 29:11",
+      "text": "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.",
+      "posture_tags": [
+        "hope",
+        "longing",
+        "waiting"
+      ]
+    },
+    {
+      "id": 2,
+      "theme": "Hope",
+      "reference": "Romans 15:13",
+      "text": "May the God of hope fill you with all joy and peace as you trust in him, so that you may overflow with hope by the power of the Holy Spirit.",
+      "posture_tags": [
+        "hope",
+        "longing"
+      ]
+    },
+    {
+      "id": 3,
+      "theme": "Hope",
+      "reference": "Hebrews 6:19",
+      "text": "We have this hope as an anchor for the soul, firm and secure.",
+      "posture_tags": [
+        "hope",
+        "anxiety",
+        "fear"
+      ]
+    },
+    {
+      "id": 4,
+      "theme": "Hope",
+      "reference": "Romans 5:5",
+      "text": "And hope does not put us to shame, because God's love has been poured out into our hearts through the Holy Spirit, who has been given to us.",
+      "posture_tags": [
+        "hope",
+        "doubt"
+      ]
+    },
+    {
+      "id": 5,
+      "theme": "Hope",
+      "reference": "Psalm 71:14",
+      "text": "As for me, I will always have hope; I will praise you more and more.",
+      "posture_tags": [
+        "hope"
+      ]
+    },
+    {
+      "id": 6,
+      "theme": "Hope",
+      "reference": "Psalm 130:7",
+      "text": "Put your hope in the Lord, for with the Lord is unfailing love and with him is full redemption.",
+      "posture_tags": [
+        "hope",
+        "longing"
+      ]
+    },
+    {
+      "id": 7,
+      "theme": "Hope",
+      "reference": "Isaiah 40:31",
+      "text": "But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.",
+      "posture_tags": [
+        "hope",
+        "exhaustion"
+      ]
+    },
+    {
+      "id": 8,
+      "theme": "Hope",
+      "reference": "Romans 8:28",
+      "text": "And we know that in all things God works for the good of those who love him, who have been called according to his purpose.",
+      "posture_tags": [
+        "hope",
+        "grief",
+        "waiting"
+      ]
+    },
+    {
+      "id": 9,
+      "theme": "Rest",
+      "reference": "Matthew 11:28",
+      "text": "Come to me, all you who are weary and burdened, and I will give you rest.",
+      "posture_tags": [
+        "exhaustion",
+        "burnout",
+        "overwhelm"
+      ]
+    },
+    {
+      "id": 10,
+      "theme": "Rest",
+      "reference": "Matthew 11:29-30",
+      "text": "Take my yoke upon you and learn from me, for I am gentle and humble in heart, and you will find rest for your souls. For my yoke is easy and my burden is light.",
+      "posture_tags": [
+        "exhaustion",
+        "burnout"
+      ]
+    },
+    {
+      "id": 11,
+      "theme": "Rest",
+      "reference": "Psalm 23:1-2",
+      "text": "The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures, he leads me beside quiet waters.",
+      "posture_tags": [
+        "exhaustion",
+        "overwhelm"
+      ]
+    },
+    {
+      "id": 12,
+      "theme": "Rest",
+      "reference": "Psalm 62:1",
+      "text": "Truly my soul finds rest in God; my salvation comes from him.",
+      "posture_tags": [
+        "exhaustion",
+        "overwhelm"
+      ]
+    },
+    {
+      "id": 13,
+      "theme": "Rest",
+      "reference": "Psalm 46:10",
+      "text": "He says, 'Be still, and know that I am God; I will be exalted among the nations, I will be exalted in the earth.'",
+      "posture_tags": [
+        "exhaustion",
+        "anxiety"
+      ]
+    },
+    {
+      "id": 14,
+      "theme": "Rest",
+      "reference": "Mark 6:31",
+      "text": "Then, because so many people were coming and going that they did not even have a chance to eat, he said to them, 'Come with me by yourselves to a quiet place and get some rest.'",
+      "posture_tags": [
+        "exhaustion",
+        "burnout"
+      ]
+    },
+    {
+      "id": 15,
+      "theme": "Rest",
+      "reference": "Psalm 4:8",
+      "text": "In peace I will lie down and sleep, for you alone, Lord, make me dwell in safety.",
+      "posture_tags": [
+        "anxiety",
+        "exhaustion"
+      ]
+    },
+    {
+      "id": 16,
+      "theme": "Rest",
+      "reference": "Isaiah 40:29",
+      "text": "He gives strength to the weary and increases the power of the weak.",
+      "posture_tags": [
+        "exhaustion",
+        "burnout"
+      ]
+    },
+    {
+      "id": 17,
+      "theme": "Worth & Identity",
+      "reference": "Psalm 139:14",
+      "text": "I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well.",
+      "posture_tags": [
+        "self-doubt",
+        "shame",
+        "unworthiness"
+      ]
+    },
+    {
+      "id": 18,
+      "theme": "Worth & Identity",
+      "reference": "Isaiah 43:1",
+      "text": "Do not fear, for I have redeemed you; I have summoned you by name; you are mine.",
+      "posture_tags": [
+        "loneliness",
+        "self-doubt",
+        "fear"
+      ]
+    },
+    {
+      "id": 19,
+      "theme": "Worth & Identity",
+      "reference": "Ephesians 2:10",
+      "text": "For we are God's handiwork, created in Christ Jesus to do good works, which God prepared in advance for us to do.",
+      "posture_tags": [
+        "purpose",
+        "self-doubt"
+      ]
+    },
+    {
+      "id": 20,
+      "theme": "Worth & Identity",
+      "reference": "1 John 3:1",
+      "text": "See what great love the Father has lavished on us, that we should be called children of God! And that is what we are!",
+      "posture_tags": [
+        "self-doubt",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 21,
+      "theme": "Worth & Identity",
+      "reference": "Zephaniah 3:17",
+      "text": "The Lord your God is with you, the Mighty Warrior who saves. He will take great delight in you; in his love he will no longer rebuke you, but will rejoice over you with singing.",
+      "posture_tags": [
+        "shame",
+        "self-doubt",
+        "unworthiness"
+      ]
+    },
+    {
+      "id": 22,
+      "theme": "Worth & Identity",
+      "reference": "Psalm 139:1-2",
+      "text": "You have searched me, Lord, and you know me. You know when I sit and when I rise; you perceive my thoughts from afar.",
+      "posture_tags": [
+        "loneliness",
+        "self-doubt"
+      ]
+    },
+    {
+      "id": 23,
+      "theme": "Worth & Identity",
+      "reference": "Genesis 1:27",
+      "text": "So God created mankind in his own image, in the image of God he created them; male and female he created them.",
+      "posture_tags": [
+        "self-doubt",
+        "unworthiness"
+      ]
+    },
+    {
+      "id": 24,
+      "theme": "Worth & Identity",
+      "reference": "Galatians 3:26",
+      "text": "So in Christ Jesus you are all children of God through faith.",
+      "posture_tags": [
+        "self-doubt",
+        "belonging"
+      ]
+    },
+    {
+      "id": 25,
+      "theme": "Courage",
+      "reference": "Joshua 1:9",
+      "text": "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",
+      "posture_tags": [
+        "fear",
+        "anxiety"
+      ]
+    },
+    {
+      "id": 26,
+      "theme": "Courage",
+      "reference": "Isaiah 41:10",
+      "text": "So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you; I will uphold you with my righteous right hand.",
+      "posture_tags": [
+        "fear",
+        "anxiety"
+      ]
+    },
+    {
+      "id": 27,
+      "theme": "Courage",
+      "reference": "2 Timothy 1:7",
+      "text": "For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.",
+      "posture_tags": [
+        "fear",
+        "self-doubt"
+      ]
+    },
+    {
+      "id": 28,
+      "theme": "Courage",
+      "reference": "Psalm 27:1",
+      "text": "The Lord is my light and my salvation — whom shall I fear? The Lord is the stronghold of my life — of whom shall I be afraid?",
+      "posture_tags": [
+        "fear",
+        "anxiety"
+      ]
+    },
+    {
+      "id": 29,
+      "theme": "Courage",
+      "reference": "Romans 8:31",
+      "text": "What, then, shall we say in response to these things? If God is for us, who can be against us?",
+      "posture_tags": [
+        "fear",
+        "opposition"
+      ]
+    },
+    {
+      "id": 30,
+      "theme": "Courage",
+      "reference": "Esther 4:14",
+      "text": "And who knows but that you have come to your royal position for such a time as this?",
+      "posture_tags": [
+        "purpose",
+        "fear"
+      ]
+    },
+    {
+      "id": 31,
+      "theme": "Courage",
+      "reference": "Philippians 4:13",
+      "text": "I can do all this through him who gives me strength.",
+      "posture_tags": [
+        "fear",
+        "exhaustion"
+      ]
+    },
+    {
+      "id": 32,
+      "theme": "Courage",
+      "reference": "Deuteronomy 31:6",
+      "text": "Be strong and courageous. Do not be afraid or terrified because of them, for the Lord your God goes with you; he will never leave you nor forsake you.",
+      "posture_tags": [
+        "fear",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 33,
+      "theme": "Peace",
+      "reference": "Philippians 4:6-7",
+      "text": "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
+      "posture_tags": [
+        "anxiety",
+        "worry"
+      ]
+    },
+    {
+      "id": 34,
+      "theme": "Peace",
+      "reference": "John 14:27",
+      "text": "Peace I leave with you; my peace I give you. I do not give to you as the world gives. Do not let your hearts be troubled and do not be afraid.",
+      "posture_tags": [
+        "anxiety",
+        "fear"
+      ]
+    },
+    {
+      "id": 35,
+      "theme": "Peace",
+      "reference": "Isaiah 26:3",
+      "text": "You will keep in perfect peace those whose minds are steadfast, because they trust in you.",
+      "posture_tags": [
+        "anxiety",
+        "worry"
+      ]
+    },
+    {
+      "id": 36,
+      "theme": "Peace",
+      "reference": "Numbers 6:24-26",
+      "text": "The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you; the Lord turn his face toward you and give you peace.",
+      "posture_tags": [
+        "anxiety",
+        "longing"
+      ]
+    },
+    {
+      "id": 37,
+      "theme": "Peace",
+      "reference": "Colossians 3:15",
+      "text": "Let the peace of Christ rule in your hearts, since as members of one body you were called to peace. And be thankful.",
+      "posture_tags": [
+        "anxiety",
+        "worry"
+      ]
+    },
+    {
+      "id": 38,
+      "theme": "Peace",
+      "reference": "Psalm 55:22",
+      "text": "Cast your cares on the Lord and he will sustain you; he will never let the righteous be shaken.",
+      "posture_tags": [
+        "anxiety",
+        "overwhelm"
+      ]
+    },
+    {
+      "id": 39,
+      "theme": "Peace",
+      "reference": "2 Thessalonians 3:16",
+      "text": "Now may the Lord of peace himself give you peace at all times and in every way. The Lord be with all of you.",
+      "posture_tags": [
+        "anxiety",
+        "worry"
+      ]
+    },
+    {
+      "id": 40,
+      "theme": "Peace",
+      "reference": "Romans 8:6",
+      "text": "The mind governed by the Spirit is life and peace.",
+      "posture_tags": [
+        "anxiety",
+        "overwhelm"
+      ]
+    },
+    {
+      "id": 41,
+      "theme": "Belonging & Love",
+      "reference": "Jeremiah 31:3",
+      "text": "The Lord appeared to us in the past, saying: 'I have loved you with an everlasting love; I have drawn you with unfailing kindness.'",
+      "posture_tags": [
+        "loneliness",
+        "disconnection"
+      ]
+    },
+    {
+      "id": 42,
+      "theme": "Belonging & Love",
+      "reference": "1 John 4:16",
+      "text": "And so we know and rely on the love God has for us. God is love. Whoever lives in love lives in God, and God in them.",
+      "posture_tags": [
+        "loneliness",
+        "disconnection"
+      ]
+    },
+    {
+      "id": 43,
+      "theme": "Belonging & Love",
+      "reference": "Romans 5:8",
+      "text": "But God demonstrates his own love for us in this: while we were still sinners, Christ died for us.",
+      "posture_tags": [
+        "shame",
+        "unworthiness",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 44,
+      "theme": "Belonging & Love",
+      "reference": "Ephesians 3:17-19",
+      "text": "And I pray that you, being rooted and established in love, may have power, together with all the Lord's holy people, to grasp how wide and long and high and deep is the love of Christ.",
+      "posture_tags": [
+        "loneliness",
+        "self-doubt"
+      ]
+    },
+    {
+      "id": 45,
+      "theme": "Belonging & Love",
+      "reference": "1 John 4:19",
+      "text": "We love because he first loved us.",
+      "posture_tags": [
+        "loneliness",
+        "disconnection"
+      ]
+    },
+    {
+      "id": 46,
+      "theme": "Belonging & Love",
+      "reference": "Psalm 68:6",
+      "text": "God sets the lonely in families, he leads out the prisoners with singing.",
+      "posture_tags": [
+        "loneliness"
+      ]
+    },
+    {
+      "id": 47,
+      "theme": "Belonging & Love",
+      "reference": "Psalm 27:10",
+      "text": "Though my father and mother forsake me, the Lord will receive me.",
+      "posture_tags": [
+        "loneliness",
+        "grief"
+      ]
+    },
+    {
+      "id": 48,
+      "theme": "Belonging & Love",
+      "reference": "John 3:16",
+      "text": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
+      "posture_tags": [
+        "loneliness",
+        "doubt"
+      ]
+    },
+    {
+      "id": 49,
+      "theme": "Renewal",
+      "reference": "Isaiah 43:19",
+      "text": "See, I am doing a new thing! Now it springs up; do you not perceive it? I am making a way in the wilderness and streams in the wasteland.",
+      "posture_tags": [
+        "new-beginnings",
+        "waiting",
+        "hope"
+      ]
+    },
+    {
+      "id": 50,
+      "theme": "Renewal",
+      "reference": "2 Corinthians 5:17",
+      "text": "Therefore, if anyone is in Christ, the new creation has come: the old has gone, the new is here!",
+      "posture_tags": [
+        "new-beginnings",
+        "shame"
+      ]
+    },
+    {
+      "id": 51,
+      "theme": "Renewal",
+      "reference": "Malachi 3:7",
+      "text": "Return to me, and I will return to you, says the Lord Almighty.",
+      "posture_tags": [
+        "new-beginnings",
+        "returning"
+      ]
+    },
+    {
+      "id": 52,
+      "theme": "Renewal",
+      "reference": "Lamentations 3:22-23",
+      "text": "Because of the Lord's great love we are not consumed, for his compassions never fail. They are new every morning; great is your faithfulness.",
+      "posture_tags": [
+        "hope",
+        "new-beginnings",
+        "returning"
+      ]
+    },
+    {
+      "id": 53,
+      "theme": "Renewal",
+      "reference": "Joel 2:25",
+      "text": "I will repay you for the years the locusts have eaten.",
+      "posture_tags": [
+        "grief",
+        "waiting",
+        "new-beginnings"
+      ]
+    },
+    {
+      "id": 54,
+      "theme": "Renewal",
+      "reference": "Psalm 51:10",
+      "text": "Create in me a pure heart, O God, and renew a steadfast spirit within me.",
+      "posture_tags": [
+        "new-beginnings",
+        "shame"
+      ]
+    },
+    {
+      "id": 55,
+      "theme": "Renewal",
+      "reference": "Ezekiel 36:26",
+      "text": "I will give you a new heart and put a new spirit in you; I will remove from you your heart of stone and give you a heart of flesh.",
+      "posture_tags": [
+        "new-beginnings",
+        "returning"
+      ]
+    },
+    {
+      "id": 56,
+      "theme": "Renewal",
+      "reference": "Revelation 21:5",
+      "text": "He who was seated on the throne said, 'I am making everything new!'",
+      "posture_tags": [
+        "hope",
+        "new-beginnings"
+      ]
+    },
+    {
+      "id": 57,
+      "theme": "Gratitude",
+      "reference": "1 Thessalonians 5:16-18",
+      "text": "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
+      "posture_tags": [
+        "gratitude",
+        "contentment"
+      ]
+    },
+    {
+      "id": 58,
+      "theme": "Gratitude",
+      "reference": "Psalm 107:1",
+      "text": "Give thanks to the Lord, for he is good; his love endures forever.",
+      "posture_tags": [
+        "gratitude"
+      ]
+    },
+    {
+      "id": 59,
+      "theme": "Gratitude",
+      "reference": "James 1:17",
+      "text": "Every good and perfect gift is from above, coming down from the Father of the heavenly lights, who does not change like shifting shadows.",
+      "posture_tags": [
+        "gratitude",
+        "hope"
+      ]
+    },
+    {
+      "id": 60,
+      "theme": "Gratitude",
+      "reference": "Psalm 34:8",
+      "text": "Taste and see that the Lord is good; blessed is the one who takes refuge in him.",
+      "posture_tags": [
+        "gratitude",
+        "hope"
+      ]
+    },
+    {
+      "id": 61,
+      "theme": "Gratitude",
+      "reference": "Psalm 100:4",
+      "text": "Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name.",
+      "posture_tags": [
+        "gratitude"
+      ]
+    },
+    {
+      "id": 62,
+      "theme": "Gratitude",
+      "reference": "Colossians 3:17",
+      "text": "And whatever you do, whether in word or deed, do it all in the name of the Lord Jesus, giving thanks to God the Father through him.",
+      "posture_tags": [
+        "gratitude",
+        "purpose"
+      ]
+    },
+    {
+      "id": 63,
+      "theme": "Gratitude",
+      "reference": "Psalm 118:24",
+      "text": "The Lord has done it this very day; let us rejoice today and be glad.",
+      "posture_tags": [
+        "gratitude",
+        "joy"
+      ]
+    },
+    {
+      "id": 64,
+      "theme": "Gratitude",
+      "reference": "Ephesians 5:20",
+      "text": "Always giving thanks to God the Father for everything, in the name of our Lord Jesus Christ.",
+      "posture_tags": [
+        "gratitude"
+      ]
+    },
+    {
+      "id": 65,
+      "theme": "Patience",
+      "reference": "Romans 8:25",
+      "text": "But if we hope for what we do not yet have, we wait for it patiently.",
+      "posture_tags": [
+        "waiting",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 66,
+      "theme": "Patience",
+      "reference": "Ecclesiastes 3:11",
+      "text": "He has made everything beautiful in its time. He has also set eternity in the human heart; yet no one can fathom what God has done from beginning to end.",
+      "posture_tags": [
+        "waiting",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 67,
+      "theme": "Patience",
+      "reference": "Psalm 40:1",
+      "text": "I waited patiently for the Lord; he turned to me and heard my cry.",
+      "posture_tags": [
+        "waiting",
+        "longing"
+      ]
+    },
+    {
+      "id": 68,
+      "theme": "Patience",
+      "reference": "Habakkuk 2:3",
+      "text": "For the revelation awaits an appointed time; it speaks of the end and will not prove false. Though it linger, wait for it; it will certainly come and will not delay.",
+      "posture_tags": [
+        "waiting",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 69,
+      "theme": "Patience",
+      "reference": "Isaiah 30:18",
+      "text": "Yet the Lord longs to be gracious to you; therefore he will rise up to show you compassion. For the Lord is a God of justice. Blessed are all who wait for him.",
+      "posture_tags": [
+        "waiting",
+        "longing"
+      ]
+    },
+    {
+      "id": 70,
+      "theme": "Patience",
+      "reference": "Galatians 6:9",
+      "text": "Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up.",
+      "posture_tags": [
+        "waiting",
+        "exhaustion"
+      ]
+    },
+    {
+      "id": 71,
+      "theme": "Patience",
+      "reference": "Lamentations 3:25",
+      "text": "The Lord is good to those whose hope is in him, to the one who seeks him.",
+      "posture_tags": [
+        "waiting",
+        "hope"
+      ]
+    },
+    {
+      "id": 72,
+      "theme": "Patience",
+      "reference": "James 5:7-8",
+      "text": "Be patient, then, brothers and sisters, until the Lord's coming. See how the farmer waits for the land to yield its valuable crop, patiently waiting for the autumn and spring rains. You too, be patient and stand firm.",
+      "posture_tags": [
+        "waiting",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 73,
+      "theme": "Joy",
+      "reference": "Psalm 16:11",
+      "text": "You make known to me the path of life; you will fill me with joy in your presence, with eternal pleasures at your right hand.",
+      "posture_tags": [
+        "joy",
+        "gratitude"
+      ]
+    },
+    {
+      "id": 74,
+      "theme": "Joy",
+      "reference": "Nehemiah 8:10",
+      "text": "Do not grieve, for the joy of the Lord is your strength.",
+      "posture_tags": [
+        "joy",
+        "grief"
+      ]
+    },
+    {
+      "id": 75,
+      "theme": "Joy",
+      "reference": "Psalm 30:5",
+      "text": "Weeping may stay for the night, but rejoicing comes in the morning.",
+      "posture_tags": [
+        "joy",
+        "grief",
+        "hope"
+      ]
+    },
+    {
+      "id": 76,
+      "theme": "Joy",
+      "reference": "John 15:11",
+      "text": "I have told you this so that my joy may be in you and that your joy may be complete.",
+      "posture_tags": [
+        "joy"
+      ]
+    },
+    {
+      "id": 77,
+      "theme": "Joy",
+      "reference": "Philippians 4:4",
+      "text": "Rejoice in the Lord always. I will say it again: Rejoice!",
+      "posture_tags": [
+        "joy",
+        "gratitude"
+      ]
+    },
+    {
+      "id": 78,
+      "theme": "Joy",
+      "reference": "Psalm 118:24",
+      "text": "The Lord has done it this very day; let us rejoice today and be glad.",
+      "posture_tags": [
+        "joy",
+        "gratitude"
+      ]
+    },
+    {
+      "id": 79,
+      "theme": "Joy",
+      "reference": "1 Peter 1:8",
+      "text": "Though you have not seen him, you love him; and even though you do not see him now, you believe in him and are filled with an inexpressible and glorious joy.",
+      "posture_tags": [
+        "joy",
+        "faith"
+      ]
+    },
+    {
+      "id": 80,
+      "theme": "Joy",
+      "reference": "Psalm 126:3",
+      "text": "The Lord has done great things for us, and we are filled with joy.",
+      "posture_tags": [
+        "joy",
+        "gratitude"
+      ]
+    },
+    {
+      "id": 81,
+      "theme": "Purpose",
+      "reference": "Proverbs 3:5-6",
+      "text": "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",
+      "posture_tags": [
+        "purpose",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 82,
+      "theme": "Purpose",
+      "reference": "Psalm 32:8",
+      "text": "I will instruct you and teach you in the way you should go; I will counsel you with my loving eye on you.",
+      "posture_tags": [
+        "purpose",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 83,
+      "theme": "Purpose",
+      "reference": "Isaiah 30:21",
+      "text": "Whether you turn to the right or to the left, your ears will hear a voice behind you, saying, 'This is the way; walk in it.'",
+      "posture_tags": [
+        "purpose",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 84,
+      "theme": "Purpose",
+      "reference": "Matthew 5:14",
+      "text": "You are the light of the world. A town built on a hill cannot be hidden.",
+      "posture_tags": [
+        "purpose",
+        "self-doubt"
+      ]
+    },
+    {
+      "id": 85,
+      "theme": "Purpose",
+      "reference": "1 Peter 2:9",
+      "text": "But you are a chosen people, a royal priesthood, a holy nation, God's special possession, that you may declare the praises of him who called you out of darkness into his wonderful light.",
+      "posture_tags": [
+        "purpose",
+        "worth"
+      ]
+    },
+    {
+      "id": 86,
+      "theme": "Purpose",
+      "reference": "Micah 6:8",
+      "text": "He has shown you, O mortal, what is good. And what does the Lord require of you? To act justly and to love mercy and to walk humbly with your God.",
+      "posture_tags": [
+        "purpose",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": 87,
+      "theme": "Purpose",
+      "reference": "Psalm 138:8",
+      "text": "The Lord will vindicate me; your love, Lord, endures forever — do not abandon the works of your hands.",
+      "posture_tags": [
+        "purpose",
+        "hope"
+      ]
+    },
+    {
+      "id": 88,
+      "theme": "Purpose",
+      "reference": "Acts 17:27-28",
+      "text": "God did this so that they would seek him and perhaps reach out for him and find him, though he is not far from any one of us. For in him we live and move and have our being.",
+      "posture_tags": [
+        "purpose",
+        "presence"
+      ]
+    },
+    {
+      "id": 89,
+      "theme": "Presence",
+      "reference": "Psalm 139:7-10",
+      "text": "Where can I go from your Spirit? Where can I flee from your presence? If I go up to the heavens, you are there; if I make my bed in the depths, you are there. If I rise on the wings of the dawn, if I settle on the far side of the sea, even there your hand will guide me, your right hand will hold me fast.",
+      "posture_tags": [
+        "loneliness",
+        "disconnection",
+        "doubt"
+      ]
+    },
+    {
+      "id": 90,
+      "theme": "Presence",
+      "reference": "Matthew 28:20",
+      "text": "And surely I am with you always, to the very end of the age.",
+      "posture_tags": [
+        "loneliness",
+        "fear"
+      ]
+    },
+    {
+      "id": 91,
+      "theme": "Presence",
+      "reference": "Psalm 23:4",
+      "text": "Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.",
+      "posture_tags": [
+        "fear",
+        "grief",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 92,
+      "theme": "Presence",
+      "reference": "Deuteronomy 31:8",
+      "text": "The Lord himself goes before you and will be with you; he will never leave you nor forsake you. Do not be afraid; do not be discouraged.",
+      "posture_tags": [
+        "fear",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 93,
+      "theme": "Presence",
+      "reference": "Isaiah 43:2",
+      "text": "When you pass through the waters, I will be with you; and when you pass through the rivers, they will not sweep over you. When you walk through the fire, you will not be burned; the flames will not set you ablaze.",
+      "posture_tags": [
+        "fear",
+        "grief",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 94,
+      "theme": "Presence",
+      "reference": "Hebrews 13:5",
+      "text": "Never will I leave you; never will I forsake you.",
+      "posture_tags": [
+        "loneliness",
+        "fear",
+        "disconnection"
+      ]
+    },
+    {
+      "id": 95,
+      "theme": "Presence",
+      "reference": "Psalm 145:18",
+      "text": "The Lord is near to all who call on him, to all who call on him in truth.",
+      "posture_tags": [
+        "loneliness",
+        "disconnection"
+      ]
+    },
+    {
+      "id": 96,
+      "theme": "Presence",
+      "reference": "Psalm 16:8",
+      "text": "I keep my eyes always on the Lord. With him at my right hand, I will not be shaken.",
+      "posture_tags": [
+        "anxiety",
+        "loneliness"
+      ]
+    },
+    {
+      "id": 97,
+      "theme": "Blessing & Favour",
+      "reference": "Malachi 3:10",
+      "text": "Bring the whole tithe into the storehouse, that there may be food in my house. Test me in this, says the Lord Almighty, and see if I will not throw open the floodgates of heaven and pour out so much blessing that there will not be room enough to store it.",
+      "posture_tags": [
+        "hope",
+        "abundance",
+        "faith"
+      ]
+    },
+    {
+      "id": 98,
+      "theme": "Blessing & Favour",
+      "reference": "Psalm 5:12",
+      "text": "Surely, Lord, you bless the righteous; you surround them with your favor as with a shield.",
+      "posture_tags": [
+        "hope",
+        "abundance"
+      ]
+    },
+    {
+      "id": 99,
+      "theme": "Blessing & Favour",
+      "reference": "Psalm 84:11",
+      "text": "For the Lord God is a sun and shield; the Lord bestows favor and honor; no good thing does he withhold from those whose walk is blameless.",
+      "posture_tags": [
+        "hope",
+        "abundance",
+        "self-doubt"
+      ]
+    },
+    {
+      "id": 100,
+      "theme": "Blessing & Favour",
+      "reference": "Ephesians 1:3",
+      "text": "Praise be to the God and Father of our Lord Jesus Christ, who has blessed us in the heavenly realms with every spiritual blessing in Christ.",
+      "posture_tags": [
+        "abundance",
+        "gratitude"
+      ]
+    },
+    {
+      "id": 101,
+      "theme": "Blessing & Favour",
+      "reference": "Luke 12:32",
+      "text": "Do not be afraid, little flock, for your Father has been pleased to give you the kingdom.",
+      "posture_tags": [
+        "fear",
+        "abundance",
+        "hope"
+      ]
+    },
+    {
+      "id": 102,
+      "theme": "Blessing & Favour",
+      "reference": "Deuteronomy 28:12",
+      "text": "The Lord will open the heavens, the storehouse of his bounty, to send rain on your land in season and to bless all the work of your hands.",
+      "posture_tags": [
+        "abundance",
+        "purpose"
+      ]
+    },
+    {
+      "id": 103,
+      "theme": "Blessing & Favour",
+      "reference": "3 John 1:2",
+      "text": "Dear friend, I pray that you may enjoy good health and that all may go well with you, even as your soul is getting along well.",
+      "posture_tags": [
+        "abundance",
+        "hope"
+      ]
+    },
+    {
+      "id": 104,
+      "theme": "Blessing & Favour",
+      "reference": "Isaiah 60:1",
+      "text": "Arise, shine, for your light has come, and the glory of the Lord rises upon you.",
+      "posture_tags": [
+        "abundance",
+        "hope",
+        "renewal"
+      ]
+    },
+    {
+      "id": 105,
+      "theme": "Blessing & Favour",
+      "reference": "Psalm 35:27",
+      "text": "May those who delight in my vindication shout for joy and gladness; may they always say, 'The Lord be exalted, who delights in the well-being of his servant.'",
+      "posture_tags": [
+        "abundance",
+        "joy"
+      ]
+    },
+    {
+      "id": 106,
+      "theme": "Blessing & Favour",
+      "reference": "Proverbs 10:22",
+      "text": "The blessing of the Lord brings wealth, without painful toil for it.",
+      "posture_tags": [
+        "abundance",
+        "purpose"
+      ]
+    },
+    {
+      "id": 107,
+      "theme": "Flourishing & Expansion",
+      "reference": "Isaiah 54:2-3",
+      "text": "Enlarge the place of your tent, stretch your tent curtains wide, do not hold back; lengthen your cords, strengthen your stakes. For you will spread out to the right and to the left.",
+      "posture_tags": [
+        "growth",
+        "expansion",
+        "purpose"
+      ]
+    },
+    {
+      "id": 108,
+      "theme": "Flourishing & Expansion",
+      "reference": "Ephesians 3:20",
+      "text": "Now to him who is able to do immeasurably more than all we ask or imagine, according to his power that is at work within us.",
+      "posture_tags": [
+        "growth",
+        "hope",
+        "expansion"
+      ]
+    },
+    {
+      "id": 109,
+      "theme": "Flourishing & Expansion",
+      "reference": "John 10:10",
+      "text": "The thief comes only to steal and kill and destroy; I have come that they may have life, and have it to the full.",
+      "posture_tags": [
+        "growth",
+        "expansion",
+        "abundance"
+      ]
+    },
+    {
+      "id": 110,
+      "theme": "Flourishing & Expansion",
+      "reference": "Philippians 1:6",
+      "text": "Being confident of this, that he who began a good work in you will carry it on to completion until the day of Christ Jesus.",
+      "posture_tags": [
+        "growth",
+        "hope",
+        "purpose"
+      ]
+    },
+    {
+      "id": 111,
+      "theme": "Flourishing & Expansion",
+      "reference": "2 Corinthians 9:8",
+      "text": "And God is able to bless you abundantly, so that in all things at all times, having all that you need, you will abound in every good work.",
+      "posture_tags": [
+        "abundance",
+        "growth",
+        "purpose"
+      ]
+    },
+    {
+      "id": 112,
+      "theme": "Flourishing & Expansion",
+      "reference": "Psalm 18:19",
+      "text": "He brought me out into a spacious place; he rescued me because he delighted in me.",
+      "posture_tags": [
+        "growth",
+        "expansion",
+        "hope"
+      ]
+    },
+    {
+      "id": 113,
+      "theme": "Flourishing & Expansion",
+      "reference": "Jeremiah 17:7-8",
+      "text": "But blessed is the one who trusts in the Lord, whose confidence is in him. They will be like a tree planted by the water that sends out its roots by the stream. It does not fear when heat comes; its leaves are always green. It has no worries in a year of drought and never fails to bear fruit.",
+      "posture_tags": [
+        "growth",
+        "abundance",
+        "hope"
+      ]
+    },
+    {
+      "id": 114,
+      "theme": "Flourishing & Expansion",
+      "reference": "Romans 8:37",
+      "text": "No, in all these things we are more than conquerors through him who loved us.",
+      "posture_tags": [
+        "growth",
+        "courage",
+        "expansion"
+      ]
+    },
+    {
+      "id": 115,
+      "theme": "Flourishing & Expansion",
+      "reference": "Psalm 23:5",
+      "text": "You prepare a table before me in the presence of my enemies. You anoint my head with oil; my cup overflows.",
+      "posture_tags": [
+        "abundance",
+        "growth"
+      ]
+    },
+    {
+      "id": 116,
+      "theme": "Flourishing & Expansion",
+      "reference": "Psalm 1:3",
+      "text": "That person is like a tree planted by streams of water, which yields its fruit in season and whose leaf does not wither — whatever they do prospers.",
+      "posture_tags": [
+        "growth",
+        "abundance",
+        "purpose"
+      ]
+    }
+  ]
+}

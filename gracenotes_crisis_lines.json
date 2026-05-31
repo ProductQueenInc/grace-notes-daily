@@ -1,0 +1,478 @@
+{
+  "meta": {
+    "version": "1.0",
+    "product": "GraceNotes Daily",
+    "last_reviewed": "May 2026",
+    "review_frequency": "Every 6 months",
+    "fallback_url": "findahelpline.com",
+    "warning": "VERIFY ALL ENTRIES BEFORE SEEDING TO PRODUCTION. Crisis line numbers change. Cross-reference each entry at findahelpline.com or befrienders.org before going live. Countries not in this list will fall back to the findahelpline.com URL in the crisis response.",
+    "sources": [
+      "findahelpline.com",
+      "befrienders.org",
+      "iasp.info",
+      "Training knowledge — verify before use"
+    ],
+    "total_countries": 51
+  },
+  "crisis_lines": [
+    {
+      "country_code": "NG",
+      "country_name": "Nigeria",
+      "line_name": "SURPIN",
+      "phone": "0800 4673 4726",
+      "text_option": null,
+      "website": "surpinng.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "ZA",
+      "country_name": "South Africa",
+      "line_name": "SADAG Suicide Crisis Line",
+      "phone": "0800 567 567",
+      "text_option": "SMS 31393",
+      "website": "sadag.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "KE",
+      "country_name": "Kenya",
+      "line_name": "Befrienders Kenya",
+      "phone": "0800 723 253",
+      "text_option": null,
+      "website": "befrienderskenya.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "GH",
+      "country_name": "Ghana",
+      "line_name": "Mental Health Authority",
+      "phone": "0800 111 213",
+      "text_option": null,
+      "website": "mhagh.org",
+      "hours": null
+    },
+    {
+      "country_code": "ZW",
+      "country_name": "Zimbabwe",
+      "line_name": "Befrienders Zimbabwe",
+      "phone": "+263 4 732931",
+      "text_option": null,
+      "website": null,
+      "hours": null
+    },
+    {
+      "country_code": "TZ",
+      "country_name": "Tanzania",
+      "line_name": "Befrienders Tanzania",
+      "phone": "+255 22 2137400",
+      "text_option": null,
+      "website": null,
+      "hours": null
+    },
+    {
+      "country_code": "UG",
+      "country_name": "Uganda",
+      "line_name": "Befrienders Kampala",
+      "phone": "+256 41 232555",
+      "text_option": null,
+      "website": null,
+      "hours": null
+    },
+    {
+      "country_code": "EG",
+      "country_name": "Egypt",
+      "line_name": "Nefsi Mental Health",
+      "phone": "08008880700",
+      "text_option": null,
+      "website": "nefsiapp.com",
+      "hours": null
+    },
+    {
+      "country_code": "US",
+      "country_name": "United States",
+      "line_name": "988 Suicide & Crisis Lifeline",
+      "phone": "988",
+      "text_option": "Text HOME to 741741",
+      "website": "988lifeline.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "CA",
+      "country_name": "Canada",
+      "line_name": "Talk Suicide Canada",
+      "phone": "1-833-456-4566",
+      "text_option": "Text 45645",
+      "website": "talksuicide.ca",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "BR",
+      "country_name": "Brazil",
+      "line_name": "Centro de Valorização da Vida (CVV)",
+      "phone": "188",
+      "text_option": null,
+      "website": "cvv.org.br",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "MX",
+      "country_name": "Mexico",
+      "line_name": "SAPTEL",
+      "phone": "55 5259-8121",
+      "text_option": null,
+      "website": "saptel.org.mx",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "AR",
+      "country_name": "Argentina",
+      "line_name": "Centro de Asistencia al Suicida",
+      "phone": "135",
+      "text_option": null,
+      "website": "cas.org.ar",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "CO",
+      "country_name": "Colombia",
+      "line_name": "Línea 106",
+      "phone": "106",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "CL",
+      "country_name": "Chile",
+      "line_name": "Fono Salud Responde",
+      "phone": "600 360 7777",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "PE",
+      "country_name": "Peru",
+      "line_name": "Línea 113",
+      "phone": "113",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "JM",
+      "country_name": "Jamaica",
+      "line_name": "Lifeline Jamaica",
+      "phone": "888-429-5433",
+      "text_option": null,
+      "website": "lifelinejamaica.org",
+      "hours": null
+    },
+    {
+      "country_code": "TT",
+      "country_name": "Trinidad and Tobago",
+      "line_name": "Lifeline Trinidad",
+      "phone": "800-5588",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "GB",
+      "country_name": "United Kingdom",
+      "line_name": "Samaritans",
+      "phone": "116 123",
+      "text_option": null,
+      "website": "samaritans.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "IE",
+      "country_name": "Ireland",
+      "line_name": "Samaritans Ireland",
+      "phone": "116 123",
+      "text_option": null,
+      "website": "samaritans.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "DE",
+      "country_name": "Germany",
+      "line_name": "Telefonseelsorge",
+      "phone": "0800 111 0 111",
+      "text_option": null,
+      "website": "telefonseelsorge.de",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "FR",
+      "country_name": "France",
+      "line_name": "Numéro National de Prévention du Suicide",
+      "phone": "3114",
+      "text_option": null,
+      "website": "3114.fr",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "NL",
+      "country_name": "Netherlands",
+      "line_name": "113 Zelfmoordpreventie",
+      "phone": "113",
+      "text_option": null,
+      "website": "113.nl",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "BE",
+      "country_name": "Belgium",
+      "line_name": "Centre de Prévention du Suicide",
+      "phone": "0800 32 123",
+      "text_option": null,
+      "website": "preventionsuicide.be",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "SE",
+      "country_name": "Sweden",
+      "line_name": "Mind Självmordslinjen",
+      "phone": "90101",
+      "text_option": null,
+      "website": "mind.se",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "NO",
+      "country_name": "Norway",
+      "line_name": "Mental Helse",
+      "phone": "116 123",
+      "text_option": null,
+      "website": "mentalhelse.no",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "DK",
+      "country_name": "Denmark",
+      "line_name": "Livslinien",
+      "phone": "70 201 201",
+      "text_option": null,
+      "website": "livslinien.dk",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "FI",
+      "country_name": "Finland",
+      "line_name": "MIELI Crisis Line",
+      "phone": "09 2525 0111",
+      "text_option": null,
+      "website": "mieli.fi",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "CH",
+      "country_name": "Switzerland",
+      "line_name": "Die Dargebotene Hand",
+      "phone": "143",
+      "text_option": null,
+      "website": "143.ch",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "AT",
+      "country_name": "Austria",
+      "line_name": "Telefonseelsorge Österreich",
+      "phone": "142",
+      "text_option": null,
+      "website": "telefonseelsorge.at",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "ES",
+      "country_name": "Spain",
+      "line_name": "Teléfono de la Esperanza",
+      "phone": "717 003 717",
+      "text_option": null,
+      "website": "telefonodelaesperanza.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "PT",
+      "country_name": "Portugal",
+      "line_name": "SOS Voz Amiga",
+      "phone": "213 544 545",
+      "text_option": null,
+      "website": "sosvozamiga.org",
+      "hours": "15:30–00:30"
+    },
+    {
+      "country_code": "IT",
+      "country_name": "Italy",
+      "line_name": "Telefono Amico",
+      "phone": "02 2327 2327",
+      "text_option": null,
+      "website": "telefonoamico.net",
+      "hours": "10:00–23:00"
+    },
+    {
+      "country_code": "PL",
+      "country_name": "Poland",
+      "line_name": "Telefon Zaufania dla Dorosłych",
+      "phone": "116 123",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "RO",
+      "country_name": "Romania",
+      "line_name": "Telefonul Copilului",
+      "phone": "116 111",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "HU",
+      "country_name": "Hungary",
+      "line_name": "Lelki Elsősegély Telefonszolgálat",
+      "phone": "116 123",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "IL",
+      "country_name": "Israel",
+      "line_name": "ERAN Emotional First Aid",
+      "phone": "1201",
+      "text_option": null,
+      "website": "eran.org.il",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "AE",
+      "country_name": "United Arab Emirates",
+      "line_name": "National Wellbeing Authority",
+      "phone": "800 4673",
+      "text_option": null,
+      "website": "nwa.gov.ae",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "TR",
+      "country_name": "Turkey",
+      "line_name": "ALO Psikiyatri Hattı",
+      "phone": "182",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    },
+    {
+      "country_code": "AU",
+      "country_name": "Australia",
+      "line_name": "Lifeline",
+      "phone": "13 11 14",
+      "text_option": "Text 0477 13 11 14",
+      "website": "lifeline.org.au",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "NZ",
+      "country_name": "New Zealand",
+      "line_name": "Lifeline Aotearoa",
+      "phone": "0800 543 354",
+      "text_option": "Text 4357",
+      "website": "lifeline.org.nz",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "IN",
+      "country_name": "India",
+      "line_name": "iCall",
+      "phone": "9152987821",
+      "text_option": null,
+      "website": "icallhelpline.org",
+      "hours": "Mon–Sat 8am–10pm"
+    },
+    {
+      "country_code": "SG",
+      "country_name": "Singapore",
+      "line_name": "Samaritans of Singapore (SOS)",
+      "phone": "1800 221 4444",
+      "text_option": null,
+      "website": "sos.org.sg",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "PH",
+      "country_name": "Philippines",
+      "line_name": "National Center for Mental Health",
+      "phone": "1553",
+      "text_option": null,
+      "website": "ncmh.gov.ph",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "MY",
+      "country_name": "Malaysia",
+      "line_name": "Befrienders Kuala Lumpur",
+      "phone": "03 7627 2929",
+      "text_option": null,
+      "website": "befrienders.org.my",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "HK",
+      "country_name": "Hong Kong",
+      "line_name": "Samaritans Hong Kong",
+      "phone": "2382 0000",
+      "text_option": null,
+      "website": "samaritans.org.hk",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "JP",
+      "country_name": "Japan",
+      "line_name": "Inochi no Denwa",
+      "phone": "0570 783 556",
+      "text_option": null,
+      "website": "inochi.or.jp",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "KR",
+      "country_name": "South Korea",
+      "line_name": "Korea Suicide Prevention Hotline",
+      "phone": "1393",
+      "text_option": null,
+      "website": "spckorea.or.kr",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "ID",
+      "country_name": "Indonesia",
+      "line_name": "Into The Light Indonesia",
+      "phone": "119 ext 8",
+      "text_option": null,
+      "website": "intothelightid.org",
+      "hours": "24/7"
+    },
+    {
+      "country_code": "PK",
+      "country_name": "Pakistan",
+      "line_name": "Umang Pakistan",
+      "phone": "0317 4288665",
+      "text_option": null,
+      "website": "umang.com.pk",
+      "hours": "Mon–Sat 12pm–12am"
+    },
+    {
+      "country_code": "LK",
+      "country_name": "Sri Lanka",
+      "line_name": "CCCline",
+      "phone": "1333",
+      "text_option": null,
+      "website": null,
+      "hours": "24/7"
+    }
+  ]
+}
