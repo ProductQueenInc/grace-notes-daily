@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useHabits, type HabitKey } from "@/hooks/use-habits";
 import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
 import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-note";
 import { useStreak } from "@/hooks/use-streak";
@@ -59,6 +59,13 @@ function Home() {
     refetch: refetchGrace,
     isFetching: graceFetching,
   } = useDailyGraceNote();
+
+  const { data: devotionalPreview } = useQuery({
+    queryKey: ["devotional", today],
+    queryFn: () => generateDevotional(profile!),
+    enabled: !!profile && !graceFetching,
+    staleTime: Infinity,
+  });
 
   // Warm the devotional cache in the background AFTER the grace note settles, so
   // the two AI calls don't compete for the same mobile connection on first load.
@@ -216,8 +223,8 @@ function Home() {
               <div className="flex items-center gap-2 text-gold font-semibold mb-1 text-sm uppercase tracking-wider">
                 <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily Devotional
               </div>
-              <h3 className="font-display text-2xl sm:text-3xl text-white">A Journey of New Beginnings</h3>
-              <p className="text-sm text-white/70 mt-1">Lamentations 3:22-23 · Fresh mercies for today</p>
+              <h3 className="font-display text-2xl sm:text-3xl text-white">{devotionalPreview?.title ?? "Today's Devotional"}</h3>
+              <p className="text-sm text-white/70 mt-1">{devotionalPreview ? `${devotionalPreview.verseRef} · ${devotionalPreview.date}` : "Loading…"}</p>
               <span className="inline-block mt-3 text-sm font-semibold text-gold">Read Today's Devotional →</span>
             </button>
           </div>
