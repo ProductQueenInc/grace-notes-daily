@@ -55,15 +55,14 @@ function Auth() {
 
   async function withGoogle() {
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/home`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/home` },
       });
-      if (result.error) {
-        toast.error(result.error.message ?? "Could not start Google sign-in.");
-        return;
+      if (error) {
+        toast.error(error.message ?? "Could not start Google sign-in.");
       }
-      if (result.redirected) return;
-      nav({ to: "/home" });
+      // On success the browser redirects to Google; no further action needed here.
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not start Google sign-in.");
     }
