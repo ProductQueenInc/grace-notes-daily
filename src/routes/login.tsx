@@ -36,7 +36,7 @@ function Auth() {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${window.location.origin}/home` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     setResending(false);
     if (error) {
@@ -80,7 +80,7 @@ function Auth() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/home` },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       setLoading(false);
       if (error) {
@@ -107,9 +107,9 @@ function Auth() {
       }
       // Confirm session before navigating — guards mobile Safari race where the
       // client believes it signed in but the session hasn't fully hydrated.
-      const { data } = await supabase.auth.getSession();
+      const { data, error: userError } = await supabase.auth.getUser();
       setLoading(false);
-      if (!data.session) {
+      if (userError || !data.user) {
         toast.error("Couldn't confirm your session. Please try again.");
         return;
       }
