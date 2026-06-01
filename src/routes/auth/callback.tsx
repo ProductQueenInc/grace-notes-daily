@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, markDeviceHasAccount } from "@/lib/supabase";
 import { DoveMark } from "@/components/dove-mark";
 import { NatureBackground } from "@/components/nature-background";
 
@@ -9,10 +9,10 @@ export const Route = createFileRoute("/auth/callback")({
 });
 
 /**
- * OAuth + email-confirmation landing page. Handles both:
- *  - implicit-flow hash tokens (#access_token=...) from Google sign-in
- *  - ?error=... bounce-backs from Supabase when the redirect URL isn't
- *    in the project's allow-list (the #1 reason SSO loops back to /login)
+ * Magic-link landing page. Handles:
+ *  - PKCE auth-code flow: ?code=... → exchangeCodeForSession
+ *  - ?error=... bounce-backs from Supabase (e.g. expired link)
+ *  - Implicit-flow hash tokens (kept as a fallback)
  *
  * No RequireAuth — we ARE the auth step.
  */
@@ -23,11 +23,7 @@ function AuthCallback() {
 
   useEffect(() => {
     let cancelled = false;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
 
-    // 1. Surface explicit OAuth errors (Supabase appends ?error=... or
-    //    #error=... when the redirect URL isn't allow-listed, or the user
-    //    cancels). Without this we silently bounce to /login forever.
     const url = new URL(window.location.href);
     const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
     const oauthError =
@@ -42,20 +38,29 @@ function AuthCallback() {
     }
 
     async function finishAuth() {
-      // 2. If implicit-flow tokens are in the URL hash, supabase-js
-      //    (detectSessionInUrl: true) will parse them — but it can race
-      //    with our first getSession() call. Wait for SIGNED_IN OR poll.
+      // 1. PKCE flow: ?code=... → exchange for a session.
+      const code = url.searchParams.get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        if (cancelled) return;
+        if (error) {
+          setErrorMsg(error.message);
+          return;
+        }
+      }
+
+      // 2. Read the now-hydrated session.
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
 
       if (data.session) {
+        markDeviceHasAccount();
         navigate({ to: "/home", replace: true });
         return;
       }
 
+      // 3. Fallback: implicit-flow tokens in the URL hash may still be parsing.
       setStatus("Confirming your session…");
-
-      // Poll up to 6s for the session to hydrate.
       let waited = 0;
       const poll = setInterval(async () => {
         waited += 500;
@@ -63,25 +68,23 @@ function AuthCallback() {
         if (cancelled) return clearInterval(poll);
         if (latest.session) {
           clearInterval(poll);
+          markDeviceHasAccount();
           navigate({ to: "/home", replace: true });
           return;
         }
         if (waited >= 6000) {
           clearInterval(poll);
-          // No session and no explicit error → most likely the redirect URL
-          // isn't allow-listed in Supabase Auth.
           setErrorMsg(
-            "We couldn't complete your sign-in. If this keeps happening, this site's URL may not be allow-listed in our auth provider yet.",
+            "We couldn't complete your sign-in. The link may have expired — request a new one from the sign-in page.",
           );
         }
       }, 500);
-
-      timeout = setTimeout(() => clearInterval(poll), 7000);
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
       if (event === "SIGNED_IN" && session) {
+        markDeviceHasAccount();
         navigate({ to: "/home", replace: true });
       }
     });
@@ -90,7 +93,6 @@ function AuthCallback() {
 
     return () => {
       cancelled = true;
-      if (timeout) clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, [navigate]);

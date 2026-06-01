@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { supabase, supabaseConfigured, markDeviceHasAccount } from "@/lib/supabase";
 import { syncCountryCode } from "@/lib/auth.functions";
 import type { Session, User } from "@supabase/supabase-js";
 
@@ -42,11 +42,15 @@ export function useAuth() {
     // CRITICAL: register the listener BEFORE reading the initial session, so we
     // never miss the very first SIGNED_IN event on mobile Safari (which would
     // leave the app thinking the user is signed out and bounce them back to /login).
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) loadProfile(s.user.id);
-      else setProfile(null);
+      if (s?.user) {
+        loadProfile(s.user.id);
+        if (event === "SIGNED_IN") markDeviceHasAccount();
+      } else {
+        setProfile(null);
+      }
     });
     // Await the profile fetch so `loading` only becomes false AFTER the
     // profile is ready. This prevents the flash where the home screen
