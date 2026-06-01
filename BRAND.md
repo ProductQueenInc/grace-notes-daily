@@ -170,6 +170,7 @@ Background image categories: `nightsky`, `ocean`, `sunrise`, `vegetation`, `weat
 
 - **Action-gated habits.** Tapping a habit circle navigates to the feature surface. Habits only complete by performing the action — devotional received, message sent, heart note submitted. Never on circle click. This is locked.
 - **Midnight reset.** Daily chat and habits reset at midnight in the user's local timezone.
+- **Magic Link auth.** No password field, no OAuth button. User enters email, receives a link, taps it. Login page shows "Welcome back. He's been waiting for you." for returning users, "Welcome in. You are seen. You are held. You are welcome here." for new users — detected via `deviceHasAccount()`.
 - **No diagnostic copy.** Do not tell the user what they are feeling or have been through. If they named a feeling, reflect it gently. Do not diagnose.
 - **AI output is never raw.** All Claude and OpenAI output passes through an em-dash/en-dash sanitizer (`src/lib/ai.functions.ts`) before returning to the user.
 - **Streaming chat.** The chat reply endpoint uses SSE streaming — users see the first word within ~300ms.

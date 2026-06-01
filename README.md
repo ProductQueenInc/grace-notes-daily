@@ -29,9 +29,9 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 ## What's Been Built
 
 ### Core features (all live)
-- **Auth** — Email/password + Google OAuth. Unified `/login` page handles sign-in and sign-up. Email confirmation supported. Google OAuth redirects to `/home`; onboarding is enforced there.
+- **Auth** — **Magic Link only.** User enters email → receives a sign-in link → taps it to authenticate. No password. No Google OAuth in the UI (referenced in Privacy Policy/Terms as a future-supported provider but not in the current login page). Magic link redirect is hardcoded to `https://gracenotesdaily.com/auth/callback`. Returning vs. new user is detected via `deviceHasAccount()` and surfaces different welcome copy.
 - **Onboarding** — 5-step flow capturing name, faith phase, daily rhythms, life seasons, voice preference, and timezone. RequireAuth re-routes incomplete profiles on every login.
-- **Grace Note** — AI-generated daily reflection tied to a curated Bible verse. Cached per `(user_id, date)` in `daily_grace_notes`. Falls back to on-demand generation if the overnight cron hasn't run yet.
+- **Grace Note** — AI-generated daily reflection tied to a curated Bible verse. Pre-generated overnight by a Supabase Edge Function (cron runs at 1:00 AM UTC, using `claude-sonnet-4-6`). Stored in `daily_grace_notes`. If the cron hasn't run yet for a new user, the app falls back to on-demand generation using `claude-haiku-4-5`. Content rolls over at the user's **local midnight** via a `clientDate` parameter — the server always caches by the user's local date, not UTC.
 - **Daily Devotional** — AI-generated via Claude Haiku (1–2s). Cached per `(user_id, date)` in `daily_content`. User taps "I Receive This" to mark the devotional habit complete.
 - **Daily Chat** — Conversational AI companion (OpenAI `gpt-4o-mini`). Persists to `daily_messages`. Resets at midnight in the user's local time. Sending a message marks the daily-message habit complete.
 - **Heart Notes** — Journal with AI response. Saves to `heart_notes`. Submitting marks the journal habit complete.
@@ -69,16 +69,17 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 | Background image upload script | Images exist locally; upload automation not built |
 | GitHub Actions CI/CD | No pipeline yet — deploys via Lovable (open Lovable → sync from GitHub → publish) |
 | PWA icons | `icon-192.png` and `icon-512.png` need to be dropped into `/public/icons/` |
-| Supabase auth redirect URL | `gracenotesdaily.com` must be added in Supabase → Auth → URL Configuration |
 | Crisis line re-verification | Verify all entries every 6 months at findahelpline.com or befrienders.org |
 
 ---
 
 ## Key Decisions Made
 
+- **Auth is Magic Link only.** No password, no Google OAuth in the current UI. Clean and low-friction for a faith audience.
 - **Habit completion is action-gated.** Tapping a habit circle navigates to the feature; the habit only marks complete when the underlying action is performed (devotional received, message sent, heart note submitted). This is locked behaviour — do not change.
-- **Devotional generation uses Claude Haiku** (not Sonnet) for speed (1–2s vs 5–10s). Grace notes also use Haiku. Both are cached so repeat loads are instant.
-- **No separate `/signup` route.** `/signup` redirects to `/login`. The unified page handles both flows.
+- **Grace note generation uses two models.** Overnight batch: `claude-sonnet-4-6` (higher quality, runs once per user per day via cron). In-app fallback: `claude-haiku-4-5` (fast, used only when cron hasn't pre-generated yet). Devotional also uses `claude-haiku-4-5`.
+- **Grace note date is driven by `clientDate`.** The app passes the user's local date to the server, so content rolls over at the user's local midnight — not UTC midnight.
+- **No separate `/signup` route.** `/signup` redirects to `/login`. The login page handles both new and returning users, distinguished by `deviceHasAccount()`.
 - **Em dashes are stripped** from all AI output in `src/lib/ai.functions.ts`. Prompts also instruct the model not to use them.
 - **Dark mode removed from Settings** until proper dark theme tokens are designed.
 - **"Daily Rhythms"** is the canonical term (was: "Divine Habit Streaks") across all UI and copy.
