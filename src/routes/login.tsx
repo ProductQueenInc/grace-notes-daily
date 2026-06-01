@@ -17,6 +17,18 @@ const REDIRECT_URL = "https://gracenotesdaily.com/auth/callback";
 
 type Mode = "enter" | "sent";
 
+function authErrorMessage(error: unknown) {
+  const authError = error as { message?: string; code?: string; status?: number } | null;
+  const message = authError?.message ?? "";
+  if (authError?.status === 429 || authError?.code === "over_email_send_rate_limit" || /rate limit/i.test(message)) {
+    return "Too many sign-in links were requested. Please wait a little while, then try again.";
+  }
+  if (/invalid json response/i.test(message) || /content-type:\s*text\/html/i.test(message)) {
+    return "We couldn't send your link right now. Please wait a few minutes, then try again.";
+  }
+  return message || "We couldn't send your link right now. Please try again shortly.";
+}
+
 function Auth() {
   const [returning, setReturning] = useState(false);
   const [mode, setMode] = useState<Mode>("enter");
@@ -61,7 +73,7 @@ function Auth() {
     const error = await sendLink(trimmed);
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(authErrorMessage(error));
       return;
     }
     setEmail(trimmed);
@@ -75,7 +87,7 @@ function Auth() {
     const error = await sendLink(email);
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(authErrorMessage(error));
       return;
     }
     toast.success("Link resent. Check your inbox.");

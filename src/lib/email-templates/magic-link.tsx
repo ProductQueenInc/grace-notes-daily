@@ -13,8 +13,8 @@ interface MagicLinkEmailProps {
 const MEDALLION_URL =
   'https://jtjizrchmmmvphkndmhs.supabase.co/storage/v1/object/public/email-assets/dove-medallion.png'
 
-const headingFont = 'Fraunces, "Hoefler Text", Georgia, "Times New Roman", serif'
-const bodyFont = 'Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
+const headingFont = 'Georgia, "Times New Roman", serif'
+const bodyFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
 
 const main = {
   backgroundColor: '#ffffff',
@@ -29,44 +29,32 @@ const outer = {
   maxWidth: '600px',
 }
 
-// Green banner header — medallion top-left, wordmark in white
+// Green banner header — centered for predictable rendering across email clients.
 const banner = {
   backgroundColor: brand.grace,
   borderRadius: '20px 20px 0 0',
-  padding: '22px 28px',
-}
-
-const bannerInner = {
-  width: '100%',
-  borderCollapse: 'collapse' as const,
-}
-
-const medallionCell = {
-  width: '56px',
-  verticalAlign: 'middle' as const,
-  paddingRight: '14px',
-}
-
-const wordmarkCell = {
-  verticalAlign: 'middle' as const,
+  padding: '30px 28px 28px',
+  textAlign: 'center' as const,
 }
 
 const wordmark = {
   fontFamily: headingFont,
-  fontSize: '22px',
-  fontWeight: 500 as const,
+  fontSize: '30px',
+  fontWeight: 400 as const,
   color: '#ffffff',
-  letterSpacing: '0.01em',
-  margin: 0,
-  lineHeight: '1',
+  letterSpacing: '0',
+  margin: '0',
+  lineHeight: '1.15',
+  textAlign: 'center' as const,
 }
 
 const tagline = {
-  fontSize: '12px',
-  color: 'rgba(255,255,255,0.78)',
-  margin: '4px 0 0',
-  letterSpacing: '0.08em',
+  fontSize: '11px',
+  color: 'rgba(255,255,255,0.82)',
+  margin: '8px 0 0',
+  letterSpacing: '0.18em',
   textTransform: 'uppercase' as const,
+  textAlign: 'center' as const,
 }
 
 // Parchment card body — matches in-app .glass-parchment feel
@@ -90,11 +78,11 @@ const eyebrow = {
 
 const h1 = {
   fontFamily: headingFont,
-  fontSize: '30px',
-  fontWeight: 500 as const,
+  fontSize: '29px',
+  fontWeight: 400 as const,
   color: brand.grace,
   lineHeight: '1.2',
-  letterSpacing: '-0.01em',
+  letterSpacing: '0',
   margin: '0 0 16px',
 }
 
@@ -181,33 +169,23 @@ export const MagicLinkEmail = ({
       <Container style={outer}>
         {/* Green banner */}
         <Section style={banner}>
-          <table style={bannerInner} role="presentation" cellPadding={0} cellSpacing={0}>
-            <tbody>
-              <tr>
-                <td style={medallionCell}>
-                  <Img
-                    src={MEDALLION_URL}
-                    alt=""
-                    width="48"
-                    height="48"
-                    style={{ display: 'block', borderRadius: '50%' }}
-                  />
-                </td>
-                <td style={wordmarkCell}>
-                  <Text style={wordmark}>GraceNotes Daily</Text>
-                  <Text style={tagline}>Held · Seen · Welcome</Text>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <Img
+            src={MEDALLION_URL}
+            alt=""
+            width="64"
+            height="64"
+            style={{ display: 'block', borderRadius: '50%', margin: '0 auto 12px' }}
+          />
+          <Text style={wordmark}>GraceNotes Daily</Text>
+          <Text style={tagline}>Held · Seen · Welcome</Text>
         </Section>
 
         {/* Parchment body */}
         <Section style={card}>
           <Text style={eyebrow}>Your sign-in link</Text>
-          <Heading style={h1}>Welcome back.</Heading>
+          <Heading style={h1}>Your sign-in link is ready.</Heading>
           <Text style={text}>
-            Tap the button below to return to your daily grace. This link will expire shortly and can only be used once.
+            Tap the button below to open GraceNotes Daily. This link expires shortly and can only be used once.
           </Text>
 
           <Section style={buttonWrap}>
@@ -218,7 +196,7 @@ export const MagicLinkEmail = ({
 
           <Text style={fallbackLabel}>If the button doesn't work, paste this link into your browser:</Text>
           <Text style={fallbackUrl}>
-            <Link href={confirmationUrl} style={link}>{confirmationUrl}</Link>
+            <Link href={confirmationUrl} style={link}>gracenotesdaily.com</Link>
           </Text>
 
           <Text style={footer}>
@@ -226,7 +204,6 @@ export const MagicLinkEmail = ({
           </Text>
         </Section>
 
-        <Text style={footerBrand}>GraceNotes Daily</Text>
         <Text style={footer}>
           gracenotesdaily.com
         </Text>
