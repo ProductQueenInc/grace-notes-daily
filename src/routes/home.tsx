@@ -220,12 +220,21 @@ function Home() {
               onClick={() => setDevotionalOpen(true)}
               className="w-full text-left rounded-3xl p-5 sm:p-6 glass-on-hue hover:scale-[1.005] transition group"
             >
-              <div className="flex items-center gap-2 text-gold font-semibold mb-1 text-sm uppercase tracking-wider">
-                <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily Devotional
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-gold font-semibold mb-1 text-sm uppercase tracking-wider">
+                  <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily Devotional
+                </div>
+                {habits.devotional && (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-white/60 bg-white/10 rounded-full px-2.5 py-1 shrink-0">
+                    <Icon icon={Check} size="sm" tone="inherit" /> Received
+                  </span>
+                )}
               </div>
               <h3 className="font-display text-2xl sm:text-3xl text-white">{devotionalPreview?.title ?? "Today's Devotional"}</h3>
               <p className="text-sm text-white/70 mt-1">{devotionalPreview ? `${devotionalPreview.verseRef} · ${devotionalPreview.date}` : "Loading…"}</p>
-              <span className="inline-block mt-3 text-sm font-semibold text-gold">Read Today's Devotional →</span>
+              <span className={`inline-block mt-3 text-sm font-semibold ${habits.devotional ? "text-white/50" : "text-gold"}`}>
+                {habits.devotional ? "Read again →" : "Read Today's Devotional →"}
+              </span>
             </button>
           </div>
 
