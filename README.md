@@ -36,8 +36,8 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 - **Daily Chat** — Conversational AI companion (OpenAI `gpt-4o-mini`). Persists to `daily_messages`. Resets at midnight in the user's local time. Sending a message marks the daily-message habit complete.
 - **Heart Notes** — Journal with AI response. Saves to `heart_notes`. Submitting marks the journal habit complete.
 - **Prayers** — Full CRUD: add, mark answered, add thanksgiving (stored separately in `thanksgivings` table), soft delete. Saves to `prayers`.
-- **Habit Streaks** — Consecutive gold-day counter from `daily_habits`. Habits only complete via their underlying action, never by tapping the circle.
-- **Journey** — Reads real data from `heart_notes`, `prayers`, and `daily_content` with date-range filter.
+- **Habit Streaks** — Consecutive-day counter from `daily_habits`. A streak day = any ONE of devotional, daily_message, or journal being true (not all three). Today's habits don't count until tomorrow — the counter starts from yesterday, so satisfaction stays in the rhythm rather than watching the number tick over mid-day.
+- **Journey** — Reads from `heart_notes` (all past entries) and answered `prayers` (with their thanksgivings). Does not include `daily_content`. Filterable by type (all / heart-note / prayer) and searchable by text. Paginated. Today's heart note is excluded — it stays on its own page until midnight.
 - **Safety system** — Three-tier: keyword-based crisis detection (server-side, pre-Claude), Claude Haiku safety classification (SAFE / MILD / HARMFUL), session close for harmful input with localised crisis line lookup.
 - **Verse library** — 116 curated verses seeded into `verses` table. Smart rotation prevents repeats for 60 days via `select_verse_for_user` Postgres function.
 - **PWA** — `manifest.json`, Apple meta tags, `robots.txt`, `sitemap.xml`, OG/Twitter card.
@@ -68,7 +68,6 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 | Listen / uploaded audio | YouTube tracks play; signed Supabase Storage URLs for uploaded audio files not yet wired |
 | Background image upload script | Images exist locally; upload automation not built |
 | GitHub Actions CI/CD | No pipeline yet — deploys via Lovable (open Lovable → sync from GitHub → publish) |
-| PWA icons | `icon-192.png` and `icon-512.png` need to be dropped into `/public/icons/` |
 | Crisis line re-verification | Verify all entries every 6 months at findahelpline.com or befrienders.org |
 
 ---
