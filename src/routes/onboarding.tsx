@@ -41,7 +41,9 @@ const VOICES: { id: Voice; title: string; desc: string; icon: typeof Heart }[] =
   { id: "grounding", title: "Direct and grounding", desc: "Clear, steady, rooted.", icon: Anchor },
 ];
 
-const TOTAL_STEPS = 6;
+// Phone backup step was removed when we narrowed auth to magic-link only.
+// Email IS the account — there's nothing meaningful to back it up with right now.
+const TOTAL_STEPS = 5;
 
 function defaultCountry(): CountryCode {
   if (typeof navigator === "undefined") return "US";
@@ -465,24 +467,13 @@ function Onboarding() {
                   Continue <Icon icon={ArrowRight} size="sm" tone="inherit" />
                 </button>
               ) : (
-                <div className="flex items-center gap-2">
-                  {backupStage === "enter" && (
-                    <button
-                      onClick={finish}
-                      disabled={saving}
-                      className="px-5 py-2.5 rounded-full text-sm text-white/80 hover:bg-white/10"
-                    >
-                      Skip for now
-                    </button>
-                  )}
-                  <button
-                    onClick={finish}
-                    disabled={!canNext[6] || saving}
-                    className="px-8 py-2.5 rounded-full bg-gold text-gold-foreground font-semibold disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    {saving ? "Saving…" : (<><Icon icon={HandHeart} size="sm" tone="inherit" /> Begin</>)}
-                  </button>
-                </div>
+                <button
+                  onClick={finish}
+                  disabled={!canNext[step] || saving}
+                  className="px-8 py-2.5 rounded-full bg-gold text-gold-foreground font-semibold disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {saving ? "Saving…" : (<><Icon icon={HandHeart} size="sm" tone="inherit" /> Begin</>)}
+                </button>
               )}
             </div>
           </div>
