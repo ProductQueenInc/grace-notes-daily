@@ -33,9 +33,9 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 - **Onboarding** — 5-step flow capturing name, faith phase, daily rhythms, life seasons, voice preference, and timezone. RequireAuth re-routes incomplete profiles on every login.
 - **Grace Note** — AI-generated daily reflection tied to a curated Bible verse. Cached per `(user_id, date)` in `daily_grace_notes`. Falls back to on-demand generation if the overnight cron hasn't run yet.
 - **Daily Devotional** — AI-generated via Claude Haiku (1–2s). Cached per `(user_id, date)` in `daily_content`. User taps "I Receive This" to mark the devotional habit complete.
-- **Daily Chat** — Conversational AI companion (OpenAI). Persists to `daily_messages`. Resets at midnight in the user's local time. Sending a message marks the daily-message habit complete.
+- **Daily Chat** — Conversational AI companion (OpenAI `gpt-4o-mini`). Persists to `daily_messages`. Resets at midnight in the user's local time. Sending a message marks the daily-message habit complete.
 - **Heart Notes** — Journal with AI response. Saves to `heart_notes`. Submitting marks the journal habit complete.
-- **Prayers** — Full CRUD: add, mark answered, add thanksgiving, soft delete. Saves to `prayers`.
+- **Prayers** — Full CRUD: add, mark answered, add thanksgiving (stored separately in `thanksgivings` table), soft delete. Saves to `prayers`.
 - **Habit Streaks** — Consecutive gold-day counter from `daily_habits`. Habits only complete via their underlying action, never by tapping the circle.
 - **Journey** — Reads real data from `heart_notes`, `prayers`, and `daily_content` with date-range filter.
 - **Safety system** — Three-tier: keyword-based crisis detection (server-side, pre-Claude), Claude Haiku safety classification (SAFE / MILD / HARMFUL), session close for harmful input with localised crisis line lookup.
@@ -44,6 +44,9 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 - **SEO** — 6 landing pages with structured data, social sharing, content guides.
 - **Settings** — Profile management. Dark mode deferred (tokens not finalized).
 - **Feedback** — Tally popup (form ID: VL4NY6), gold MessageCircle button fixed bottom-right on all pages.
+- **Listen** — Full UI with category/type filters and persistent `<PlayerDock />`. Reads from a `tracks` DB table (supports YouTube video and uploaded audio). YouTube tracks play now. Uploaded audio files require signed Supabase Storage URLs (not yet wired — see pending).
+- **Transactional email** — Email templates built for signup, magic link, recovery, email change, and invite (`src/lib/email-templates/`). Send log, unsubscribe tokens, and suppression list tables exist in DB.
+- **System announcements** — In-app announcement banner reads from `system_announcements` table; dismissals tracked per user in `announcement_dismissals`.
 
 ### Infrastructure
 - Supabase edge function: `generate-daily-grace-notes` — overnight cron at 1:00 AM UTC pre-generates grace notes for all active users
@@ -62,7 +65,7 @@ GraceNotes Daily gives users a personalised daily spiritual experience: a grace 
 | Item | Notes |
 |------|-------|
 | Push notifications | VAPID keys + Supabase Edge Function not started |
-| Listen / audio | Player UI exists (`<PlayerDock />`); signed Supabase Storage URLs not wired |
+| Listen / uploaded audio | YouTube tracks play; signed Supabase Storage URLs for uploaded audio files not yet wired |
 | Background image upload script | Images exist locally; upload automation not built |
 | GitHub Actions CI/CD | No pipeline yet — deploys via Lovable (open Lovable → sync from GitHub → publish) |
 | PWA icons | `icon-192.png` and `icon-512.png` need to be dropped into `/public/icons/` |
