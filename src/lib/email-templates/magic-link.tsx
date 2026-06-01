@@ -169,33 +169,23 @@ export const MagicLinkEmail = ({
       <Container style={outer}>
         {/* Green banner */}
         <Section style={banner}>
-          <table style={bannerInner} role="presentation" cellPadding={0} cellSpacing={0}>
-            <tbody>
-              <tr>
-                <td style={medallionCell}>
-                  <Img
-                    src={MEDALLION_URL}
-                    alt=""
-                    width="48"
-                    height="48"
-                    style={{ display: 'block', borderRadius: '50%' }}
-                  />
-                </td>
-                <td style={wordmarkCell}>
-                  <Text style={wordmark}>GraceNotes Daily</Text>
-                  <Text style={tagline}>Held · Seen · Welcome</Text>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <Img
+            src={MEDALLION_URL}
+            alt=""
+            width="64"
+            height="64"
+            style={{ display: 'block', borderRadius: '50%', margin: '0 auto 12px' }}
+          />
+          <Text style={wordmark}>GraceNotes Daily</Text>
+          <Text style={tagline}>Held · Seen · Welcome</Text>
         </Section>
 
         {/* Parchment body */}
         <Section style={card}>
           <Text style={eyebrow}>Your sign-in link</Text>
-          <Heading style={h1}>Welcome back.</Heading>
+          <Heading style={h1}>Your sign-in link is ready.</Heading>
           <Text style={text}>
-            Tap the button below to return to your daily grace. This link will expire shortly and can only be used once.
+            Tap the button below to open GraceNotes Daily. This link expires shortly and can only be used once.
           </Text>
 
           <Section style={buttonWrap}>
@@ -206,7 +196,7 @@ export const MagicLinkEmail = ({
 
           <Text style={fallbackLabel}>If the button doesn't work, paste this link into your browser:</Text>
           <Text style={fallbackUrl}>
-            <Link href={confirmationUrl} style={link}>{confirmationUrl}</Link>
+            <Link href={confirmationUrl} style={link}>gracenotesdaily.com</Link>
           </Text>
 
           <Text style={footer}>
@@ -214,7 +204,6 @@ export const MagicLinkEmail = ({
           </Text>
         </Section>
 
-        <Text style={footerBrand}>GraceNotes Daily</Text>
         <Text style={footer}>
           gracenotesdaily.com
         </Text>
