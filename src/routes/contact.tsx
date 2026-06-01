@@ -14,6 +14,7 @@ export const Route = createFileRoute("/contact")({
       { name: "description", content: "Reach out to the GraceNotes Daily team. We'd love to hear from you." },
       { property: "og:title", content: "Contact GraceNotes Daily" },
     ],
+    links: [{ rel: "canonical", href: "https://www.gracenotesdaily.com/contact" }],
   }),
   component: Contact,
 });

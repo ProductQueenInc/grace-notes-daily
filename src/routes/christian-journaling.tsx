@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
+import { ShareBar } from "@/components/share-bar";
 import { ChevronDown } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useState } from "react";
@@ -19,6 +20,9 @@ export const Route = createFileRoute("/christian-journaling")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "GraceNotes Daily — Tell God everything and watch what He does with it." },
       { name: "twitter:image", content: "https://www.gracenotesdaily.com/og/christian-journaling.png" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.gracenotesdaily.com/christian-journaling" },
     ],
   }),
   component: ChristianJournaling,
@@ -193,6 +197,17 @@ function ChristianJournaling() {
 
         </div>
       </section>
+
+      <section className="px-6 pb-10 relative z-10">
+        <div className="max-w-3xl mx-auto">
+          <ShareBar
+            url="https://www.gracenotesdaily.com/christian-journaling"
+            title="Christian Journaling App | GraceNotes Daily"
+            description="Discover how Christian journaling deepens your faith and creates a lasting record of your spiritual journey."
+          />
+        </div>
+      </section>
+
       <SiteFooter />
     </>
   );

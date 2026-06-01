@@ -70,7 +70,7 @@ function FAQ() {
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto">
           <h1 className="font-display text-4xl md:text-5xl text-white text-center drop-shadow mb-3">Frequently asked questions</h1>
-          <p className="text-center text-white/85 mb-10">Gentle answers - and feel free to <Link to="/contact" className="underline text-gold">reach out</Link> if you have more.</p>
+          <p className="text-center text-white/85 mb-10">Gentle answers — and you're welcome to <Link to="/contact" className="underline text-gold">reach out</Link> if you have more.</p>
           <div className="space-y-3">
             {faqs.map((f, i) => <Item key={i} q={f.q} a={f.a} />)}
           </div>

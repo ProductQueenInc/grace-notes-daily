@@ -10,6 +10,7 @@ export const Route = createFileRoute("/terms")({
       { title: "Terms of Use | GraceNotes Daily" },
       { name: "description", content: "GraceNotes Daily Terms of Use. Your rights and responsibilities as a user of the GraceNotes Daily platform." },
     ],
+    links: [{ rel: "canonical", href: "https://www.gracenotesdaily.com/terms" }],
   }),
   component: Terms,
 });

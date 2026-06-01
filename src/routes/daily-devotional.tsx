@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
+import { ShareBar } from "@/components/share-bar";
 import { ChevronDown } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useState } from "react";
@@ -19,6 +20,9 @@ export const Route = createFileRoute("/daily-devotional")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Daily Devotional App for Christians | GraceNotes Daily" },
       { name: "twitter:image", content: "https://www.gracenotesdaily.com/og/daily-devotional.png" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.gracenotesdaily.com/daily-devotional" },
     ],
   }),
   component: DailyDevotion,
@@ -187,6 +191,17 @@ function DailyDevotion() {
 
         </div>
       </section>
+
+      <section className="px-6 pb-10 relative z-10">
+        <div className="max-w-3xl mx-auto">
+          <ShareBar
+            url="https://www.gracenotesdaily.com/daily-devotional"
+            title="Daily Devotional App for Christians | GraceNotes Daily"
+            description="Build a daily quiet time habit that actually sticks. GraceNotes Daily gives you guided devotionals every morning."
+          />
+        </div>
+      </section>
+
       <SiteFooter />
     </>
   );

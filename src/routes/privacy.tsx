@@ -10,6 +10,7 @@ export const Route = createFileRoute("/privacy")({
       { title: "Privacy Policy | GraceNotes Daily" },
       { name: "description", content: "GraceNotes Daily Privacy Policy. How we collect, use, and protect your personal data, including your journal entries, prayers, and spiritual reflections." },
     ],
+    links: [{ rel: "canonical", href: "https://www.gracenotesdaily.com/privacy" }],
   }),
   component: Privacy,
 });
