@@ -32,6 +32,16 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Auth guard: only the scheduled cron (which sends the service role key) may invoke this.
+  const authHeader = req.headers.get('Authorization')
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!authHeader || !serviceKey || authHeader !== `Bearer ${serviceKey}`) {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+    })
+  }
+
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const dateStr = tomorrow.toISOString().split('T')[0]
