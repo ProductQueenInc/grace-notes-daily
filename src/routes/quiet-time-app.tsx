@@ -126,11 +126,11 @@ function QuietTimeApp() {
               { step: "3", title: "Write a Heart Note", desc: "A few sentences of honest reflection. Pour out what is actually on your heart. GraceNotes Daily listens." },
             ].map(({ step, title, desc }) => (
               <div key={step} className="glass-parchment rounded-2xl p-6">
-                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center mb-4">
-                  <span className="font-display text-gold text-lg">{step}</span>
+                <div className="w-10 h-10 rounded-full bg-gold/30 flex items-center justify-center mb-4">
+                  <span className="font-display text-amber-800 font-bold text-lg">{step}</span>
                 </div>
-                <h3 className="font-display text-white text-xl mb-2">{title}</h3>
-                <p className="text-white/70 text-sm leading-relaxed">{desc}</p>
+                <h3 className="font-display text-grace text-xl mb-2">{title}</h3>
+                <p className="text-foreground/75 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>

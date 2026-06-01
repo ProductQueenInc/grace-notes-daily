@@ -121,14 +121,14 @@ function FaithHabitTracker() {
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { badge: "Copper", colour: "bg-amber-700/30 text-amber-300", title: "1 of 3 complete", desc: "You showed up. That matters more than you know." },
-              { badge: "Silver", colour: "bg-slate-400/20 text-slate-200", title: "2 of 3 complete", desc: "You're building something real. Keep going." },
-              { badge: "Gold", colour: "bg-gold/20 text-gold", title: "All 3 complete", desc: "A gold day. The streak grows. God sees every one." },
+              { badge: "Copper", colour: "bg-amber-700/20 text-amber-800", title: "1 of 3 complete", desc: "You showed up. That matters more than you know." },
+              { badge: "Silver", colour: "bg-slate-400/20 text-slate-700", title: "2 of 3 complete", desc: "You're building something real. Keep going." },
+              { badge: "Gold", colour: "bg-gold/20 text-amber-800", title: "All 3 complete", desc: "A gold day. The streak grows. God sees every one." },
             ].map(({ badge, colour, title, desc }) => (
               <div key={badge} className="glass-parchment rounded-2xl p-6 text-center">
                 <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 ${colour}`}>{badge}</div>
-                <h3 className="font-display text-white text-xl mb-2">{title}</h3>
-                <p className="text-white/70 text-sm leading-relaxed">{desc}</p>
+                <h3 className="font-display text-grace text-xl mb-2">{title}</h3>
+                <p className="text-foreground/75 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>

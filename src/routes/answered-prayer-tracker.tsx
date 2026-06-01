@@ -123,12 +123,12 @@ function AnsweredPrayerTracker() {
               { step: "3", title: "Mark it answered", desc: "When a prayer is answered, tap to mark it. Write a short thanksgiving note. Watch your record of God's faithfulness grow." },
             ].map(({ step, title, desc }) => (
               <div key={step} className="glass-parchment rounded-2xl p-6 flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
-                  <span className="font-display text-gold text-xl">{step}</span>
+                <div className="w-12 h-12 rounded-full bg-gold/30 flex items-center justify-center shrink-0">
+                  <span className="font-display text-amber-800 font-bold text-xl">{step}</span>
                 </div>
                 <div>
-                  <h3 className="font-display text-white text-xl mb-2">{title}</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">{desc}</p>
+                  <h3 className="font-display text-grace text-xl mb-2">{title}</h3>
+                  <p className="text-foreground/75 text-sm leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
