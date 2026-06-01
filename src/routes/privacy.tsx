@@ -28,7 +28,7 @@ function P({ children }: { children: React.ReactNode }) {
 }
 
 function Privacy() {
-  const updated = "May 25, 2026";
+  const updated = "June 1, 2026";
   return (
     <>
       <NatureBackground />
@@ -77,6 +77,9 @@ function Privacy() {
             <P>We collect data in three ways: (1) directly from you when you create an account, complete onboarding, or use the app; (2) automatically through your use of the service via cookies, server logs, and similar technologies; and (3) from third-party authentication providers (currently Google) when you choose to sign in using those services.</P>
             <P>
               We use session cookies necessary for authentication and service delivery. We do not use advertising cookies or third-party tracking cookies.
+            </P>
+            <P>
+              <strong>Preference cookie ("gn_has_account"):</strong> When you successfully sign in or create an account on a device, we set a small non-essential cookie on that device that simply records "this device has signed in before." It contains no personal information and no identifier. We use it only to decide whether the sign-in page should greet you as a returning user ("Welcome back") or a new visitor ("Begin your journey"). It expires after one year. Clearing it from your browser has no effect on your account or your data — you can sign in exactly the same way. The cookie is set by GraceNotes Daily directly and is not shared with any third party.
             </P>
           </Section>
 
