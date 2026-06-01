@@ -34,8 +34,32 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // ── AUTH: validate JWT and derive user_id from claims ──────────────────
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
+  const token = authHeader?.replace(/^Bearer\s+/i, '')
+  if (!token) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const anonKey = Deno.env.get('SUPABASE_PUBLISHABLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY')!
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: userData, error: userErr } = await authClient.auth.getUser(token)
+  if (userErr || !userData?.user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+  const authenticatedUserId = userData.user.id
+
   let body: {
-    user_id: string
     session_id: string
     message: string
     conversation_history: { role: string; content: string }[]
@@ -57,7 +81,6 @@ Deno.serve(async (req) => {
   }
 
   const {
-    user_id,
     session_id,
     message,
     conversation_history,
@@ -68,6 +91,9 @@ Deno.serve(async (req) => {
     verse_reference,
     mode,
   } = body
+
+  // user_id always comes from the validated JWT — never trust the body.
+  const user_id = authenticatedUserId
 
   // ── TIER 3: CRISIS CHECK ──────────────────────────────────────────────────
   if (isCrisisMessage(message)) {
