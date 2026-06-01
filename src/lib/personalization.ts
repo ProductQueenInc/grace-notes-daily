@@ -6,7 +6,7 @@ export type Voice = "gentle" | "grounding";
 export function currentRhythmWindow(date = new Date()): Rhythm {
   const h = date.getHours();
   if (h < 12) return "morning";
-  if (h < 17) return "midday";
+  if (h < 16) return "midday";
   if (h < 21) return "evening";
   return "night";
 }

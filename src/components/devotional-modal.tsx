@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { X, BookOpen, Heart, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
@@ -28,7 +29,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
     gcTime: 1000 * 60 * 60 * 24,
   });
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   function receive() {
     softGoldConfetti();
@@ -37,7 +38,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
     setTimeout(onClose, 700);
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-md p-0 md:p-6">
       <ReadingSurface className="w-full md:max-w-2xl max-h-[92vh] overflow-y-auto md:rounded-3xl rounded-t-3xl shadow-2xl fade-up">
         <div className="sticky top-0 z-10 bg-gradient-to-b from-[color:var(--surface-parchment-from)] to-transparent px-6 py-4 flex items-center justify-between">
@@ -104,6 +105,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
           </div>
         )}
       </ReadingSurface>
-    </div>
+    </div>,
+    document.body
   );
 }

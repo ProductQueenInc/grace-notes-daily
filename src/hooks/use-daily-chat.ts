@@ -112,9 +112,22 @@ export function useDailyChat(graceContext?: DailyGraceNote | null) {
   }, []);
 
   const send = useCallback(
-    async (text: string, opts?: { mode?: "conversational" | "closing" }) => {
+    async (text: string, opts?: { mode?: "conversational" | "closing" }): Promise<boolean> => {
       const t = text.trim();
-      if (!t || !userId || !sessionId || closeReason || pending) return;
+      if (!t || !userId || closeReason || pending) return false;
+
+      if (!sessionId) {
+        const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: t, ts: Date.now() };
+        const errMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: "Something went quiet on our end. Please refresh the page and try again.",
+          ts: Date.now() + 1,
+        };
+        setMessages((prev) => [...prev, userMsg, errMsg]);
+        return false;
+      }
+
       setPending(true);
 
       // 1. Persist + show user message
@@ -225,6 +238,7 @@ export function useDailyChat(graceContext?: DailyGraceNote | null) {
       });
       streamingIdRef.current = null;
       setPending(false);
+      return true;
     },
     [userId, sessionId, messages, closeReason, pending, graceContext],
   );

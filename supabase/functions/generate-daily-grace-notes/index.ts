@@ -42,9 +42,22 @@ Deno.serve(async (req) => {
     })
   }
 
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const dateStr = tomorrow.toISOString().split('T')[0]
+  // Accept optional date override in request body e.g. {"date":"2026-06-01"}
+  let dateStr: string
+  try {
+    const body = await req.json().catch(() => ({}))
+    if (body?.date && /^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+      dateStr = body.date
+    } else {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      dateStr = tomorrow.toISOString().split('T')[0]
+    }
+  } catch {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    dateStr = tomorrow.toISOString().split('T')[0]
+  }
 
   // Fetch all onboarded users
   const { data: users, error: usersError } = await supabase

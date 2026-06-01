@@ -9,20 +9,80 @@ import {
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
+const homepageSchema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "GraceNotes Daily",
+    url: "https://www.gracenotesdaily.com",
+    description: "A soft daily space for Christian prayer journaling, devotionals, and spiritual growth.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://www.gracenotesdaily.com/?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "GraceNotes Daily",
+    url: "https://www.gracenotesdaily.com",
+    logo: "https://www.gracenotesdaily.com/icons/icon-512.png",
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "support@gracenotesdaily.com",
+      contactType: "customer support",
+    },
+    sameAs: ["https://www.gracenotesdaily.com"],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "GraceNotes Daily",
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "Web, iOS, Android",
+    description: "A Christian devotional companion with daily grace notes, prayer journaling, heart notes, and habit tracking. Personalised by AI to meet you in your current season of faith.",
+    url: "https://www.gracenotesdaily.com",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    featureList: [
+      "Daily Grace Notes",
+      "AI-personalised devotionals",
+      "Prayer journal with answered prayer tracking",
+      "Heart Notes journaling",
+      "Daily Rhythms habit tracker",
+      "Faith journey archive",
+    ],
+  },
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GraceNotes Daily - A soft daily space for spiritual growth" },
+      { title: "GraceNotes Daily | Christian Devotional, Prayer Journal & Daily Grace Notes" },
       {
         name: "description",
         content:
-          "GraceNotes Daily is your gentle daily companion for prayer, devotion, journaling, and reflection. You are seen. You are held. You are welcome here.",
+          "GraceNotes Daily is your gentle daily companion for prayer, devotion, journaling, and reflection. AI-personalised grace notes, prayer tracking, and devotionals — all in one quiet, beautiful space.",
       },
-      { property: "og:title", content: "GraceNotes Daily" },
+      { property: "og:title", content: "GraceNotes Daily | Christian Devotional & Prayer Journal" },
       {
         property: "og:description",
-        content: "A soft, held space for your spiritual journey - daily grace notes, prayer, devotionals, and reflection.",
+        content: "A soft, held space for your spiritual journey — daily grace notes, prayer journaling, devotionals, and reflection.",
       },
+      { property: "og:url", content: "https://www.gracenotesdaily.com" },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://www.gracenotesdaily.com/og/homepage.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "GraceNotes Daily | Christian Devotional & Prayer Journal" },
+      { name: "twitter:description", content: "A soft daily space for Christian prayer, devotionals, and journaling. AI-personalised grace notes that meet you exactly where you are." },
+      { name: "twitter:image", content: "https://www.gracenotesdaily.com/og/homepage.png" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.gracenotesdaily.com/" },
     ],
   }),
   component: Landing,
@@ -94,6 +154,10 @@ function Landing() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
+      />
       <NatureBackground />
       <Header />
 

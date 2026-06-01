@@ -9,9 +9,17 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "FAQ - GraceNotes Daily" },
-      { name: "description", content: "Frequently asked questions about GraceNotes Daily - your soft, daily companion for faith." },
-      { property: "og:title", content: "GraceNotes Daily - FAQ" },
+      { title: "FAQ | GraceNotes Daily — Christian Devotional & Prayer Journal App" },
+      { name: "description", content: "Questions about GraceNotes Daily answered — what it is, who it's for, how it differs from Bible apps, and how your data stays private." },
+      { property: "og:title", content: "GraceNotes Daily — Frequently Asked Questions" },
+      { property: "og:description", content: "Everything you need to know about GraceNotes Daily — your soft daily companion for Christian prayer, devotionals, and journaling." },
+      { property: "og:url", content: "https://www.gracenotesdaily.com/faq" },
+      { property: "og:image", content: "https://www.gracenotesdaily.com/og/homepage.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://www.gracenotesdaily.com/og/homepage.png" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.gracenotesdaily.com/faq" },
     ],
   }),
   component: FAQ,
@@ -32,6 +40,20 @@ function FAQ() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          }),
+        }}
+      />
       <NatureBackground />
       <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
         <Link to="/" className="flex items-center gap-2">
@@ -42,7 +64,7 @@ function FAQ() {
         {isLoggedIn ? (
           <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Open app</Link>
         ) : (
-          <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
+          <Link to="/login" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
         )}
       </header>
       <section className="px-6 py-16">

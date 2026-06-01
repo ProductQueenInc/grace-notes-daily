@@ -309,8 +309,8 @@ function DailyMessageChat({
     if (!text.trim() || pending || closeReason) return;
     const t = text;
     setText("");
-    onSent();
-    await send(t);
+    const ok = await send(t);
+    if (ok) onSent();
   }
 
   return (
