@@ -10,9 +10,11 @@ export const SUPABASE_PROJECT_ANON_KEY = SUPABASE_ANON_KEY;
 
 export const supabaseConfigured = true;
 
-// PKCE is required for Magic Link's ?code= callback exchange.
+// Implicit flow sends #access_token in the URL hash — no code verifier stored
+// in localStorage, so magic links work when opened from any email client or
+// browser (including Gmail's in-app browser on mobile).
 export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
 });
 
 // --- Returning-device hint cookie ---
