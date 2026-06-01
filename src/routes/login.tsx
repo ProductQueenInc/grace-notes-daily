@@ -148,12 +148,12 @@ function Auth() {
             <span className="font-display text-xl">GraceNotes Daily</span>
           </Link>
           <h1 className="font-display text-3xl text-center text-grace mb-1">
-            {returning ? "Welcome back" : "Begin your journey"}
+            {returning ? "Welcome back." : "Welcome in."}
           </h1>
           <p className="text-center text-sm text-foreground/70 mb-6">
             {returning
-              ? "Enter your email — we'll send you a one-tap sign-in link."
-              : "Enter your email and we'll send you a one-tap sign-in link. No password needed."}
+              ? "He's been waiting for you."
+              : "You are seen. You are held. You are welcome here."}
           </p>
 
           <form onSubmit={onContinue} className="space-y-3">

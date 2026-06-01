@@ -60,6 +60,9 @@ function Settings() {
   const [seasons, setSeasons] = useState<string[]>([]);
   const [translation, setTranslation] = useState<string>("NIV");
   const [saving, setSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -117,6 +120,20 @@ function Settings() {
     toast.success("Saved with care. Today's note will refresh.");
     reloadProfile();
     setSaving(false);
+  }
+
+  async function updateEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newEmail.trim()) return;
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser(
+      { email: newEmail },
+      { emailRedirectTo: `https://gracenotesdaily.com/auth/callback` }
+    );
+    setEmailSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setEmailSent(true);
+    setNewEmail("");
   }
 
   async function signOut() {
@@ -242,6 +259,36 @@ function Settings() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Account / Email */}
+        <div className="glass rounded-3xl p-5 sm:p-6 mb-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground/40 px-1 pb-3">Account</p>
+          <p className="text-sm text-foreground/70 mb-1">
+            Signed in as <strong>{user?.email}</strong>
+          </p>
+          {emailSent ? (
+            <p className="text-sm text-grace mt-3">
+              Confirmation sent. Check both your old and new email inboxes to complete the change.
+            </p>
+          ) : (
+            <form onSubmit={updateEmail} className="mt-3 space-y-2">
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="New email address"
+                className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace"
+              />
+              <button
+                type="submit"
+                disabled={emailSaving || !newEmail.trim()}
+                className="w-full py-3 rounded-full border border-grace text-grace font-semibold hover:bg-grace/5 transition disabled:opacity-50"
+              >
+                {emailSaving ? "Sending confirmation…" : "Update email"}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Info & Legal */}

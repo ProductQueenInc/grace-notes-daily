@@ -38,6 +38,19 @@ function AuthCallback() {
     }
 
     async function finishAuth() {
+      // 0. token_hash flow: link opened in a different browser than the one
+      //    that requested it (e.g. Gmail in-app browser). No PKCE verifier needed.
+      const token_hash = url.searchParams.get("token_hash");
+      const type = url.searchParams.get("type") as "signup" | "magiclink" | "recovery" | "email" | null;
+      if (token_hash && type) {
+        const { error } = await supabase.auth.verifyOtp({ token_hash, type });
+        if (cancelled) return;
+        if (error) { setErrorMsg(error.message); return; }
+        markDeviceHasAccount();
+        navigate({ to: "/home", replace: true });
+        return;
+      }
+
       // 1. PKCE flow: ?code=... → exchange for a session.
       const code = url.searchParams.get("code");
       if (code) {
