@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as QuietTimeAppRouteImport } from './routes/quiet-time-app'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrayersRouteImport } from './routes/prayers'
 import { Route as PrayerJournalingRouteImport } from './routes/prayer-journaling'
@@ -22,11 +23,16 @@ import { Route as ListenRouteImport } from './routes/listen'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HeartNotesRouteImport } from './routes/heart-notes'
+import { Route as FreePrayerToolkitRouteImport } from './routes/free-prayer-toolkit'
+import { Route as FastingGuideRouteImport } from './routes/fasting-guide'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FaithHabitTrackerRouteImport } from './routes/faith-habit-tracker'
 import { Route as DailyDevotionalRouteImport } from './routes/daily-devotional'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ChristianJournalingRouteImport } from './routes/christian-journaling'
+import { Route as AnsweredPrayerTrackerRouteImport } from './routes/answered-prayer-tracker'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as R7DayPrayerJournalRouteImport } from './routes/7-day-prayer-journal'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -51,6 +57,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuietTimeAppRoute = QuietTimeAppRouteImport.update({
+  id: '/quiet-time-app',
+  path: '/quiet-time-app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -98,9 +109,24 @@ const HeartNotesRoute = HeartNotesRouteImport.update({
   path: '/heart-notes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FreePrayerToolkitRoute = FreePrayerToolkitRouteImport.update({
+  id: '/free-prayer-toolkit',
+  path: '/free-prayer-toolkit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FastingGuideRoute = FastingGuideRouteImport.update({
+  id: '/fasting-guide',
+  path: '/fasting-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaithHabitTrackerRoute = FaithHabitTrackerRouteImport.update({
+  id: '/faith-habit-tracker',
+  path: '/faith-habit-tracker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DailyDevotionalRoute = DailyDevotionalRouteImport.update({
@@ -118,9 +144,19 @@ const ChristianJournalingRoute = ChristianJournalingRouteImport.update({
   path: '/christian-journaling',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnsweredPrayerTrackerRoute = AnsweredPrayerTrackerRouteImport.update({
+  id: '/answered-prayer-tracker',
+  path: '/answered-prayer-tracker',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R7DayPrayerJournalRoute = R7DayPrayerJournalRouteImport.update({
+  id: '/7-day-prayer-journal',
+  path: '/7-day-prayer-journal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -152,11 +188,16 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/7-day-prayer-journal': typeof R7DayPrayerJournalRoute
   '/about': typeof AboutRoute
+  '/answered-prayer-tracker': typeof AnsweredPrayerTrackerRoute
   '/christian-journaling': typeof ChristianJournalingRoute
   '/contact': typeof ContactRoute
   '/daily-devotional': typeof DailyDevotionalRoute
+  '/faith-habit-tracker': typeof FaithHabitTrackerRoute
   '/faq': typeof FaqRoute
+  '/fasting-guide': typeof FastingGuideRoute
+  '/free-prayer-toolkit': typeof FreePrayerToolkitRoute
   '/heart-notes': typeof HeartNotesRoute
   '/home': typeof HomeRoute
   '/journey': typeof JourneyRoute
@@ -166,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/prayer-journaling': typeof PrayerJournalingRoute
   '/prayers': typeof PrayersRoute
   '/privacy': typeof PrivacyRoute
+  '/quiet-time-app': typeof QuietTimeAppRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
@@ -177,11 +219,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/7-day-prayer-journal': typeof R7DayPrayerJournalRoute
   '/about': typeof AboutRoute
+  '/answered-prayer-tracker': typeof AnsweredPrayerTrackerRoute
   '/christian-journaling': typeof ChristianJournalingRoute
   '/contact': typeof ContactRoute
   '/daily-devotional': typeof DailyDevotionalRoute
+  '/faith-habit-tracker': typeof FaithHabitTrackerRoute
   '/faq': typeof FaqRoute
+  '/fasting-guide': typeof FastingGuideRoute
+  '/free-prayer-toolkit': typeof FreePrayerToolkitRoute
   '/heart-notes': typeof HeartNotesRoute
   '/home': typeof HomeRoute
   '/journey': typeof JourneyRoute
@@ -191,6 +238,7 @@ export interface FileRoutesByTo {
   '/prayer-journaling': typeof PrayerJournalingRoute
   '/prayers': typeof PrayersRoute
   '/privacy': typeof PrivacyRoute
+  '/quiet-time-app': typeof QuietTimeAppRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
@@ -203,11 +251,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/7-day-prayer-journal': typeof R7DayPrayerJournalRoute
   '/about': typeof AboutRoute
+  '/answered-prayer-tracker': typeof AnsweredPrayerTrackerRoute
   '/christian-journaling': typeof ChristianJournalingRoute
   '/contact': typeof ContactRoute
   '/daily-devotional': typeof DailyDevotionalRoute
+  '/faith-habit-tracker': typeof FaithHabitTrackerRoute
   '/faq': typeof FaqRoute
+  '/fasting-guide': typeof FastingGuideRoute
+  '/free-prayer-toolkit': typeof FreePrayerToolkitRoute
   '/heart-notes': typeof HeartNotesRoute
   '/home': typeof HomeRoute
   '/journey': typeof JourneyRoute
@@ -217,6 +270,7 @@ export interface FileRoutesById {
   '/prayer-journaling': typeof PrayerJournalingRoute
   '/prayers': typeof PrayersRoute
   '/privacy': typeof PrivacyRoute
+  '/quiet-time-app': typeof QuietTimeAppRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
@@ -230,11 +284,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/7-day-prayer-journal'
     | '/about'
+    | '/answered-prayer-tracker'
     | '/christian-journaling'
     | '/contact'
     | '/daily-devotional'
+    | '/faith-habit-tracker'
     | '/faq'
+    | '/fasting-guide'
+    | '/free-prayer-toolkit'
     | '/heart-notes'
     | '/home'
     | '/journey'
@@ -244,6 +303,7 @@ export interface FileRouteTypes {
     | '/prayer-journaling'
     | '/prayers'
     | '/privacy'
+    | '/quiet-time-app'
     | '/reset-password'
     | '/settings'
     | '/signup'
@@ -255,11 +315,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/7-day-prayer-journal'
     | '/about'
+    | '/answered-prayer-tracker'
     | '/christian-journaling'
     | '/contact'
     | '/daily-devotional'
+    | '/faith-habit-tracker'
     | '/faq'
+    | '/fasting-guide'
+    | '/free-prayer-toolkit'
     | '/heart-notes'
     | '/home'
     | '/journey'
@@ -269,6 +334,7 @@ export interface FileRouteTypes {
     | '/prayer-journaling'
     | '/prayers'
     | '/privacy'
+    | '/quiet-time-app'
     | '/reset-password'
     | '/settings'
     | '/signup'
@@ -280,11 +346,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/7-day-prayer-journal'
     | '/about'
+    | '/answered-prayer-tracker'
     | '/christian-journaling'
     | '/contact'
     | '/daily-devotional'
+    | '/faith-habit-tracker'
     | '/faq'
+    | '/fasting-guide'
+    | '/free-prayer-toolkit'
     | '/heart-notes'
     | '/home'
     | '/journey'
@@ -294,6 +365,7 @@ export interface FileRouteTypes {
     | '/prayer-journaling'
     | '/prayers'
     | '/privacy'
+    | '/quiet-time-app'
     | '/reset-password'
     | '/settings'
     | '/signup'
@@ -306,11 +378,16 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R7DayPrayerJournalRoute: typeof R7DayPrayerJournalRoute
   AboutRoute: typeof AboutRoute
+  AnsweredPrayerTrackerRoute: typeof AnsweredPrayerTrackerRoute
   ChristianJournalingRoute: typeof ChristianJournalingRoute
   ContactRoute: typeof ContactRoute
   DailyDevotionalRoute: typeof DailyDevotionalRoute
+  FaithHabitTrackerRoute: typeof FaithHabitTrackerRoute
   FaqRoute: typeof FaqRoute
+  FastingGuideRoute: typeof FastingGuideRoute
+  FreePrayerToolkitRoute: typeof FreePrayerToolkitRoute
   HeartNotesRoute: typeof HeartNotesRoute
   HomeRoute: typeof HomeRoute
   JourneyRoute: typeof JourneyRoute
@@ -320,6 +397,7 @@ export interface RootRouteChildren {
   PrayerJournalingRoute: typeof PrayerJournalingRoute
   PrayersRoute: typeof PrayersRoute
   PrivacyRoute: typeof PrivacyRoute
+  QuietTimeAppRoute: typeof QuietTimeAppRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
@@ -358,6 +436,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiet-time-app': {
+      id: '/quiet-time-app'
+      path: '/quiet-time-app'
+      fullPath: '/quiet-time-app'
+      preLoaderRoute: typeof QuietTimeAppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -423,11 +508,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HeartNotesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/free-prayer-toolkit': {
+      id: '/free-prayer-toolkit'
+      path: '/free-prayer-toolkit'
+      fullPath: '/free-prayer-toolkit'
+      preLoaderRoute: typeof FreePrayerToolkitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fasting-guide': {
+      id: '/fasting-guide'
+      path: '/fasting-guide'
+      fullPath: '/fasting-guide'
+      preLoaderRoute: typeof FastingGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faith-habit-tracker': {
+      id: '/faith-habit-tracker'
+      path: '/faith-habit-tracker'
+      fullPath: '/faith-habit-tracker'
+      preLoaderRoute: typeof FaithHabitTrackerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/daily-devotional': {
@@ -451,11 +557,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChristianJournalingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/answered-prayer-tracker': {
+      id: '/answered-prayer-tracker'
+      path: '/answered-prayer-tracker'
+      fullPath: '/answered-prayer-tracker'
+      preLoaderRoute: typeof AnsweredPrayerTrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/7-day-prayer-journal': {
+      id: '/7-day-prayer-journal'
+      path: '/7-day-prayer-journal'
+      fullPath: '/7-day-prayer-journal'
+      preLoaderRoute: typeof R7DayPrayerJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -498,11 +618,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R7DayPrayerJournalRoute: R7DayPrayerJournalRoute,
   AboutRoute: AboutRoute,
+  AnsweredPrayerTrackerRoute: AnsweredPrayerTrackerRoute,
   ChristianJournalingRoute: ChristianJournalingRoute,
   ContactRoute: ContactRoute,
   DailyDevotionalRoute: DailyDevotionalRoute,
+  FaithHabitTrackerRoute: FaithHabitTrackerRoute,
   FaqRoute: FaqRoute,
+  FastingGuideRoute: FastingGuideRoute,
+  FreePrayerToolkitRoute: FreePrayerToolkitRoute,
   HeartNotesRoute: HeartNotesRoute,
   HomeRoute: HomeRoute,
   JourneyRoute: JourneyRoute,
@@ -512,6 +637,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrayerJournalingRoute: PrayerJournalingRoute,
   PrayersRoute: PrayersRoute,
   PrivacyRoute: PrivacyRoute,
+  QuietTimeAppRoute: QuietTimeAppRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
@@ -524,3 +650,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
