@@ -69,16 +69,22 @@ export function useAuth() {
 
 
   async function loadProfile(uid: string) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, name, faith_phase, onboarded, rhythms, seasons, voice, timezone, translation")
-      .eq("id", uid)
-      .maybeSingle();
+    const cols = "id, name, faith_phase, onboarded, rhythms, seasons, voice, timezone, translation";
+    let { data } = await supabase.from("profiles").select(cols).eq("id", uid).maybeSingle();
+
+    // First OAuth signup race: the handle_new_user trigger may not have
+    // inserted the row yet. Give it one short retry before we fall back
+    // to a client-side insert (which would otherwise create a blank profile
+    // and trap the user in onboarding even if they're an existing user).
+    if (!data) {
+      await new Promise((r) => setTimeout(r, 500));
+      const retry = await supabase.from("profiles").select(cols).eq("id", uid).maybeSingle();
+      data = retry.data;
+    }
 
     if (data) {
       setProfile(data as Profile);
     } else {
-      // Profile row not created yet (trigger may not have fired) - create it now
       await supabase.from("profiles").insert({ id: uid }).select().maybeSingle();
       setProfile({ id: uid, name: null, faith_phase: null, onboarded: false });
     }
