@@ -58,6 +58,23 @@ function Auth() {
     return error;
   }
 
+  async function signInWithProvider(provider: "google" | "apple") {
+    if (!supabaseConfigured) {
+      toast.error("Sign-in is temporarily unavailable. Please try again shortly.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: REDIRECT_URL },
+    });
+    if (error) {
+      setLoading(false);
+      toast.error(authErrorMessage(error));
+    }
+    // On success the browser is already redirecting — leave loading=true.
+  }
+
   async function onContinue(e: React.FormEvent) {
     e.preventDefault();
     if (!supabaseConfigured) {
