@@ -1,154 +1,94 @@
 
-# Plan — GraceNotes Daily Native Apps (iOS + Android)
+# Phase 1 — Auth hardening (own Supabase, BYOK Google + Apple)
 
-Wrap the existing web app as native iOS + Android apps via **Capacitor**. One codebase, two stores. Your choices: **Physical-only Shopify shop**, **Magic link + Apple + Google sign-in (BYOK Google)**, **Hybrid audio**, **iPad-optimized layouts**.
+## Why the past breakage happened (and how we prevent it)
 
----
+Last time, OAuth kept "falling back to Lovable-managed keys" and users got bounced back to `/login` or stuck in onboarding even after signing in. Three root causes, each addressed below:
+
+1. **Two Supabase projects in play.** Lovable Cloud is connected to `jtjizrchmmmvphkndmhs`, but the app reads/writes against `tkoebogweygaabndrsvl` (hardcoded in `src/lib/supabase.ts`). Any OAuth wired through Lovable-managed flow authenticates against the wrong project → token never appears in the app's `supabase` client → `useAuth` sees no user → redirect loop.
+   - **Fix:** Configure Google + Apple **directly on `tkoebogweygaabndrsvl`** in the Supabase dashboard. Call `supabase.auth.signInWithOAuth({ provider })` on the existing `supabase` import — same client that already powers magic links. Do NOT use `lovable.auth.signInWithOAuth` (it targets the wrong project).
+
+2. **Hardcoded redirect URL didn't match the runtime origin.** Magic link uses `https://gracenotesdaily.com/auth/callback` (good). But OAuth callbacks must also be allow-listed at the Supabase Auth level AND in Google/Apple consoles. A mismatch → Supabase rejects the callback → user lands on `/login` with no session.
+   - **Fix:** Register exactly these redirect URLs in Supabase Auth → URL Configuration AND in Google Cloud Console authorized redirect URIs:
+     - `https://gracenotesdaily.com/auth/callback`
+     - `https://www.gracenotesdaily.com/auth/callback`
+     - `https://gracenotesdaily.lovable.app/auth/callback`
+     - (later) `com.gracenotes.daily://auth/callback` for native
+   - Use `redirectTo: "https://gracenotesdaily.com/auth/callback"` (hardcoded canonical, same as magic link) so OAuth never leaks a preview host into the email/consent screen.
+
+3. **Onboarding loop after sign-in.** `RequireAuth` redirects to `/onboarding` when `profile.onboarded === false` OR `profile.name` is empty. The `handle_new_user` trigger inserts a blank profile row; if onboarding never completed the save, the user is permanently bounced. Compounded last time because the session sometimes attached to the wrong project's profile (which didn't exist), so `profile` stayed null forever.
+   - **Fix:** Once OAuth is on the correct project, the trigger fires correctly and the existing `onboarded=true` row is found. Also add a one-time diagnostic in `useAuth.loadProfile` that surfaces "profile missing" via toast (instead of silent redirect loop) — so if it ever happens again, it's visible in 1 click instead of 30 minutes of debugging.
+
+## Exact steps you do (Supabase + Google + Apple)
+
+### A. Google Cloud Console (~15 min)
+1. https://console.cloud.google.com → create/select project "GraceNotes Daily".
+2. APIs & Services → **OAuth consent screen**:
+   - User type: External
+   - App name: `GraceNotes Daily`
+   - Support email + developer contact: your email
+   - App logo: upload the dove medallion (PNG, square, ≥120px)
+   - Authorized domains: `gracenotesdaily.com`, `lovable.app`, `supabase.co`
+   - Scopes: `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`
+   - Publish (or keep in Testing + add your email as a test user for now)
+3. Credentials → **Create OAuth client ID**:
+   - Type: Web application
+   - Name: `GraceNotes Daily — Web`
+   - Authorized JavaScript origins:
+     - `https://gracenotesdaily.com`
+     - `https://www.gracenotesdaily.com`
+     - `https://gracenotesdaily.lovable.app`
+   - Authorized redirect URIs (this is the Supabase callback, NOT our app callback):
+     - `https://tkoebogweygaabndrsvl.supabase.co/auth/v1/callback`
+4. Copy **Client ID** and **Client Secret** — you'll paste into Supabase next.
+
+### B. Supabase dashboard for `tkoebogweygaabndrsvl` (~5 min)
+1. Auth → Providers → **Google** → enable → paste Client ID + Secret → save.
+2. Auth → URL Configuration:
+   - **Site URL**: `https://gracenotesdaily.com`
+   - **Redirect URLs** (add each):
+     - `https://gracenotesdaily.com/auth/callback`
+     - `https://www.gracenotesdaily.com/auth/callback`
+     - `https://gracenotesdaily.lovable.app/auth/callback`
+     - `https://id-preview--0a9503c6-b43a-4fb2-9559-d65856c5856c.lovable.app/auth/callback` (for testing in preview)
+3. Auth → Providers → **Apple** → enable → paste Apple Services ID + JWT Client Secret (see C).
+
+### C. Apple Developer (~30 min, requires $99/yr enrollment)
+1. Apple Developer → Certificates, Identifiers & Profiles → **Identifiers** → "+" → App IDs → App → Bundle ID `com.gracenotes.daily`, capabilities: Sign In with Apple.
+2. Identifiers → "+" → **Services IDs** → ID `com.gracenotes.daily.web` → enable Sign In with Apple → Configure:
+   - Primary App ID: the App ID above
+   - Domains: `tkoebogweygaabndrsvl.supabase.co`
+   - Return URLs: `https://tkoebogweygaabndrsvl.supabase.co/auth/v1/callback`
+3. Keys → "+" → name "GraceNotes Apple Auth" → enable Sign In with Apple → Configure (primary App ID) → download the `.p8` file (one-time download). Note the Key ID.
+4. Note your Team ID (top right of Apple Developer).
+5. Generate Apple JWT client secret — Supabase dashboard has a built-in generator under Auth → Providers → Apple → "Generate Secret". Enter Team ID, Key ID, Services ID, paste `.p8` contents → it outputs a JWT valid 6 months. Paste into Client Secret field.
+6. Calendar reminder: regenerate this JWT in 5 months.
+
+## What I'll do in code (Phase 1)
+
+1. **`src/routes/login.tsx`** — add two buttons above the email input:
+   - "Continue with Apple" (black pill, Apple logo) — calls `supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: REDIRECT_URL } })`
+   - "Continue with Google" (white pill with border, Google G logo) — same pattern, `provider: 'google'`
+   - "or" divider, then existing magic-link form unchanged
+   - Both buttons surface errors via `toast.error(authErrorMessage(error))`
+
+2. **`src/routes/auth/callback.tsx`** — already handles `?code=`, `?token_hash=`, hash tokens, and OAuth errors. One small addition: when `?error=access_denied` (user cancelled Apple/Google), show a friendlier "No problem — you can try again or use email" message instead of the raw error string.
+
+3. **`src/hooks/use-auth.ts`** — add a defensive check in `loadProfile`: if the user is signed in but the trigger hasn't inserted the profile row yet (race condition possible on first OAuth signup), retry once after 500ms before falling back to client-side insert. Prevents the "logged in but `profile=null` forever" loop.
+
+4. **NO changes to** `src/lib/supabase.ts`, `RequireAuth`, sidebar, onboarding flow, or any visual styling.
+
+## What I need from you before I start coding
+
+1. ✅ Confirm: BYOK Google + Apple, configured directly on `tkoebogweygaabndrsvl` (not Lovable-managed). — *yes, per your last answer*
+2. **Apple Developer enrollment status** — already enrolled, in progress, or not started? (Determines whether Phase 1 ships with Google only and Apple added 24–48h later.)
+3. **Permission to add the preview URL** (`https://id-preview--0a9503c6...lovable.app/auth/callback`) to Supabase redirect allow-list for testing? You can remove it after launch. Without it, OAuth can only be tested on the live domain.
+4. **Once Google credentials are created**, paste Client ID + Secret into Supabase yourself (I can't access your Supabase dashboard) — then tell me "done" and I'll ship the login buttons.
 
 ## Responsiveness guarantee
 
-Nothing on the current web app gets *worse*. Changes are additive:
-- iPad (768–1024px) gains two-column layouts on Journey, Heart Notes, Prayers + wider Home hero. iPhone + desktop untouched.
-- Login screen gains Apple + Google buttons (~80px taller, well within safe area).
-- New `/shop/*` routes don't touch any existing route.
-- All locked files stay locked: `styles.css`, `app-shell.tsx`, `app-sidebar.tsx`, `nature-background.tsx`, `page-header.tsx`, `player-dock.tsx`, `icon.tsx`, shadcn `ui/*`, onboarding structure, habit auto-mark rule.
+Login page already responsive. The two new OAuth buttons go above the email field in the same `max-w-md` glass card — stacked vertically on mobile, same on desktop. No layout changes elsewhere in the app.
 
----
+## Out of scope for this phase
 
-## Phase 1 — Auth hardening (web first)
-
-Done before any native work. Validates the auth contract on `gracenotesdaily.com`.
-
-1. **You create Google OAuth credentials** in Google Cloud Console:
-   - OAuth consent screen → "GraceNotes Daily", logo, support email, privacy + terms URLs
-   - Authorized domains: `gracenotesdaily.com`, `lovable.app`
-   - OAuth Client ID (Web): authorized redirect URIs = Supabase callback URL (I'll surface the exact URL from your Lovable Cloud auth settings)
-   - Scopes: `openid`, `email`, `profile`
-2. Paste Client ID + Secret into Lovable Cloud → Authentication → Google provider.
-3. **Add Sign in with Apple** the same way (managed by Lovable Cloud, no Apple Developer Console work yet — that comes in Phase 7).
-4. Update `src/routes/login.tsx`: Apple button + Google button **above** the magic-link input (magic link stays — same single screen, no `/signup` route).
-5. Update `src/routes/auth/callback.tsx`: already handles PKCE, `token_hash`, and implicit flows. Add OAuth-specific error surfacing (the previous failure was silent — the new version will show "Sign-in didn't complete" with a Back button, same pattern as your existing error UI).
-6. **Capacitor deep-link callback prep**: callback already lives at `/auth/callback`; add `gracenotesdaily://auth/callback` URL scheme handling so the same route works in the native shell.
-
-### Why Google SSO will not fail this time
-
-| Past failure (callback/redirect) | Mitigation |
-|---|---|
-| Lovable Preview's fetch proxy intercepts `/auth/v1/token` POST → "Failed to fetch" | **We test only on `gracenotesdaily.com`**, never the preview iframe. Preview is documented to break Supabase OAuth and there's no app-level fix |
-| Redirect URI mismatch between preview + published origins | `redirect_uri: window.location.origin` (runtime, not hardcoded) + Google Console gets `gracenotesdaily.com` AND `*.lovable.app` listed |
-| Session not detected after redirect (race condition) | `lovable.auth.signInWithOAuth` sets the session via `setSession(tokens)` synchronously — no `getSession()` polling race |
-| Callback page shows blank on error | Updated callback already surfaces `error_description` from URL and shows recovery UI |
-| Native app: webview blocks Google sign-in | `@capacitor/browser` opens the **system browser** (Safari/Chrome), not an in-app webview |
-| Apple rejects iOS build because Google offered without Apple | Apple is added in the same phase — compliant by design |
-
-## Phase 2 — Shopify shop (physical goods)
-
-7. Enable Shopify integration. New dev store or connect existing — your call.
-8. Storefront routes `/shop`, `/shop/$handle`, `/shop/cart` using your `.glass-on-hue` + `.glass-parchment` surfaces.
-9. Cart → Shopify Storefront API. Checkout handed off to Shopify-hosted (no card data touches us).
-10. Sidebar + mobile tab bar gains "Shop" entry.
-11. ~2.9% + 30¢ per transaction. **No Apple cut** on physical goods.
-
-## Phase 3 — Hybrid audio
-
-12. Audio-only tracks → Supabase Storage (signed URLs). YouTube reserved for explicit video (preaching, music videos), clearly labelled.
-13. Replace HTML `<audio>` with native-aware plugin so audio continues when backgrounded.
-14. MediaSession metadata → lock screen, Control Center, CarPlay, Android Auto show title + art + play/pause/skip.
-15. iOS: enable "Audio, AirPlay, PiP" background mode. Android: foreground service + media session.
-
-## Phase 4 — Capacitor native shells
-
-16. `bunx cap add ios` + `bunx cap add android`.
-17. Install plugins: `app`, `push-notifications`, `splash-screen`, `status-bar`, `haptics`, `share`, `browser`, `preferences`.
-18. Deep links (`gracenotesdaily://`) + Universal Links / App Links for `gracenotesdaily.com/*`.
-19. Generate brand icon set (1024×1024 master → ~30 sizes) + splash (light + dark, brand greens). Also drops the missing `/public/icons/icon-192.png` and `icon-512.png` for PWA.
-
-## Phase 5 — iPad-optimized layouts + responsive QA
-
-20. Two-column layouts for Journey, Heart Notes, Prayers at ≥768px.
-21. Wider Home hero + multi-column Listen grid on iPad.
-22. Test matrix: iPhone SE / 15 / 16 Pro Max / iPad / iPad Pro 12.9" / Pixel 8 / Galaxy S24 / small Android / Galaxy Fold.
-23. Dynamic Type (iOS) + font-scale (Android) — long content must reflow.
-24. Dark mode pass (currently deferred per CLAUDE.md — strongly recommend before App Store submission).
-
-## Phase 6 — Push notifications
-
-25. Firebase project (free) + Apple Push key uploaded.
-26. New `device_tokens` Supabase table (`user_id`, `token`, `platform`, RLS scoped to owner).
-27. Permission prompt added to onboarding step 5 (in-context, never cold on launch — Apple guideline).
-28. TanStack server function `sendPush` (FCM HTTP v1) + scheduled triggers:
-    - Morning grace-note ready (respects `rhythms` + `timezone`)
-    - Evening streak-at-risk reminder if today's habits incomplete
-    - Optional: prayer milestones, weekly summary
-
-## Phase 7 — Store submission
-
-29. Apple Developer ($99/yr) + Google Play Developer ($25 one-time).
-30. App Store Connect: screenshots at 6.7" + 6.5" + 5.5" + iPad 12.9", description, keywords, privacy policy URL (exists), support URL, age rating, **Privacy Nutrition Label** (declare: email, journal entries, prayers, device ID — all "linked to user").
-31. Play Console: feature graphic 1024×500, screenshots, descriptions, content rating, Data Safety form.
-32. Submit. Apple 1–3 days review, Google a few hours to 2 days. Budget 1–2 iOS rejection cycles.
-
----
-
-## Google Play Console "About you" — your draft (copy/paste)
-
-> **Background**
-> I'm Cindy, founder of Product Queen (product-queen.com) and Habitue.Design. I've spent the last several years designing and launching consumer software products, with a focus on calm, considered user experiences in the wellness and habit-formation space. While this is my first app published on Google Play personally, I have hands-on experience across the full product lifecycle: discovery, UX, build, launch, support, and iteration on user feedback.
->
-> **About this app — GraceNotes Daily**
-> GraceNotes Daily (gracenotesdaily.com) is a soft, devotional companion for the Christian audience: a personalised daily reflection, prayer tracker, journal, and devotional reading, grounded in the user's faith phase and rhythms set during onboarding. The web app is live in production today and has been built with privacy, safety, and accessibility as first-class concerns — including a three-tier crisis-detection safety system, region-aware crisis-line lookup for 51 countries, and a strict imagery policy aligned to the audience.
->
-> **Android & Play Console experience**
-> This is my first time publishing on Google Play. I'm packaging the existing production web app as a native Android app using Capacitor, with native push notifications (FCM), background audio for the listen feature, and full support for phone and tablet form factors. I've reviewed the Play Console policies, Data Safety requirements, and target API level guidance, and I will use the internal testing track and pre-launch reports before any production release.
->
-> **How I'll operate as a publisher**
-> - Dedicated support email and in-app feedback channel already live
-> - Privacy Policy and Terms published at gracenotesdaily.com/privacy and /terms
-> - Minimal personal data collected (email, optional phone for backup sign-in, user-generated journal/prayer entries) — all linked to user, encrypted at rest, never sold or shared with advertisers
-> - I will respond to user reviews and policy notices within 48 hours
->
-> **Supporting links**
-> - Live web app: https://gracenotesdaily.com
-> - Founder studio: https://product-queen.com
-> - Design studio: https://habitue.design
-> - Privacy policy: https://gracenotesdaily.com/privacy
-> - Terms of service: https://gracenotesdaily.com/terms
-
-~2,100 of 5,000 chars. Honest, transfers credibility from your existing brands, pre-answers privacy/safety/support concerns, includes clickable proof.
-
----
-
-## Timeline & cost
-
-| Phase | Time |
-|---|---|
-| 1 — Auth (Apple + Google BYOK + native callback prep) | 3–4 days |
-| 2 — Shopify shop | 3–5 days |
-| 3 — Hybrid audio | 3–5 days |
-| 4 — Capacitor shells + icons | 2–3 days |
-| 5 — iPad layouts + responsive QA + dark mode | 5–7 days |
-| 6 — Push notifications | 2–3 days |
-| 7 — Store submission + review | 1–2 weeks (mostly waiting) |
-| **Total elapsed** | **5–7 weeks** |
-
-**Out of pocket: ~$125** ($99 Apple + $25 Google + Firebase free + Shopify dev store free until claimed).
-
----
-
-## Build waves (so you're not blocked waiting on Apple)
-
-**Wave 1 — Web** (Phases 1, 2, 3): ships to gracenotesdaily.com. Validates everything before native.
-
-**Wave 2 — Native** (Phases 4, 5, 6, 7): Capacitor + push + QA + store submission.
-
----
-
-## What I need from you to start Wave 1
-
-1. **Approve this plan**
-2. **Google Cloud Console**: create OAuth Client ID (I'll walk you through it step-by-step in chat once approved — takes ~10 min)
-3. **Decide**: new Shopify dev store or connect existing?
-4. **Decide**: OK to add dark mode tokens? (Strongly recommended for App Store)
-5. **Start now in parallel** (no blocker, takes 24–48h for Apple approval): enroll in Apple Developer Program — $99/yr, https://developer.apple.com/programs/enroll
-
-Approve and I'll start with Phase 1, Step 1 — surfacing your Supabase callback URL and walking you through Google Cloud Console setup.
+Shopify, Listen audio rebuild, Capacitor shells, iPad layouts, push notifications, store submission — all queued for Waves 2+ per the approved plan.
