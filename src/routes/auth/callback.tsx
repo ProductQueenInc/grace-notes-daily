@@ -33,7 +33,13 @@ function AuthCallback() {
       hashParams.get("error");
 
     if (oauthError) {
-      setErrorMsg(decodeURIComponent(oauthError));
+      const raw = decodeURIComponent(oauthError);
+      const code = url.searchParams.get("error") || hashParams.get("error");
+      if (code === "access_denied" || /access_denied|cancelled|canceled/i.test(raw)) {
+        setErrorMsg("No problem — you can try again, or use your email to sign in.");
+      } else {
+        setErrorMsg(raw);
+      }
       return;
     }
 
