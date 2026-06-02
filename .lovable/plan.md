@@ -1,98 +1,154 @@
-# Auth rebuild — final plan
 
-One sign-in screen, one input. Phone → OTP. Email → Magic Link. Backup contact captured in onboarding (and usable for sign-in once verified). Returning-device cookie flips the default copy between "Sign in" and "Create account."
+# Plan — GraceNotes Daily Native Apps (iOS + Android)
 
-## The sign-in screen
+Wrap the existing web app as native iOS + Android apps via **Capacitor**. One codebase, two stores. Your choices: **Physical-only Shopify shop**, **Magic link + Apple + Google sign-in (BYOK Google)**, **Hybrid audio**, **iPad-optimized layouts**.
 
-```
-        GraceNotes Daily
-   He's been waiting for you.
+---
 
-   [ phone number or email ]
-        [  Continue  ]
-```
+## Responsiveness guarantee
 
-- Single input. Detect `@` → email path. Detect digits/`+` → phone path. Show inline hint if neither.
-- Phone path → 6-digit OTP screen (uses existing `input-otp.tsx`) → signed in.
-- Email path → "Check your inbox" screen → user taps Magic Link → `/auth/callback` → signed in.
-- Both produce a persistent session (Supabase JWT in localStorage, auto-refresh).
+Nothing on the current web app gets *worse*. Changes are additive:
+- iPad (768–1024px) gains two-column layouts on Journey, Heart Notes, Prayers + wider Home hero. iPhone + desktop untouched.
+- Login screen gains Apple + Google buttons (~80px taller, well within safe area).
+- New `/shop/*` routes don't touch any existing route.
+- All locked files stay locked: `styles.css`, `app-shell.tsx`, `app-sidebar.tsx`, `nature-background.tsx`, `page-header.tsx`, `player-dock.tsx`, `icon.tsx`, shadcn `ui/*`, onboarding structure, habit auto-mark rule.
 
-## Returning-device behaviour
+---
 
-- On first successful sign-in OR sign-up, set cookie `gn_has_account=1`, `Max-Age=31536000`, `SameSite=Lax`, `Secure`, `Path=/`.
-- On `/login` mount, read cookie:
-  - Cookie present → headline "Welcome back" + helper text "Enter your phone or email to sign in."
-  - Cookie absent → headline "Begin your journey" + helper text "Enter your phone or email to create your account."
-- Same form either way — the cookie only changes copy, not behaviour. Both phone OTP and Magic Link auto-create the account if it doesn't exist, so there is no separate "sign up" form.
-- Privacy policy: add a short paragraph under "Cookies we use" describing `gn_has_account` as a non-essential preference cookie that remembers whether this device has signed in before, so we can show the right greeting. Set by the app, not a third party. Clearing it has no effect on the account.
+## Phase 1 — Auth hardening (web first)
 
-## Onboarding — backup contact step
+Done before any native work. Validates the auth contract on `gracenotesdaily.com`.
 
-New step (inserted at the end, before "All set"):
+1. **You create Google OAuth credentials** in Google Cloud Console:
+   - OAuth consent screen → "GraceNotes Daily", logo, support email, privacy + terms URLs
+   - Authorized domains: `gracenotesdaily.com`, `lovable.app`
+   - OAuth Client ID (Web): authorized redirect URIs = Supabase callback URL (I'll surface the exact URL from your Lovable Cloud auth settings)
+   - Scopes: `openid`, `email`, `profile`
+2. Paste Client ID + Secret into Lovable Cloud → Authentication → Google provider.
+3. **Add Sign in with Apple** the same way (managed by Lovable Cloud, no Apple Developer Console work yet — that comes in Phase 7).
+4. Update `src/routes/login.tsx`: Apple button + Google button **above** the magic-link input (magic link stays — same single screen, no `/signup` route).
+5. Update `src/routes/auth/callback.tsx`: already handles PKCE, `token_hash`, and implicit flows. Add OAuth-specific error surfacing (the previous failure was silent — the new version will show "Sign-in didn't complete" with a Back button, same pattern as your existing error UI).
+6. **Capacitor deep-link callback prep**: callback already lives at `/auth/callback`; add `gracenotesdaily://auth/callback` URL scheme handling so the same route works in the native shell.
 
-> **One more thing — a backup way in.**
-> If you signed up with your phone, give us an email. If you signed up with your email, give us a phone. We'll send a quick code to confirm it's yours. You can skip this and add it later in Settings.
+### Why Google SSO will not fail this time
 
-Flow:
-1. Detect which contact the user has (phone or email present on `auth.users`).
-2. Show the *other* field.
-3. On submit, call `supabase.auth.updateUser({ email })` or `{ phone }`.
-4. Supabase sends a verification link (email) or OTP (phone).
-5. Show the verify step inline (OTP input for phone, "check your inbox" copy for email).
-6. On success, the backup is attached to the same `auth.users` row → user can sign in with either from now on.
-7. On `identity_already_exists` error → toast: "That [email/phone] is already on another account. You can sign in with it instead." Don't block onboarding completion.
-8. "Skip for now" button is always present.
+| Past failure (callback/redirect) | Mitigation |
+|---|---|
+| Lovable Preview's fetch proxy intercepts `/auth/v1/token` POST → "Failed to fetch" | **We test only on `gracenotesdaily.com`**, never the preview iframe. Preview is documented to break Supabase OAuth and there's no app-level fix |
+| Redirect URI mismatch between preview + published origins | `redirect_uri: window.location.origin` (runtime, not hardcoded) + Google Console gets `gracenotesdaily.com` AND `*.lovable.app` listed |
+| Session not detected after redirect (race condition) | `lovable.auth.signInWithOAuth` sets the session via `setSession(tokens)` synchronously — no `getSession()` polling race |
+| Callback page shows blank on error | Updated callback already surfaces `error_description` from URL and shows recovery UI |
+| Native app: webview blocks Google sign-in | `@capacitor/browser` opens the **system browser** (Safari/Chrome), not an in-app webview |
+| Apple rejects iOS build because Google offered without Apple | Apple is added in the same phase — compliant by design |
 
-## Files changed
+## Phase 2 — Shopify shop (physical goods)
 
-1. **`src/lib/supabase.ts`** — `flowType: 'implicit'` → `'pkce'` (required for Magic Link callback exchange).
-2. **`src/routes/login.tsx`** — replace entire form. Single input + detect logic + OTP step. Read `gn_has_account` cookie for greeting copy. Remove password fields, Google button, signup toggle.
-3. **`src/routes/auth/callback.tsx`** — add `supabase.auth.exchangeCodeForSession(window.location.href)` when `?code=` present. Set `gn_has_account` cookie on success. Keep existing error surface.
-4. **`src/hooks/use-auth.ts`** (or wherever sign-in success is observed) — set `gn_has_account` cookie on `SIGNED_IN` event.
-5. **`src/routes/onboarding.tsx`** — add backup-contact step + verification sub-step.
-6. **`src/routes/signup.tsx`** — delete (or redirect to `/login`).
-7. **`src/routes/reset-password.tsx`** — delete (no passwords).
-8. **`src/routes/privacy.tsx`** — add the cookie paragraph.
+7. Enable Shopify integration. New dev store or connect existing — your call.
+8. Storefront routes `/shop`, `/shop/$handle`, `/shop/cart` using your `.glass-on-hue` + `.glass-parchment` surfaces.
+9. Cart → Shopify Storefront API. Checkout handed off to Shopify-hosted (no card data touches us).
+10. Sidebar + mobile tab bar gains "Shop" entry.
+11. ~2.9% + 30¢ per transaction. **No Apple cut** on physical goods.
 
-## Phone-number input
+## Phase 3 — Hybrid audio
 
-Use `libphonenumber-js` (already small, edge-safe) to parse to E.164. Default country = `navigator.language` region; small country-code dropdown beside the input if they need to override. Twilio Geo Permissions (your side) controls which countries actually receive SMS.
+12. Audio-only tracks → Supabase Storage (signed URLs). YouTube reserved for explicit video (preaching, music videos), clearly labelled.
+13. Replace HTML `<audio>` with native-aware plugin so audio continues when backgrounded.
+14. MediaSession metadata → lock screen, Control Center, CarPlay, Android Auto show title + art + play/pause/skip.
+15. iOS: enable "Audio, AirPlay, PiP" background mode. Android: foreground service + media session.
 
-## Supabase / server-side setup
+## Phase 4 — Capacitor native shells
 
-**Lovable Cloud → Auth → Providers:**
-- Enable **Phone** → provider: Twilio → paste Account SID, Auth Token, Messaging Service SID.
-- Confirm **Email** + Magic Link enabled (already is; templates already scaffolded).
-- Disable **Email + Password** (no longer used).
-- **Google**: leave provider configured but remove from UI. Re-enable later once stable.
+16. `bunx cap add ios` + `bunx cap add android`.
+17. Install plugins: `app`, `push-notifications`, `splash-screen`, `status-bar`, `haptics`, `share`, `browser`, `preferences`.
+18. Deep links (`gracenotesdaily://`) + Universal Links / App Links for `gracenotesdaily.com/*`.
+19. Generate brand icon set (1024×1024 master → ~30 sizes) + splash (light + dark, brand greens). Also drops the missing `/public/icons/icon-192.png` and `icon-512.png` for PWA.
 
-**Email deliverability check (I'll run during build):** confirm DNS verification status for the sending domain; if anything is missing, surface the exact records.
+## Phase 5 — iPad-optimized layouts + responsive QA
 
-## Twilio setup (you, one-time, ~10 min)
+20. Two-column layouts for Journey, Heart Notes, Prayers at ≥768px.
+21. Wider Home hero + multi-column Listen grid on iPad.
+22. Test matrix: iPhone SE / 15 / 16 Pro Max / iPad / iPad Pro 12.9" / Pixel 8 / Galaxy S24 / small Android / Galaxy Fold.
+23. Dynamic Type (iOS) + font-scale (Android) — long content must reflow.
+24. Dark mode pass (currently deferred per CLAUDE.md — strongly recommend before App Store submission).
 
-1. Upgrade to Pay-as-you-go.
-2. Messaging → **Geo Permissions** → enable every country you expect signups from. The "United States only" default is what would block a Kenyan number.
-3. Messaging → Services → create "GraceNotes Auth" → buy one US long code (~$1.15/mo) → add to service.
-4. Messaging → **SMS Pumping Protection** → ON.
-5. Copy Account SID, Auth Token, Messaging Service SID → paste into Supabase Phone provider.
+## Phase 6 — Push notifications
 
-## What's NOT changing
+25. Firebase project (free) + Apple Push key uploaded.
+26. New `device_tokens` Supabase table (`user_id`, `token`, `platform`, RLS scoped to owner).
+27. Permission prompt added to onboarding step 5 (in-context, never cold on launch — Apple guideline).
+28. TanStack server function `sendPush` (FCM HTTP v1) + scheduled triggers:
+    - Morning grace-note ready (respects `rhythms` + `timezone`)
+    - Evening streak-at-risk reminder if today's habits incomplete
+    - Optional: prayer milestones, weekly summary
 
-- `<NatureBackground />`, dove medallion, glass card, Fraunces/Nunito fonts, brand greens — login screen keeps the same visual identity.
-- All other routes, hooks, and AI flows untouched.
-- Google SSO provider stays configured in Supabase (just hidden from UI).
+## Phase 7 — Store submission
 
-## Order of operations
+29. Apple Developer ($99/yr) + Google Play Developer ($25 one-time).
+30. App Store Connect: screenshots at 6.7" + 6.5" + 5.5" + iPad 12.9", description, keywords, privacy policy URL (exists), support URL, age rating, **Privacy Nutrition Label** (declare: email, journal entries, prayers, device ID — all "linked to user").
+31. Play Console: feature graphic 1024×500, screenshots, descriptions, content rating, Data Safety form.
+32. Submit. Apple 1–3 days review, Google a few hours to 2 days. Budget 1–2 iOS rejection cycles.
 
-1. **You:** Twilio Geo Permissions + Messaging Service + credentials → paste into Supabase.
-2. **Me:** make all code changes above + run DNS check on email domain.
-3. **You:** test phone signup with your own number + Magic Link with your own email + verify backup contact during onboarding works.
-4. **Done.**
+---
 
-## Anything I'm still worried about
+## Google Play Console "About you" — your draft (copy/paste)
 
-- **Email deliverability** — will verify DNS during build and report exact missing records if any.
-- **`identity_already_exists` on backup** — handled with a clear toast; doesn't block onboarding.
-- **Twilio international cost** — ~$0.05/SMS for non-US. 1,000 international signups ≈ $50. Acceptable.
+> **Background**
+> I'm Cindy, founder of Product Queen (product-queen.com) and Habitue.Design. I've spent the last several years designing and launching consumer software products, with a focus on calm, considered user experiences in the wellness and habit-formation space. While this is my first app published on Google Play personally, I have hands-on experience across the full product lifecycle: discovery, UX, build, launch, support, and iteration on user feedback.
+>
+> **About this app — GraceNotes Daily**
+> GraceNotes Daily (gracenotesdaily.com) is a soft, devotional companion for the Christian audience: a personalised daily reflection, prayer tracker, journal, and devotional reading, grounded in the user's faith phase and rhythms set during onboarding. The web app is live in production today and has been built with privacy, safety, and accessibility as first-class concerns — including a three-tier crisis-detection safety system, region-aware crisis-line lookup for 51 countries, and a strict imagery policy aligned to the audience.
+>
+> **Android & Play Console experience**
+> This is my first time publishing on Google Play. I'm packaging the existing production web app as a native Android app using Capacitor, with native push notifications (FCM), background audio for the listen feature, and full support for phone and tablet form factors. I've reviewed the Play Console policies, Data Safety requirements, and target API level guidance, and I will use the internal testing track and pre-launch reports before any production release.
+>
+> **How I'll operate as a publisher**
+> - Dedicated support email and in-app feedback channel already live
+> - Privacy Policy and Terms published at gracenotesdaily.com/privacy and /terms
+> - Minimal personal data collected (email, optional phone for backup sign-in, user-generated journal/prayer entries) — all linked to user, encrypted at rest, never sold or shared with advertisers
+> - I will respond to user reviews and policy notices within 48 hours
+>
+> **Supporting links**
+> - Live web app: https://gracenotesdaily.com
+> - Founder studio: https://product-queen.com
+> - Design studio: https://habitue.design
+> - Privacy policy: https://gracenotesdaily.com/privacy
+> - Terms of service: https://gracenotesdaily.com/terms
 
-Nothing else. Ready to build on your go.
+~2,100 of 5,000 chars. Honest, transfers credibility from your existing brands, pre-answers privacy/safety/support concerns, includes clickable proof.
+
+---
+
+## Timeline & cost
+
+| Phase | Time |
+|---|---|
+| 1 — Auth (Apple + Google BYOK + native callback prep) | 3–4 days |
+| 2 — Shopify shop | 3–5 days |
+| 3 — Hybrid audio | 3–5 days |
+| 4 — Capacitor shells + icons | 2–3 days |
+| 5 — iPad layouts + responsive QA + dark mode | 5–7 days |
+| 6 — Push notifications | 2–3 days |
+| 7 — Store submission + review | 1–2 weeks (mostly waiting) |
+| **Total elapsed** | **5–7 weeks** |
+
+**Out of pocket: ~$125** ($99 Apple + $25 Google + Firebase free + Shopify dev store free until claimed).
+
+---
+
+## Build waves (so you're not blocked waiting on Apple)
+
+**Wave 1 — Web** (Phases 1, 2, 3): ships to gracenotesdaily.com. Validates everything before native.
+
+**Wave 2 — Native** (Phases 4, 5, 6, 7): Capacitor + push + QA + store submission.
+
+---
+
+## What I need from you to start Wave 1
+
+1. **Approve this plan**
+2. **Google Cloud Console**: create OAuth Client ID (I'll walk you through it step-by-step in chat once approved — takes ~10 min)
+3. **Decide**: new Shopify dev store or connect existing?
+4. **Decide**: OK to add dark mode tokens? (Strongly recommended for App Store)
+5. **Start now in parallel** (no blocker, takes 24–48h for Apple approval): enroll in Apple Developer Program — $99/yr, https://developer.apple.com/programs/enroll
+
+Approve and I'll start with Phase 1, Step 1 — surfacing your Supabase callback URL and walking you through Google Cloud Console setup.
