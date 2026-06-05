@@ -62,22 +62,28 @@ Last updated: 2026-06-05.
 
 ---
 
-## 0. Build status (as of 2026-05-22)
+## 0. Build status (as of 2026-06-05)
 
 ### ✅ Complete
 | Phase | What |
 |-------|------|
-| DB schema | 8 tables, RLS, auth trigger — run in Supabase SQL Editor |
-| AI server functions | `src/lib/ai.functions.ts` — grace note, devotional, heart note, daily chat |
-| Daily content caching | Grace note + devotional cached per (user_id, date) in daily_content |
+| DB schema | Tables, RLS, auth trigger — see `supabase/migrations/` |
+| AI server functions | `src/lib/ai.functions.ts` — grace note, devotional, heart note |
+| AI prompts in God's voice | Grace note + chat-reply rewritten; no em-dashes; no performative phrases |
+| Daily content caching | Grace note + devotional cached per (user_id, date) in `daily_content` |
+| Daily grace-note cron | `supabase/functions/generate-daily-grace-notes/index.ts`, pg_cron driven, timezone-aware |
+| Chat safety system | `supabase/functions/chat-reply/index.ts` — 3-tier (crisis / classifier / streaming reply), `chat_sessions` + `chat_flags` + `crisis_lines` |
+| Google OAuth | Login + signup buttons, `auth/callback.tsx`, profile bootstrap |
+| Email PII hardening | Migration `20260604231624_…sql` |
 | Auth hook | `use-auth.ts` reads full profile from Supabase |
 | Onboarding | Saves name, faith_phase, rhythms, seasons, voice, timezone to profiles |
 | Habits | `use-habits.ts` — Supabase-backed, localStorage fallback |
-| Daily chat | `use-daily-chat.ts` — persists to daily_messages, AI replies via OpenAI |
-| Heart Notes | Saves to heart_notes, loads today's entry on mount, AI response persisted |
+| Daily chat | `use-daily-chat.ts` — persists to `daily_messages`, routes through `chat-reply` edge function |
+| Heart Notes | Saves to `heart_notes`, loads today's entry on mount, AI response persisted |
 | Prayers | Full CRUD — add, mark answered, thanksgiving, soft delete |
-| Streak | `use-streak.ts` — consecutive gold-day counter from daily_habits |
+| Streak | `use-streak.ts` — consecutive gold-day counter from `daily_habits` |
 | Journey | Real data from heart_notes + prayers + daily_content, date range filter |
+| SEO landing pages | 6 routes + 3 content guides, share-bar, llms.txt, expanded sitemap |
 | PWA | manifest.json, theme-color, Apple PWA meta, robots.txt, sitemap.xml |
 | SEO | og:url, og:image, og:title, og:description, twitter card wired to gracenotesdaily.com |
 | Capacitor stub | capacitor.config.ts ready for iOS/Android |
@@ -86,12 +92,13 @@ Last updated: 2026-06-05.
 ### ⏳ Needs Cindy before going live
 | # | Action | Where |
 |---|--------|-------|
-| 1 | ~~Add ANTHROPIC_API_KEY as Wrangler secret~~ | **Done — set via Lovable environment variables** |
-| 2 | ~~Add OPENAI_API_KEY as Wrangler secret~~ | **Done — set via Lovable environment variables** |
-| 3 | Add gracenotesdaily.com to Supabase Auth redirect URLs | Supabase → Auth → URL Configuration |
-| 4 | Drop icon-192.png + icon-512.png into /public/icons/ | For PWA install prompt |
+| 1 | Drop `icon-192.png` + `icon-512.png` into `/public/icons/` | For PWA install prompt |
+| 2 | Generate 1024×1024 master app icon from dove medallion | For Path B native build (Capacitor) |
+
+> **Server-side split:** App-internal logic uses TanStack `createServerFn` (in `src/lib/*.functions.ts`). Two Supabase **Edge Functions** live alongside them because they need provider-side hosting (cron + streaming SSE): `chat-reply` and `generate-daily-grace-notes`. Don't add more edge functions unless cron or streaming forces it.
 
 > **Deployment note (2026-05-25):** The live site at gracenotesdaily.com is currently hosted and deployed by **Lovable**, not via `wrangler deploy`. The GitHub repo is the source of truth for code, but changes only go live when published through Lovable. There is no GitHub Actions CI/CD pipeline yet. To deploy code changes made outside Lovable (e.g. via Claude Code): open Lovable, pull/sync from GitHub, then publish. Future goal: set up a GitHub Actions workflow that runs `npm run build && npx wrangler deploy` on push to main, so GitHub push = live deploy.
+
 
 ### ❌ Not started (later phases)
 - Push notifications (VAPID keys + Supabase Edge Function)
