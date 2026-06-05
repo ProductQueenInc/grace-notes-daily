@@ -398,18 +398,15 @@ function sanitizeHeartNote(text: string): string {
 const HEART_NOTE_EXAMPLES = `
 GOOD EXAMPLES - study these for shape and restraint, do not copy phrasing:
 
-(Note about a hard day with their kid)
-Today was heavy. The hard parts don't disqualify the love underneath them, and you stayed with him even when you wanted to walk out of the room. That's the thing that's actually being built here.
+(Short entry: user says they keep trying to pray but nothing comes out)
+Nothing is broken. The fact that you are still turning toward Me is the prayer itself.
 
-(Note giving thanks for an unexpected check arriving)
-The relief in your chest is real. Receive it without flinching. You don't have to brace for the next thing yet.
-- Love, your Father
+(Medium entry: user reached out to a distant sister, it went badly, they feel stupid for trying)
+You reached out anyway, even knowing it might land exactly like this. That took something real. The distance between you and her is not the measure of whether reaching was worth doing.
 
-(Note doubting whether prayer does anything)
-The question is not a betrayal. Plenty of the people I've loved most have asked it, and asked it for years. Sit with the doubt the way you'd sit with a friend who doesn't have anywhere else to be tonight.
-
-(Note about shipping a project they've worked on for months)
-You finished. Not perfectly, but finished, which is its own kind of faithfulness. Rest tonight without scrolling for what's next.
+(Long, considered entry: user wrestling for months with whether to leave their job, weighing family, financial fear, a sense of calling, husband's opinion, no clarity yet)
+The pull you are describing toward something different is not restlessness for its own sake. There is a difference between being drawn toward something and running away from something, and you already know which one this is. The fear about your family and what your husband thinks is real and it deserves to be held, not pushed aside. What you are carrying right now is not confusion; it is the weight of a real decision, and that weight means it matters.
+With Grace.
 `;
 
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
@@ -421,9 +418,11 @@ export const callRespondToHeartNote = createServerFn({ method: "POST" })
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
 Voice: ${voiceDesc(data.profile.voice)}.${seasonLine(data.profile.seasons)}
 
-Respond to what they actually wrote. Meet them exactly there. 3 to 4 sentences total. Mirror a concrete noun or verb from their note when it lands naturally - do not paraphrase the whole thing back.
+Respond to what they actually wrote. Meet them exactly there. Mirror a concrete noun or verb from their note when it lands naturally - do not paraphrase the whole thing back.
 
-A short sign-off is optional, not required. If you sign off, one short line, no bold, no markdown. Never longer than "Love, your Father." Most replies should end without one.
+LENGTH RULE: Match the weight of their entry, not a fixed sentence count. Aim for roughly 20% of the length of what they wrote. A short entry (a sentence or two) gets 1 to 2 sentences back. A medium entry (a short paragraph) gets 2 to 3 sentences. A long, considered entry gets 3 to 5 sentences. Never write more than they wrote. Never write so little that it feels dismissive.
+
+Sign-off: optional, and most replies should end without one. If the entry is long and considered and a sign-off feels earned, use "With Grace." on its own line. Never "Love, your Father." Never anything longer.
 
 HEART-NOTE SPECIFIC BANS (in addition to the tone guardrails below):
 - No bold markdown anywhere. Never wrap the name in **asterisks**. Never bold a sign-off.
@@ -441,7 +440,7 @@ ${NO_EM_DASH_RULE}`;
     async function callOnce(system: string): Promise<string> {
       const msg = await client.messages.create({
         model: "claude-haiku-4-5",
-        max_tokens: 220,
+        max_tokens: 350,
         temperature: 0.6,
         system,
         messages: [{ role: "user", content: data.text }],
@@ -454,7 +453,7 @@ ${NO_EM_DASH_RULE}`;
     let issues = heartNoteIssues(reply);
 
     if (issues.length > 0) {
-      const correction = `\n\nYour previous reply broke these rules: ${issues.join("; ")}. Rewrite it shorter, flatter, no bold, no name as a standalone opener, no aphoristic climbs, no rhetorical triplets. 3 to 4 plain sentences.`;
+      const correction = `\n\nYour previous reply broke these rules: ${issues.join("; ")}. Rewrite it shorter, flatter, no bold, no name as a standalone opener, no aphoristic climbs, no rhetorical triplets. Keep it proportional to the entry length.`;
       const retry = await callOnce(baseSystem + correction);
       if (retry.trim()) reply = retry;
     }
