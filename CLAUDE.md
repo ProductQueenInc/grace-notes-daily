@@ -283,12 +283,19 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 | Need | File |
 |------|------|
-| AI stubs | `src/lib/ai-stubs.ts` |
+| AI stubs (client wrappers) | `src/lib/ai-stubs.ts` |
+| AI server functions | `src/lib/ai.functions.ts` |
+| Chat edge function (safety + streaming) | `supabase/functions/chat-reply/index.ts` |
+| Daily grace-note cron | `supabase/functions/generate-daily-grace-notes/index.ts` |
 | Personalization | `src/lib/personalization.ts` |
 | Badges | `src/lib/badges.ts` |
 | Supabase client | `src/lib/supabase.ts` |
 | Auth hook | `src/hooks/use-auth.ts` |
+| OAuth callback | `src/routes/auth/callback.tsx` |
 | Habits | `src/hooks/use-habits.ts` |
 | Daily chat | `src/hooks/use-daily-chat.ts` |
 | Audio player | `src/hooks/use-audio-player.ts` |
+| Share / download UI | `src/components/share-bar.tsx`, `src/components/download-guide-modal.tsx`, `src/components/site-footer.tsx` |
+| Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Routes | `src/routes/*.tsx` |
+
