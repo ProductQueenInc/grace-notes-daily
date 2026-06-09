@@ -4,12 +4,11 @@ import { getArticle, BASE_URL, DEFAULT_AUTHOR, SERIES } from "@/lib/library";
 
 export const Route = createFileRoute("/library/$slug")({
   loader: ({ params }) => {
-    const article = getArticle(params.slug);
-    if (!article) throw notFound();
-    return { article };
+    if (!getArticle(params.slug)) throw notFound();
+    return null;
   },
-  head: ({ loaderData, params }) => {
-    const article = loaderData?.article ?? getArticle(params.slug);
+  head: ({ params }) => {
+    const article = getArticle(params.slug);
     if (!article) {
       return {
         meta: [{ title: "Not found — GraceNotes Daily" }],
@@ -98,6 +97,8 @@ export const Route = createFileRoute("/library/$slug")({
 });
 
 function ArticleRoute() {
-  const { article } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const article = getArticle(slug);
+  if (!article) return null;
   return <ArticleShell article={article} />;
 }
