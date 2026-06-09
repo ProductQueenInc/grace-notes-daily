@@ -23,10 +23,14 @@ export function SiteFooter() {
           <FooterLink to="/login">Sign in</FooterLink>
         </FooterColumn>
 
-        <FooterColumn title="Learn">
-          <FooterLink to="/prayer-journaling">Prayer Journaling</FooterLink>
-          <FooterLink to="/daily-devotional">Daily Devotional</FooterLink>
-          <FooterLink to="/christian-journaling">Christian Journaling</FooterLink>
+        <FooterColumn title="Notes & Letters">
+          <FooterLink to="/library">All articles</FooterLink>
+          <FooterLink to="/library/prayer-journaling">Prayer Journaling</FooterLink>
+          <FooterLink to="/library/daily-devotional">Daily Devotional</FooterLink>
+          <FooterLink to="/library/christian-journaling">Christian Journaling</FooterLink>
+        </FooterColumn>
+
+        <FooterColumn title="Tools">
           <FooterLink to="/quiet-time-app">Quiet Time App</FooterLink>
           <FooterLink to="/faith-habit-tracker">Faith Habit Tracker</FooterLink>
           <FooterLink to="/answered-prayer-tracker">Answered Prayer Tracker</FooterLink>

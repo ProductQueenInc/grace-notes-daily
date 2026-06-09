@@ -73,12 +73,13 @@ GraceNotes Daily was built by Product Queen, a Nairobi-based product builder who
 
 - Homepage: https://www.gracenotesdaily.com/
 - About: https://www.gracenotesdaily.com/about
-- Prayer Journaling guide: https://www.gracenotesdaily.com/prayer-journaling
-- Daily Devotional guide: https://www.gracenotesdaily.com/daily-devotional
-- Christian Journaling guide: https://www.gracenotesdaily.com/christian-journaling
-- Quiet Time App guide: https://www.gracenotesdaily.com/quiet-time-app
-- Faith Habit Tracker guide: https://www.gracenotesdaily.com/faith-habit-tracker
-- Answered Prayer Tracker guide: https://www.gracenotesdaily.com/answered-prayer-tracker
+- Notes & Letters (publication hub): https://www.gracenotesdaily.com/library
+- Prayer Journaling article: https://www.gracenotesdaily.com/library/prayer-journaling
+- Daily Devotional article: https://www.gracenotesdaily.com/library/daily-devotional
+- Christian Journaling article: https://www.gracenotesdaily.com/library/christian-journaling
+- Quiet Time App: https://www.gracenotesdaily.com/quiet-time-app
+- Faith Habit Tracker: https://www.gracenotesdaily.com/faith-habit-tracker
+- Answered Prayer Tracker: https://www.gracenotesdaily.com/answered-prayer-tracker
 - FAQ: https://www.gracenotesdaily.com/faq
 - Privacy Policy: https://www.gracenotesdaily.com/privacy
 - Terms of Use: https://www.gracenotesdaily.com/terms

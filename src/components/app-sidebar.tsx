@@ -4,6 +4,7 @@ import {
   HandHeart,
   Headphones,
   Compass,
+  BookOpen,
   Settings,
   LogOut,
   PanelLeftClose,
@@ -43,6 +44,7 @@ const NAV = [
   { to: "/prayers", label: "Prayers", icon: HandHeart },
   { to: "/listen", label: "Listen", icon: Headphones },
   { to: "/journey", label: "Journey", icon: Compass },
+  { to: "/library", label: "Notes & Letters", icon: BookOpen },
 ] as const;
 
 const PIN_KEY = "gn:sidebar:pinned";
