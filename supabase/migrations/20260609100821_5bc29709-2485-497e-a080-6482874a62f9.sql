@@ -1,0 +1,3 @@
+CREATE POLICY "block_client_insert_chat_flags" ON public.chat_flags AS RESTRICTIVE FOR INSERT TO anon, authenticated WITH CHECK (false);
+CREATE POLICY "block_client_update_chat_flags" ON public.chat_flags AS RESTRICTIVE FOR UPDATE TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "block_client_delete_chat_flags" ON public.chat_flags AS RESTRICTIVE FOR DELETE TO anon, authenticated USING (false);
