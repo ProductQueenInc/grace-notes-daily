@@ -64,6 +64,95 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_flags: {
+        Row: {
+          flag_type: string
+          id: string
+          session_id: string | null
+          triggered_at: string
+          user_id: string
+        }
+        Insert: {
+          flag_type: string
+          id?: string
+          session_id?: string | null
+          triggered_at?: string
+          user_id: string
+        }
+        Update: {
+          flag_type?: string
+          id?: string
+          session_id?: string | null
+          triggered_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_flags_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          message_count: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          message_count?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          message_count?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crisis_lines: {
+        Row: {
+          country_code: string
+          country_name: string
+          hours: string | null
+          line_name: string
+          phone: string | null
+          text_option: string | null
+          website: string | null
+        }
+        Insert: {
+          country_code: string
+          country_name: string
+          hours?: string | null
+          line_name: string
+          phone?: string | null
+          text_option?: string | null
+          website?: string | null
+        }
+        Update: {
+          country_code?: string
+          country_name?: string
+          hours?: string | null
+          line_name?: string
+          phone?: string | null
+          text_option?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       daily_content: {
         Row: {
           date: string
@@ -95,6 +184,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_grace_notes: {
+        Row: {
+          created_at: string
+          date: string
+          grace_note: string
+          id: string
+          theme: string
+          user_id: string
+          verse_id: number
+          verse_reference: string
+          verse_text: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          grace_note: string
+          id?: string
+          theme: string
+          user_id: string
+          verse_id: number
+          verse_reference: string
+          verse_text: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          grace_note?: string
+          id?: string
+          theme?: string
+          user_id?: string
+          verse_id?: number
+          verse_reference?: string
+          verse_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_grace_notes_verse_id_fkey"
+            columns: ["verse_id"]
+            isOneToOne: false
+            referencedRelation: "verses"
             referencedColumns: ["id"]
           },
         ]
@@ -367,6 +500,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          country_code: string | null
           created_at: string
           faith_phase: string | null
           id: string
@@ -380,6 +514,7 @@ export type Database = {
           voice: string | null
         }
         Insert: {
+          country_code?: string | null
           created_at?: string
           faith_phase?: string | null
           id: string
@@ -393,6 +528,7 @@ export type Database = {
           voice?: string | null
         }
         Update: {
+          country_code?: string | null
           created_at?: string
           faith_phase?: string | null
           id?: string
@@ -509,6 +645,65 @@ export type Database = {
           },
         ]
       }
+      user_verse_log: {
+        Row: {
+          id: string
+          sent_at: string
+          user_id: string
+          verse_id: number
+        }
+        Insert: {
+          id?: string
+          sent_at?: string
+          user_id: string
+          verse_id: number
+        }
+        Update: {
+          id?: string
+          sent_at?: string
+          user_id?: string
+          verse_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_verse_log_verse_id_fkey"
+            columns: ["verse_id"]
+            isOneToOne: false
+            referencedRelation: "verses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verses: {
+        Row: {
+          created_at: string
+          id: number
+          is_active: boolean
+          posture_tags: string[]
+          reference: string
+          text: string
+          theme: string
+        }
+        Insert: {
+          created_at?: string
+          id: number
+          is_active?: boolean
+          posture_tags?: string[]
+          reference: string
+          text: string
+          theme: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          posture_tags?: string[]
+          reference?: string
+          text?: string
+          theme?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -521,6 +716,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      increment_session_message_count: {
+        Args: { p_session_id: string }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {
@@ -537,6 +736,15 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      select_verse_for_user: {
+        Args: { p_posture: string; p_segment: string; p_user_id: string }
+        Returns: {
+          reference: string
+          theme: string
+          verse_id: number
+          verse_text: string
         }[]
       }
     }
