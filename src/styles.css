@@ -291,16 +291,16 @@
 }
 .notes-prose blockquote p { font-size: inherit; line-height: inherit; }
 
-/* Ornamental section break — brand gold quatrefoil ornament */
+/* Ornamental section break — GraceNotes dove mark */
 .notes-prose hr {
   border: 0;
-  height: 2.25rem;
-  margin: 2.4em auto;
+  height: 3rem;
+  margin: 2.6em auto;
   background-image: url("/brand/grace-ornament.png");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: auto 2.25rem;
-  opacity: 0.85;
+  background-size: auto 3rem;
+  opacity: 0.95;
 }
 
 /* Inline scripture references — auto-wrapped by the loader */
