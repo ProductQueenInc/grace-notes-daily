@@ -71,10 +71,11 @@ _(None blocking. The verses library remains unseeded by choice — see "Not star
 ### ❌ Not started
 
 - Push notifications (VAPID keys + send edge function).
-- Listen / audio (signed Supabase Storage URLs — currently dummy tracks in `db/002_tracks.sql`).
+- Listen / audio playback wiring: private bucket `listen-audio` exists; signed-URL server fn `getSignedAudioUrl` in `src/lib/listen-audio.functions.ts` is live. Still TODO: upload Suno MP3s to the bucket, seed real rows into the `tracks` table (point `audio_url` at the storage path, e.g. `album-1/track-03.mp3`), and update `src/routes/listen.tsx` + `<PlayerDock />` to resolve `audio_url` through `getSignedAudioUrl` before playback.
 - Background image upload script (`background_images` table exists; URLs are still hard-coded in `src/components/nature-background.tsx`).
 - Path B native build via Capacitor (`capacitor.config.ts` is a stub; no `@capacitor/*` packages installed, no iOS / Android folders).
 - Verses library is created but unseeded and currently unused — the cron lets the model pick its own verse. If you ever want curated rotation, run `scripts/seed_verses.js` and wire `select_verse_for_user` back in to the cron.
+
 
 ### Server-side split
 
@@ -228,10 +229,12 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
-### 2026-06-09 (PM) — Completed pending actions
+### 2026-06-09 (PM) — Completed pending actions + Listen media scaffold
 - Seeded `public.crisis_lines` with all 51 verified entries from `gracenotes_crisis_lines.json`. `chat-reply` crisis branch now resolves country-specific hotlines via `profiles.country_code`. Re-verify entries every 6 months (numbers change).
 - Scheduled pg_cron job `generate-daily-grace-notes` at `0 1 * * *` (daily 01:00 UTC, active). Bearer token reads from `vault.decrypted_secrets.email_queue_service_role_key` (existing secret, same service-role key the email queue uses — no new secret added). First populated row in `daily_grace_notes` will appear after the next 01:00 UTC tick.
 - Verified `public/icons/icon-source.png` is 1254×1254. Larger than the 1024 store minimum; safe to downscale when Capacitor native build lands. No action needed today.
+- Created private Supabase Storage bucket `listen-audio` (no public read) and shipped `src/lib/listen-audio.functions.ts` exporting `getSignedAudioUrl` — auth-gated, path-validated, returns a 1-hour signed URL. Ready for Suno MP3 uploads + `tracks` row wiring + `<PlayerDock />` resolver.
+
 
 ### 2026-06-09 — CLAUDE.md QA pass
 - Verified every "live in production" and "pending action" claim against the repo and live DB.
@@ -291,6 +294,7 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 | Daily chat | `src/hooks/use-daily-chat.ts` |
 | Daily grace note (client) | `src/hooks/use-daily-grace-note.ts` |
 | Audio player | `src/hooks/use-audio-player.ts` |
+| Listen signed-URL fn (private `listen-audio` bucket) | `src/lib/listen-audio.functions.ts` |
 | Share / download UI | `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx` |
 | Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Verses library seed (unused for now) | `scripts/seed_verses.js`, `gracenotes_verse_library.json` |
