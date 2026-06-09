@@ -228,6 +228,13 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-06-09 — CLAUDE.md QA pass
+- Verified every "live in production" and "pending action" claim against the repo and live DB.
+- Removed stale action #3 ("Add PWA icons") — icons are already in `public/icons/` and wired into `manifest.json` + `__root.tsx`. Confirmed working on user's home-screen install + favicon.
+- Reworded action #4 to focus on verifying `icon-source.png` is a true 1024×1024 master (file exists but dimensions unconfirmed).
+- Tightened actions #1 and #2 with verified row counts and cron job state.
+- Noted `daily_grace_notes` is empty until pg_cron is scheduled, so the next reader doesn't think the cron edge function is broken.
+
 ### 2026-06-09 — backend reality check + prompt unification
 - Discovered the v2 migration files (`20260529000001_gracenotes_v2_step1_schema.sql`, `20260529000002_gracenotes_v2_cron.sql`) had never been applied to the live DB. The two edge functions and `use-daily-grace-note.ts` were failing at runtime against missing tables/RPCs.
 - Applied the v2 schema migration with proper `GRANT`s, RLS policies, and `REVOKE`s on the SECURITY DEFINER functions so they're service-role-only.
