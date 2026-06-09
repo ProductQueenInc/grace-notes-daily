@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
@@ -7,7 +7,16 @@ import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
 import { LIBRARY, ALL_TAGS, SERIES, BASE_URL, type LibraryTag } from "@/lib/library";
 
+type LibrarySearch = { tag?: LibraryTag | "All" };
+
 export const Route = createFileRoute("/library/")({
+  validateSearch: (search: Record<string, unknown>): LibrarySearch => {
+    const t = search.tag;
+    if (typeof t === "string" && (t === "All" || (ALL_TAGS as string[]).includes(t))) {
+      return { tag: t as LibraryTag | "All" };
+    }
+    return {};
+  },
   head: () => ({
     meta: [
       { title: "Notes & Letters — GraceNotes Daily" },
