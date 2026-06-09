@@ -43,7 +43,7 @@ export type AIProfile = {
   clientDate?: string;
 };
 
-export type GraceNoteResult = { message: string; verse: string; signed: string };
+export type GraceNoteResult = { message: string; verse: string; signed: string; chatPrompt: string };
 export type DevotionalResult = {
   title: string;
   verseOfDay: string;
@@ -126,7 +126,7 @@ EXAMPLE OF WHAT TO WRITE INSTEAD (warm, specific, restrained):
 `;
 
 function sanitizeGraceNote(r: GraceNoteResult): GraceNoteResult {
-  return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: stripEmDashes(r.signed) };
+  return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: "", chatPrompt: r.chatPrompt ?? "" };
 }
 function sanitizeDevotional(r: DevotionalResult): DevotionalResult {
   return {
@@ -181,6 +181,8 @@ Rules:
 - Capitalize pronouns referring to God: He, Him, His
 - 2 to 4 sentences only
 - Read it aloud — if it sounds written, rewrite it until it sounds spoken
+- Never open with "I notice." This is a stage direction, not a declaration. God does not narrate what He observes the reader doing — He speaks from who He is.
+- Make bold declarations from God's character. Never observe, comment on, or reflect the reader's actions back at them. "I notice you are grateful" is wrong. "My blessing is on you" is right.
 
 EXAMPLES — study these for voice, shape, and restraint. Do not copy phrasing.
 
@@ -207,7 +209,7 @@ Verse: May the God of hope fill you with all joy and peace as you trust in him. 
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "short warm sign-off, e.g. 'Held, today.' or 'Steady with you.'" }`;
+{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "", "chatPrompt": "a single question or gentle invitation that flows naturally from this specific grace note. Specific — could only follow this note, not any other. Example style: 'What is one thing you have been waiting for?' or 'Where does it feel hardest to be still right now?'" }`;
 
   const msg = await client.messages.create({
     model: "claude-haiku-4-5",
@@ -223,9 +225,10 @@ Respond with valid JSON only - no markdown, no code fences:
   return sanitizeGraceNote(
     parseJSON<GraceNoteResult>(raw, {
       message:
-        "You are seen today. Not for what you did or didn't do - just seen.\n\nWalk gently. The work in front of you is held, even the small parts.",
+        "You are held today. Not because of what you did or did not do - just held. The work in front of you is carried too.",
       verse: "The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17",
-      signed: "Held, today.",
+      signed: "",
+      chatPrompt: "What is on your mind as you start today?",
     }),
   );
 }

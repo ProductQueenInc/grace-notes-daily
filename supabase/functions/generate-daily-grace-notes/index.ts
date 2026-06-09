@@ -81,6 +81,8 @@ Rules:
 - Capitalize pronouns referring to God: He, Him, His
 - 2 to 4 sentences only
 - Read it aloud - if it sounds written, rewrite it until it sounds spoken
+- Never open with "I notice." This is a stage direction, not a declaration. God does not narrate what He observes the reader doing - He speaks from who He is.
+- Make bold declarations from God's character. Never observe, comment on, or reflect the reader's actions back at them. "I notice you are grateful" is wrong. "My blessing is on you" is right.
 
 EXAMPLES - study these for voice, shape, and restraint. Do not copy phrasing.
 
@@ -107,7 +109,7 @@ Verse: May the God of hope fill you with all joy and peace as you trust in him. 
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "short warm sign-off, e.g. 'Held, today.' or 'Steady with you.'" }`
+{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "" }`
 }
 
 async function generateGraceNote(faithPhase: string, seasons: string[]): Promise<GraceNote> {

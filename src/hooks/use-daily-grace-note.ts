@@ -14,6 +14,10 @@ export type DailyGraceNote = {
   verseReference: string;
   segment: string;
   posture: string;
+  // Dynamic chat prompt that flows from the grace note. Empty string when
+  // served from the cron path (daily_grace_notes table) until a DB column
+  // is added; UI falls back to a static label in that case.
+  chatPrompt: string;
 };
 
 function postureFromPhase(phase: string | null | undefined): string {
@@ -55,12 +59,13 @@ export function useDailyGraceNote() {
         return {
           message: row.grace_note as string,
           verse: verseText && verseRef ? `${verseText} - ${verseRef}` : verseText || verseRef,
-          signed: "Held, today.",
+          signed: "",
           graceNoteRaw: row.grace_note as string,
           verseText,
           verseReference: verseRef,
           segment,
           posture,
+          chatPrompt: "", // not yet stored in daily_grace_notes; UI falls back to default
         };
       }
 
@@ -79,6 +84,7 @@ export function useDailyGraceNote() {
         verseReference: verseRef,
         segment,
         posture,
+        chatPrompt: fresh.chatPrompt || "",
       };
     },
   });

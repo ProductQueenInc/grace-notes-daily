@@ -324,7 +324,7 @@ function DailyMessageChat({
 
   return (
     <div className="mt-5 border-t border-white/10 pt-4">
-      <label className="block text-sm font-medium mb-2 text-white/85">What's on your heart today?</label>
+      <label className="block text-sm font-medium mb-2 text-white/85">{graceContext?.chatPrompt || "What's on your heart today?"}</label>
 
       {messages.length > 0 && (
         <div
