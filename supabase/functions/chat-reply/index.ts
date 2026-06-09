@@ -148,6 +148,8 @@ Deno.serve(async (req) => {
       .from('chat_sessions')
       .update({ status: 'closed_crisis' })
       .eq('id', session_id)
+      .eq('user_id', user_id)
+
 
     return new Response(
       JSON.stringify({ response: crisisResponse, session_closed: true, close_reason: 'crisis' }),
