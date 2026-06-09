@@ -4,12 +4,13 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Headphones, Play } from "lucide-react";
+import { Headphones, Play, Loader2 } from "lucide-react";
 import { useAudioPlayer, type Track } from "@/hooks/use-audio-player";
 import { Icon } from "@/components/icon";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
 import { getTracks } from "@/lib/tracks.functions";
+import { getSignedAudioUrl } from "@/lib/listen-audio.functions";
 
 export const Route = createFileRoute("/listen")({
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
@@ -84,6 +85,22 @@ function Listen() {
   const { profile } = useAuth();
   const { play } = useAudioPlayer();
   const railTitle = pickListenRailTitle(profile);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  async function handlePlay(track: Track) {
+    if (track.type === "audio" && track.audioUrl && !track.audioUrl.startsWith("http")) {
+      // audioUrl is a storage path — resolve a signed URL before playing
+      setLoadingId(track.id);
+      try {
+        const { signedUrl } = await getSignedAudioUrl({ data: { path: track.audioUrl } });
+        play({ ...track, audioUrl: signedUrl });
+      } finally {
+        setLoadingId(null);
+      }
+    } else {
+      play(track);
+    }
+  }
 
   const { data } = useQuery({
     queryKey: ["tracks"],
@@ -180,8 +197,9 @@ function Listen() {
             {filtered.map((m) => (
               <button
                 key={m.id}
-                onClick={() => play(m)}
-                className="glass-on-hue rounded-2xl overflow-hidden text-left group hover:scale-[1.01] transition"
+                onClick={() => handlePlay(m)}
+                disabled={loadingId === m.id}
+                className="glass-on-hue rounded-2xl overflow-hidden text-left group hover:scale-[1.01] transition disabled:opacity-70 disabled:cursor-wait"
               >
                 {/* Thumbnail */}
                 <div
@@ -193,7 +211,10 @@ function Listen() {
                 {/* Info */}
                 <div className="p-3 flex items-start gap-2.5">
                   <span className="mt-0.5 w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
-                    <Icon icon={m.type === "audio" ? Headphones : Play} size="sm" tone="active" />
+                    {loadingId === m.id
+                      ? <Icon icon={Loader2} size="sm" tone="active" className="animate-spin" />
+                      : <Icon icon={m.type === "audio" ? Headphones : Play} size="sm" tone="active" />
+                    }
                   </span>
                   <div className="min-w-0">
                     <div className="text-[10px] uppercase tracking-wider text-white/60 mb-0.5">
