@@ -196,7 +196,7 @@ export type Database = {
           id: string
           theme: string
           user_id: string
-          verse_id: number
+          verse_id: number | null
           verse_reference: string
           verse_text: string
         }
@@ -207,7 +207,7 @@ export type Database = {
           id?: string
           theme: string
           user_id: string
-          verse_id: number
+          verse_id?: number | null
           verse_reference: string
           verse_text: string
         }
@@ -218,7 +218,7 @@ export type Database = {
           id?: string
           theme?: string
           user_id?: string
-          verse_id?: number
+          verse_id?: number | null
           verse_reference?: string
           verse_text?: string
         }

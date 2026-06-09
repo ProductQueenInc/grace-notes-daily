@@ -1,0 +1,1 @@
+ALTER TABLE public.daily_grace_notes ALTER COLUMN verse_id DROP NOT NULL;
