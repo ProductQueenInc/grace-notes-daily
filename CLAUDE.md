@@ -13,7 +13,8 @@ This document hands the **backend + AI wiring** of GraceNotes Daily over to whoe
 - **AI app logic**: TanStack `createServerFn` in `src/lib/ai.functions.ts` — grace note, devotional, heart note, daily-chat (legacy non-streaming). All sanitized for em-dashes. The grace-note system prompt at **`src/lib/ai.functions.ts:160`** is the canonical voice and the single source of truth (see §5).
 - **Backend storage**: the v2 schema (`verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`) is now applied to the live database with proper RLS + GRANTs (as of 2026-06-09). Previously the migration files existed in the repo but had never been run.
 - **Edge functions**: `chat-reply` (chat safety + streaming SSE) and `generate-daily-grace-notes` (overnight cron) are deployed. Both now talk to real tables.
-- **What's NOT done yet**: pg_cron schedule is not wired in the live DB; `crisis_lines` is not seeded; verses library is unused (cron lets the model pick); Listen audio uses dummy URLs; no push notifications; no native (Capacitor) build; PWA still needs `icon-192.png` / `icon-512.png`.
+- **What's NOT done yet**: pg_cron schedule for grace notes is not wired in the live DB (verified: only `process-email-queue` is in `cron.job`); `crisis_lines` is empty (verified: 0 rows); verses library is unused (cron lets the model pick); Listen audio uses dummy URLs; no push notifications; no native (Capacitor) build.
+- **PWA icons**: shipped. `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` exist and are wired into `manifest.json` and `__root.tsx`. Home-screen install + favicon render correctly on web and mobile.
 
 > **Checkpoint:** "MVP UI + v2 backend live" — this version is the rollback target.
 
@@ -56,16 +57,16 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Tally feedback button (all pages) | `src/components/feedback-dialog.tsx`, loaded in `__root.tsx` |
 | v2 schema applied (verses, crisis_lines, user_verse_log, daily_grace_notes, chat_sessions, chat_flags, RPCs `select_verse_for_user` and `increment_session_message_count`) | Live DB as of 2026-06-09 |
 | `chat-reply` edge function (3-tier safety + streaming SSE) — DB now backs it | `supabase/functions/chat-reply/index.ts` |
-| `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5) | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5). Note: `daily_grace_notes` table is empty (0 rows) until pg_cron is scheduled — see §2 action #2. | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| PWA icons (192, 512, apple-touch-180) wired into manifest + `__root.tsx` | `public/icons/`, `public/manifest.json` |
 
 ### ⏳ Built but inactive until a one-time action is taken
 
 | # | Action | How |
 |---|--------|-----|
-| 1 | **Seed `crisis_lines`** so `chat-reply` can resolve a hotline from `profiles.country_code` | `node scripts/seed_crisis_lines.js` (uses `gracenotes_crisis_lines.json`). Without this, the crisis branch returns no hotline. |
-| 2 | **Schedule the grace-note cron in pg_cron** | The repo's `supabase/migrations/20260529000002_gracenotes_v2_cron.sql` references GUCs (`app.supabase_url`, `app.service_role_key`) that aren't set on this project. Replace with a literal URL + the service-role key and run it via `supabase--insert` (NOT a migration — it contains a secret). Schedule: daily 01:00 UTC. |
-| 3 | **Add PWA icons** | Drop `icon-192.png` + `icon-512.png` into `/public/icons/` (referenced from `manifest.json`). |
-| 4 | **Master 1024×1024 app icon** | Generate from the dove medallion for the eventual Capacitor native build. |
+| 1 | **Seed `crisis_lines`** so `chat-reply` can resolve a hotline from `profiles.country_code`. Verified empty: 0 rows on 2026-06-09. | `node scripts/seed_crisis_lines.js` (uses `gracenotes_crisis_lines.json`, 51 countries). Without this, the crisis branch falls back to a generic message with no country-specific hotline. |
+| 2 | **Schedule the grace-note cron in pg_cron**. Verified missing: `cron.job` only contains `process-email-queue` on 2026-06-09; `daily_grace_notes` is empty. | The repo's `supabase/migrations/20260529000002_gracenotes_v2_cron.sql` references GUCs (`app.supabase_url`, `app.service_role_key`) that aren't set on this project. Replace with a literal URL + the service-role key and run via `supabase--insert` (NOT a migration — it contains a secret). Schedule: daily 01:00 UTC. |
+| 3 | **Verify master app icon is true 1024×1024** before any Capacitor native build. `public/icons/icon-source.png` exists but its actual dimensions haven't been confirmed. App Store / Play Store both require a clean 1024 master. | `file public/icons/icon-source.png` or open in an editor. Re-export from the dove medallion if smaller. |
 
 ### ❌ Not started
 
@@ -226,6 +227,13 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-06-09 — CLAUDE.md QA pass
+- Verified every "live in production" and "pending action" claim against the repo and live DB.
+- Removed stale action #3 ("Add PWA icons") — icons are already in `public/icons/` and wired into `manifest.json` + `__root.tsx`. Confirmed working on user's home-screen install + favicon.
+- Reworded action #4 to focus on verifying `icon-source.png` is a true 1024×1024 master (file exists but dimensions unconfirmed).
+- Tightened actions #1 and #2 with verified row counts and cron job state.
+- Noted `daily_grace_notes` is empty until pg_cron is scheduled, so the next reader doesn't think the cron edge function is broken.
 
 ### 2026-06-09 — backend reality check + prompt unification
 - Discovered the v2 migration files (`20260529000001_gracenotes_v2_step1_schema.sql`, `20260529000002_gracenotes_v2_cron.sql`) had never been applied to the live DB. The two edge functions and `use-daily-grace-note.ts` were failing at runtime against missing tables/RPCs.
