@@ -328,3 +328,37 @@
 .notes-prose ul { list-style: disc; padding-left: 1.4rem; }
 .notes-prose ol { list-style: decimal; padding-left: 1.4rem; }
 
+
+/* ------------------------------------------------------------
+ * Accessibility: text on parchment surfaces must be readable.
+ * The glass-parchment surface is cream; several long-form guide
+ * routes (7-day-prayer-journal, fasting-guide, free-prayer-toolkit)
+ * use white text utilities inside the card. Remap white utilities
+ * to dark forest-green tones whenever they appear inside parchment,
+ * without touching the route source.
+ * ------------------------------------------------------------ */
+.glass-parchment .text-white            { color: oklch(0.27 0.03 152); }
+.glass-parchment .text-white\/95,
+.glass-parchment .text-white\/90        { color: oklch(0.30 0.03 152); }
+.glass-parchment .text-white\/85,
+.glass-parchment .text-white\/80,
+.glass-parchment .text-white\/75        { color: oklch(0.34 0.03 152); }
+.glass-parchment .text-white\/70,
+.glass-parchment .text-white\/65        { color: oklch(0.42 0.03 152); }
+.glass-parchment .text-white\/60,
+.glass-parchment .text-white\/55,
+.glass-parchment .text-white\/50        { color: oklch(0.50 0.03 152); }
+.glass-parchment .text-white\/40,
+.glass-parchment .text-white\/30        { color: oklch(0.58 0.03 152); }
+
+/* Gold accents on parchment need a deeper tone to clear AA. */
+.glass-parchment .text-gold             { color: oklch(0.55 0.13 78); }
+.glass-parchment .text-gold\/90,
+.glass-parchment .text-gold\/80,
+.glass-parchment .text-gold\/70         { color: oklch(0.55 0.13 78); }
+
+/* Translucent-white panels inside parchment are invisible. Re-tint. */
+.glass-parchment .bg-white\/5,
+.glass-parchment .bg-white\/10          { background-color: color-mix(in oklab, var(--grace) 8%, transparent); }
+.glass-parchment .border-white\/10,
+.glass-parchment .border-white\/20      { border-color: color-mix(in oklab, var(--grace) 18%, transparent); }
