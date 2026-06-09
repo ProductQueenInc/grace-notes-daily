@@ -10,7 +10,7 @@ import { Icon } from "@/components/icon";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
 import { getTracks } from "@/lib/tracks.functions";
-import { getSignedAudioUrl } from "@/lib/listen-audio.functions";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/listen")({
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
