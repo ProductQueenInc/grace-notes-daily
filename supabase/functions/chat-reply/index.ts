@@ -95,6 +95,28 @@ Deno.serve(async (req) => {
   // user_id always comes from the validated JWT — never trust the body.
   const user_id = authenticatedUserId
 
+  // Verify the session belongs to this user before any writes (service-role bypasses RLS).
+  if (!session_id || typeof session_id !== 'string') {
+    return new Response(
+      JSON.stringify({ error: 'Missing session_id' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+  const { data: ownedSession, error: ownedErr } = await supabase
+    .from('chat_sessions')
+    .select('id')
+    .eq('id', session_id)
+    .eq('user_id', user_id)
+    .maybeSingle()
+  if (ownedErr || !ownedSession) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+
+
   // ── TIER 3: CRISIS CHECK ──────────────────────────────────────────────────
   if (isCrisisMessage(message)) {
     const { data: profile } = await supabase
