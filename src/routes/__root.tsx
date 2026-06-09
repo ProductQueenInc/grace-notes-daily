@@ -15,6 +15,7 @@ import { openTallyForm } from "@/lib/tally";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Icon } from "@/components/icon";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { PlayingBars } from "@/components/playing-bars";
 
 import appCss from "../styles.css?url";
 
@@ -262,9 +263,13 @@ function GlobalPlayer() {
               aria-label="Open player"
             >
               <span
-                className="w-12 h-12 rounded-xl bg-cover bg-center shrink-0"
+                className="relative w-12 h-12 rounded-xl bg-cover bg-center shrink-0 overflow-hidden"
                 style={{ backgroundImage: `url(${track.thumb})` }}
-              />
+              >
+                <span className={`absolute inset-0 flex items-center justify-center ${isPlaying ? "bg-black/45" : "bg-black/60"}`}>
+                  <PlayingBars playing={isPlaying} size="md" className="text-gold" />
+                </span>
+              </span>
               <span className="min-w-0">
                 <span className="block text-sm font-semibold text-white truncate">
                   {track.title}

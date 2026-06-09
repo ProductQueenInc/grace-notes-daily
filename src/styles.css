@@ -218,6 +218,17 @@
 }
 .animate-slide-up { animation: slideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* Equalizer "now playing" bars */
+@keyframes eqBar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.eq-bar { transform-origin: bottom; animation: eqBar 0.9s ease-in-out infinite; }
+.eq-bar:nth-child(2) { animation-delay: 0.15s; animation-duration: 1.1s; }
+.eq-bar:nth-child(3) { animation-delay: 0.3s; animation-duration: 0.75s; }
+.eq-bar:nth-child(4) { animation-delay: 0.45s; animation-duration: 1.0s; }
+.eq-paused .eq-bar { animation-play-state: paused; transform: scaleY(0.5); }
+
 /* Markdown body styling for Notes & Letters articles rendered from .md */
 .notes-prose > * + * { margin-top: 1.15em; }
 .notes-prose p { line-height: 1.8; font-size: 1.0625rem; }
