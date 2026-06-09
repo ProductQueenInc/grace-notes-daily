@@ -119,6 +119,7 @@ export const LIBRARY: LibraryArticle[] = [
     Body: ChristianJournaling.Body,
     faqs: ChristianJournaling.faqs,
   },
+  ...NOTES_AND_LETTERS,
 ];
 
 export const BASE_URL = "https://www.gracenotesdaily.com";
