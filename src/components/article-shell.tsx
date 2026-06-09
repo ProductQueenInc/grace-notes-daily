@@ -154,7 +154,8 @@ export function ArticleShell({ article }: ArticleShellProps) {
             <div className="pt-2 flex flex-col sm:flex-row gap-3 items-center justify-center">
               <Link
                 to="/signup"
-                className="inline-block px-6 py-3 rounded-full bg-grace text-white font-semibold text-sm hover:bg-grace-deep transition"
+                className="inline-block px-6 py-3 rounded-full bg-grace font-semibold text-sm hover:bg-grace-deep transition"
+                style={{ color: "#ffffff" }}
               >
                 Create your free account
               </Link>
@@ -180,6 +181,15 @@ export function ArticleShell({ article }: ArticleShellProps) {
               {related.map((a) => (
                 <ArticleCard key={a.slug} article={a} />
               ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link
+                to="/library"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/90 text-grace font-semibold text-sm hover:bg-white transition shadow-md"
+              >
+                Browse all Notes &amp; Letters
+                <span aria-hidden="true">→</span>
+              </Link>
             </div>
           </div>
         </section>
