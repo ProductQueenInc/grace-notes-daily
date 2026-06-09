@@ -71,10 +71,11 @@ _(None blocking. The verses library remains unseeded by choice — see "Not star
 ### ❌ Not started
 
 - Push notifications (VAPID keys + send edge function).
-- Listen / audio (signed Supabase Storage URLs — currently dummy tracks in `db/002_tracks.sql`).
+- Listen / audio playback wiring: private bucket `listen-audio` exists; signed-URL server fn `getSignedAudioUrl` in `src/lib/listen-audio.functions.ts` is live. Still TODO: upload Suno MP3s to the bucket, seed real rows into the `tracks` table (point `audio_url` at the storage path, e.g. `album-1/track-03.mp3`), and update `src/routes/listen.tsx` + `<PlayerDock />` to resolve `audio_url` through `getSignedAudioUrl` before playback.
 - Background image upload script (`background_images` table exists; URLs are still hard-coded in `src/components/nature-background.tsx`).
 - Path B native build via Capacitor (`capacitor.config.ts` is a stub; no `@capacitor/*` packages installed, no iOS / Android folders).
 - Verses library is created but unseeded and currently unused — the cron lets the model pick its own verse. If you ever want curated rotation, run `scripts/seed_verses.js` and wire `select_verse_for_user` back in to the cron.
+
 
 ### Server-side split
 
