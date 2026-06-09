@@ -107,7 +107,14 @@ function bodyToHtml(body: string): string {
     .replace(/^\s*#\s+.*\r?\n/, "")
     .replace(/^\s*\*By [^*]+\*\r?\n/, "")
     .replace(/^\s*---\r?\n/, "");
-  return marked.parse(cleaned, { async: false }) as string;
+  let html = marked.parse(cleaned, { async: false }) as string;
+  // Highlight parenthetical scripture refs like (Luke 22:62), (1 Samuel 1-2), (John 21:15-17).
+  // Match: optional 1-3 prefix, capitalised book, optional second word, chapter, optional :verse(-verse).
+  html = html.replace(
+    /\(((?:[1-3]\s)?[A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s\d+(?::\d+(?:-\d+)?)?)\)/g,
+    '<span class="scripture-ref">$1</span>',
+  );
+  return html;
 }
 
 function readMinutesFrom(reading: string | undefined, body: string): number {
