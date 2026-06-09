@@ -217,3 +217,42 @@
   to { transform: translateY(0); opacity: 1; }
 }
 .animate-slide-up { animation: slideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Markdown body styling for Notes & Letters articles rendered from .md */
+.notes-prose > * + * { margin-top: 1.1em; }
+.notes-prose p { line-height: 1.75; font-size: 1rem; }
+.notes-prose h2 {
+  font-family: var(--font-display, "Fraunces"), serif;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: var(--grace);
+  margin-top: 1.6em;
+}
+.notes-prose h3 {
+  font-family: var(--font-display, "Fraunces"), serif;
+  font-size: 1.35rem;
+  color: var(--grace);
+  margin-top: 1.4em;
+}
+.notes-prose em { font-style: italic; }
+.notes-prose strong { font-weight: 600; color: var(--grace-deep, var(--grace)); }
+.notes-prose blockquote {
+  border-left: 3px solid var(--gold);
+  padding-left: 1rem;
+  font-style: italic;
+  color: oklch(0.35 0.04 150);
+}
+.notes-prose hr {
+  border: 0;
+  border-top: 1px solid color-mix(in oklab, var(--grace) 18%, transparent);
+  margin: 2em auto;
+  width: 40%;
+}
+.notes-prose a {
+  color: var(--grace);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.notes-prose a:hover { color: var(--grace-deep, var(--grace)); }
+.notes-prose ul { list-style: disc; padding-left: 1.4rem; }
+.notes-prose ol { list-style: decimal; padding-left: 1.4rem; }
