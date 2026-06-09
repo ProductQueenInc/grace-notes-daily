@@ -64,10 +64,9 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 
 | # | Action | How |
 |---|--------|-----|
-| 1 | **Seed `crisis_lines`** so `chat-reply` can resolve a hotline from `profiles.country_code` | `node scripts/seed_crisis_lines.js` (uses `gracenotes_crisis_lines.json`). Without this, the crisis branch returns no hotline. |
-| 2 | **Schedule the grace-note cron in pg_cron** | The repo's `supabase/migrations/20260529000002_gracenotes_v2_cron.sql` references GUCs (`app.supabase_url`, `app.service_role_key`) that aren't set on this project. Replace with a literal URL + the service-role key and run it via `supabase--insert` (NOT a migration — it contains a secret). Schedule: daily 01:00 UTC. |
-| 3 | **Add PWA icons** | Drop `icon-192.png` + `icon-512.png` into `/public/icons/` (referenced from `manifest.json`). |
-| 4 | **Master 1024×1024 app icon** | Generate from the dove medallion for the eventual Capacitor native build. |
+| 1 | **Seed `crisis_lines`** so `chat-reply` can resolve a hotline from `profiles.country_code`. Verified empty: 0 rows on 2026-06-09. | `node scripts/seed_crisis_lines.js` (uses `gracenotes_crisis_lines.json`, 51 countries). Without this, the crisis branch falls back to a generic message with no country-specific hotline. |
+| 2 | **Schedule the grace-note cron in pg_cron**. Verified missing: `cron.job` only contains `process-email-queue` on 2026-06-09; `daily_grace_notes` is empty. | The repo's `supabase/migrations/20260529000002_gracenotes_v2_cron.sql` references GUCs (`app.supabase_url`, `app.service_role_key`) that aren't set on this project. Replace with a literal URL + the service-role key and run via `supabase--insert` (NOT a migration — it contains a secret). Schedule: daily 01:00 UTC. |
+| 3 | **Verify master app icon is true 1024×1024** before any Capacitor native build. `public/icons/icon-source.png` exists but its actual dimensions haven't been confirmed. App Store / Play Store both require a clean 1024 master. | `file public/icons/icon-source.png` or open in an editor. Re-export from the dove medallion if smaller. |
 
 ### ❌ Not started
 
