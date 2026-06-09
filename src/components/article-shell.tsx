@@ -154,7 +154,8 @@ export function ArticleShell({ article }: ArticleShellProps) {
             <div className="pt-2 flex flex-col sm:flex-row gap-3 items-center justify-center">
               <Link
                 to="/signup"
-                className="inline-block px-6 py-3 rounded-full bg-grace text-white font-semibold text-sm hover:bg-grace-deep transition"
+                className="inline-block px-6 py-3 rounded-full bg-grace font-semibold text-sm hover:bg-grace-deep transition"
+                style={{ color: "#ffffff" }}
               >
                 Create your free account
               </Link>
