@@ -81,10 +81,26 @@ export function ArticleShell({ article }: ArticleShellProps) {
         <p className="mt-4 text-white/60 text-xs">
           {article.readMinutes} min read · {formatDate(article.publishedAt)} · {author}
         </p>
+        {article.tags.length > 0 && (
+          <div className="mt-5 flex gap-2 flex-wrap justify-center">
+            {article.tags.map((t) => (
+              <Link
+                key={t}
+                to="/library"
+                search={{ tag: t }}
+                className="px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-white/90 hover:bg-white/25 transition"
+              >
+                {t}
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Cover */}
-      <section className="px-6 pb-10 relative z-10">
+      {/* Cover — hidden on desktop for Notes & Letters (background is already rich) */}
+      <section
+        className={`px-6 pb-10 relative z-10 ${article.kind === "notes" ? "md:hidden" : ""}`}
+      >
         <div className="max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-xl">
           <img
             src={article.cover}
