@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Headphones, Play, Loader2 } from "lucide-react";
 import { useAudioPlayer, type Track } from "@/hooks/use-audio-player";
@@ -16,68 +16,6 @@ export const Route = createFileRoute("/listen")({
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Listen /></AppShell></RequireAuth>,
 });
-
-const CATEGORIES = ["All", "Praise", "Worship", "Preaching", "Podcast"];
-const TYPES = ["All", "Video", "Audio"];
-
-// Fallback curated list — used until the `tracks` table is seeded.
-// Each track must have at least one category from CATEGORIES and a type.
-const FALLBACK: Track[] = [
-  {
-    id: "1",
-    title: "Goodness of God (Live)",
-    speaker: "Bethel Music",
-    categories: ["Praise", "Worship"],
-    type: "video",
-    youtubeId: "n0FBb6hnwTo",
-    thumb: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600",
-  },
-  {
-    id: "2",
-    title: "Stillness in His Presence",
-    speaker: "Soaking Worship",
-    categories: ["Worship"],
-    type: "video",
-    youtubeId: "yPwyTzajGtg",
-    thumb: "https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?w=600",
-  },
-  {
-    id: "3",
-    title: "The Lord's Prayer",
-    speaker: "Hillsong",
-    categories: ["Worship"],
-    type: "video",
-    youtubeId: "ngEzZLnnk2A",
-    thumb: "https://images.unsplash.com/photo-1508873696983-2dfd5898f08b?w=600",
-  },
-  {
-    id: "4",
-    title: "Walking by Faith",
-    speaker: "Daily Devotional",
-    categories: ["Preaching"],
-    type: "video",
-    youtubeId: "Q2DJ6CGcr3I",
-    thumb: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600",
-  },
-  {
-    id: "5",
-    title: "Way Maker",
-    speaker: "Leeland",
-    categories: ["Praise", "Worship"],
-    type: "video",
-    youtubeId: "29IxnsqOkmQ",
-    thumb: "https://images.unsplash.com/photo-1504333638930-c8787321eee0?w=600",
-  },
-  {
-    id: "6",
-    title: "Quiet the Noise",
-    speaker: "Reflection",
-    categories: ["Worship"],
-    type: "video",
-    youtubeId: "qWv8FBjLZ7Y",
-    thumb: "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?w=600",
-  },
-];
 
 function Listen() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -114,18 +52,24 @@ function Listen() {
         title: t.title,
         speaker: t.speaker,
         categories: t.categories ?? ["Worship"],
-        type: t.type ?? "video",
+        type: t.type ?? "audio",
         youtubeId: t.youtube_id ?? undefined,
         audioUrl: t.audio_url ?? undefined,
         thumb: t.thumb,
       }))
-    : FALLBACK;
+    : [];
+
+  // Derive category tags dynamically from loaded tracks — always matches
+  // exactly what's in the library; new folders appear automatically.
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    media.forEach((m) => m.categories.forEach((c) => seen.add(c)));
+    return ["All", ...Array.from(seen).sort()];
+  }, [media]);
 
   const filtered = media.filter((m) => {
-    const matchesCategory =
-      activeCategory === "All" || m.categories.includes(activeCategory);
-    const matchesType =
-      activeType === "All" || m.type === activeType.toLowerCase();
+    const matchesCategory = activeCategory === "All" || m.categories.includes(activeCategory);
+    const matchesType = activeType === "All" || m.type === activeType.toLowerCase();
     return matchesCategory && matchesType;
   });
 
@@ -148,9 +92,8 @@ function Listen() {
 
         {/* Type filter */}
         <div className="mb-4">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-white/50 mb-2">Type</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {TYPES.map((t) => (
+            {["All", "Audio", "Video"].map((t) => (
               <button
                 key={t}
                 onClick={() => setActiveType(t)}
@@ -166,11 +109,10 @@ function Listen() {
           </div>
         </div>
 
-        {/* Category filter */}
+        {/* Category filter — derived from live track data */}
         <div className="mb-6">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-white/50 mb-2">Category</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <button
                 key={c}
                 onClick={() => setActiveCategory(c)}
@@ -190,7 +132,7 @@ function Listen() {
         {filtered.length === 0 ? (
           <div className="text-center py-16 text-white/60">
             <p className="font-display text-2xl mb-2">Nothing here yet.</p>
-            <p className="text-sm">Try a different category or type.</p>
+            <p className="text-sm">Try a different category.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pb-32">
@@ -226,7 +168,6 @@ function Listen() {
                 </div>
               </button>
             ))}
-
           </div>
         )}
       </section>
