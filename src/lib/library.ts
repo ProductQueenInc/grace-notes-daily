@@ -65,6 +65,7 @@ export interface LibraryArticle {
   author?: string; // optional personal byline; defaults to "GraceNotes Daily"
   Body: ComponentType;
   faqs?: { q: string; a: string }[];
+  kind?: "foundations" | "notes"; // controls cover visibility / CTA shape
 }
 
 export const LIBRARY: LibraryArticle[] = [
