@@ -195,7 +195,7 @@ function SevenDayPrayerJournal() {
             ))}
           </div>
 
-          <div className="mt-12 glass rounded-2xl p-8 text-center">
+          <div className="mt-12 glass-on-hue rounded-2xl p-8 text-center">
             <DoveMark variant="medallion" className="w-14 h-14 mx-auto mb-4" />
             <h3 className="font-display text-2xl text-white mb-3">Continue the practice in GraceNotes Daily</h3>
             <p className="text-white/75 mb-6 text-sm leading-relaxed max-w-md mx-auto">
