@@ -27,10 +27,12 @@ function Listen() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   async function handlePlay(track: Track) {
+    // If this is already the loaded track, just toggle pause/play.
+    if (currentTrack?.id === track.id) {
+      toggle();
+      return;
+    }
     if (track.type === "audio" && track.audioUrl && !track.audioUrl.startsWith("http")) {
-      // audioUrl is a storage path — resolve a signed URL via the browser
-      // client (the user-facing Supabase project owns the listen-audio bucket;
-      // the bucket policy allows authenticated reads).
       setLoadingId(track.id);
       try {
         const { data, error } = await supabase
