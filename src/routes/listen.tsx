@@ -43,22 +43,28 @@ function Listen() {
 
   const { data } = useQuery({
     queryKey: ["tracks"],
-    queryFn: () => getTracks(),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tracks")
+        .select("id,title,speaker,categories,type,youtube_id,audio_url,thumb")
+        .eq("published", true)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
     staleTime: 5 * 60 * 1000,
   });
 
-  const media: Track[] = (data?.tracks ?? []).length
-    ? data!.tracks.map((t) => ({
-        id: t.id,
-        title: t.title,
-        speaker: t.speaker,
-        categories: t.categories ?? ["Worship"],
-        type: t.type ?? "audio",
-        youtubeId: t.youtube_id ?? undefined,
-        audioUrl: t.audio_url ?? undefined,
-        thumb: t.thumb,
-      }))
-    : [];
+  const media: Track[] = (data ?? []).map((t) => ({
+    id: t.id as string,
+    title: t.title as string,
+    speaker: t.speaker as string,
+    categories: (t.categories as string[] | null) ?? ["Worship"],
+    type: ((t.type as "video" | "audio" | null) ?? "audio"),
+    youtubeId: (t.youtube_id as string | null) ?? undefined,
+    audioUrl: (t.audio_url as string | null) ?? undefined,
+    thumb: t.thumb as string,
+  }));
 
   // Derive category tags dynamically from loaded tracks — always matches
   // exactly what's in the library; new folders appear automatically.
