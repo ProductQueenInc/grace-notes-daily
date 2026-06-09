@@ -1,47 +1,37 @@
-## Findings (verified against repo + live DB)
+## What I verified (so you can trust the edits)
 
-**Migrations exist in repo but were never applied to live DB.** Files `supabase/migrations/20260529000001_gracenotes_v2_step1_schema.sql` and `20260529000002_gracenotes_v2_cron.sql` define every "missing" object:
-- Tables: `verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`
-- RPCs: `select_verse_for_user`, `increment_session_message_count`
-- pg_cron schedule for `generate-daily-grace-notes`
+Ran direct checks against the repo and live DB. Here is what's actually true vs. what CLAUDE.md currently claims:
 
-Live DB has 15 tables, none of them from that migration pair. So both edge functions (`chat-reply`, `generate-daily-grace-notes`) and `use-daily-grace-note.ts` will fail at runtime today.
+| Claim in CLAUDE.md | Reality | Action |
+|---|---|---|
+| "v2 schema is applied; tables `verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags` exist" | True — all six tables present with RLS + policies | keep |
+| "RPCs `select_verse_for_user`, `increment_session_message_count` exist" | True (used by chat-reply) | keep |
+| Action #1: "Seed `crisis_lines`" still pending | True — `crisis_lines` is empty (0 rows). Without it, the crisis branch of `chat-reply` has no hotline to return. | keep, sharpen wording |
+| Action #2: "Schedule grace-note cron in pg_cron" still pending | True — only `process-email-queue` is scheduled in `cron.job`. `generate-daily-grace-notes` is NOT scheduled. `daily_grace_notes` has 0 rows. | keep, sharpen wording |
+| Action #3: "Add PWA icons" still pending | **FALSE.** `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `icon-source.png` all exist and are correctly referenced from both `manifest.json` and `__root.tsx`. | **remove** |
+| Action #4: "Master 1024×1024 app icon" pending | Partially false — `icon-source.png` exists in `public/icons/`. Still useful to note a true 1024 master is needed for App Store/Play Store later. | reword to "verify icon-source.png is 1024×1024 before native build" |
+| "Both paths use `claude-haiku-4-5`, temp 0.7" | True — verified at `ai.functions.ts:213` and `generate-daily-grace-notes/index.ts:115` | keep |
+| Files in §12 quick-reference (ai.functions.ts, ai-stubs.ts, personalization.ts, badges.ts, supabase.ts, use-daily-grace-note.ts, chat-reply, generate-daily-grace-notes, seed scripts, JSON libraries, capacitor.config.ts) | All exist | keep |
+| `verses` library "unseeded, currently unused" | True (0 rows; cron lets model pick its own verse) | keep |
+| Listen audio uses dummy URLs (`db/002_tracks.sql`) | File exists | keep |
+| Tally feedback button on all pages | `feedback-dialog.tsx` exists | keep |
+| `chat_flags`, `chat_sessions`, `crisis_lines` all backed by RLS | True (policies present) | keep |
 
-**Prompt drift confirmed.** `src/lib/ai.functions.ts:160` (the "God speaks as I" prompt with 5 worked examples + NO_EM_DASH_RULE) is the canonical version. The cron edge function ships a shorter, slightly different prompt and uses `claude-sonnet-4-6` while the fallback uses `claude-haiku-4-5`.
+Also worth noting (NOT changing without your approval — flagging for visibility):
+- `src/routes/login.tsx` uses `supabase.auth.signInWithOAuth("google", …)` directly instead of the Lovable broker (`lovable.auth.signInWithOAuth`). It works today on your domain, but the Lovable docs prefer the broker for managed OAuth. I'd leave this alone unless you hit a redirect/scope issue.
 
-## Plan
+## What I'll change in CLAUDE.md
 
-### 1. Apply the missing migrations to the live DB
-Run the two `20260529…` migration files as one approved migration so the live DB matches the repo. This unblocks the cron edge function, the chat-reply edge function, and `use-daily-grace-note.ts`.
-
-After approval and apply: seed `crisis_lines` via `scripts/seed_crisis_lines.js` and `verses` via `scripts/seed_verses.js` (note in CLAUDE.md as a one-time post-migration step).
-
-### 2. Unify the daily grace-note prompt
-Make `src/lib/ai.functions.ts:160`'s `system` prompt the single source of truth. Specifically:
-
-- Extract the full system prompt + the `NO_EM_DASH_RULE` from `src/lib/ai.functions.ts` into an exported constant, e.g. `GRACE_NOTE_SYSTEM_PROMPT(phaseDesc, seasons)`.
-- Rewrite `supabase/functions/generate-daily-grace-notes/index.ts` so its `GRACE_NOTE_PROMPT` is replaced by the same text (inlined — edge function can't import from `src/`). Keep the verse already chosen by `select_verse_for_user` and pass it through; the cron prompt must still instruct the model NOT to quote it.
-- Align the model: both paths use `claude-haiku-4-5` (cheap, fast, matches the fallback) unless we explicitly want Sonnet for cron — confirm with one line in CLAUDE.md.
-- Both paths run through `stripEmDashes` / `sanitizeGraceNote` equivalent before returning.
-
-### 3. Rewrite CLAUDE.md so it's a clean, truthful pickup doc
-
-Structure:
-
-1. **TL;DR — Where we are today** (3-5 bullets, current state of the world).
-2. **What's live in production** — only what's actually deployed AND backed by DB objects. Move `chat-reply` and `generate-daily-grace-notes` out of "✅ Complete" until step 1 lands; after step 1 lands, mark them ✅.
-3. **What's built but not yet active** — files/migrations/scripts that exist in the repo but need a one-time action (apply migration, run seed script, configure cron secret). Each entry names the file + the exact command.
-4. **What's not started** — push notifications, listen/audio signed URLs, background image upload script, Path B Capacitor native build.
-5. **Canonical references** — single-source-of-truth pointers:
-   - Daily grace note prompt: `src/lib/ai.functions.ts` (the exported constant from step 2). Used by both on-demand fallback and cron.
-   - Chat safety system: `supabase/functions/chat-reply/index.ts`.
-   - Profile shape, habit auto-mark rule, imagery policy, frontend conventions — keep the existing §2/§3/§4.1/§8a sections; they're still accurate.
-6. **Recent changes log** — keep chronological (2026-05-24, 2026-05-25, 2026-06-05, 2026-06-09 entry for this cleanup).
-7. **Quick reference table** — file -> purpose, including the new shared prompt constant.
-
-Remove or correct any claim CLAUDE.md currently makes that the codebase doesn't back up. After the rewrite, a fresh session reading CLAUDE.md alone should know exactly what runs, what's dormant, and what to do next.
+1. **TL;DR section**: drop the "PWA still needs `icon-192.png` / `icon-512.png`" line.
+2. **§2 "Built but inactive"**: delete action #3 (PWA icons) entirely. Reword #4 to: "Verify `public/icons/icon-source.png` is a true 1024×1024 master before any Capacitor native build." Tighten #1 and #2 with the exact verified status ("`crisis_lines` is empty — confirmed 0 rows", "no `generate-daily-grace-notes` job in `cron.job` — confirmed").
+3. **§2 "Live in production"**: append "(0 rows today — fills once cron is scheduled)" beside the `daily_grace_notes` reference so the next reader doesn't think it's broken.
+4. **§11 recent changes log**: add a 2026-06-09 bullet noting the doc QA pass and what was corrected (PWA icons removed from todo; cron + seed remain).
+5. **§12 quick-reference**: no changes — all entries verified.
 
 ## Out of scope
-- No UI changes.
-- No new features.
-- No changes to onboarding, habits, prayers, heart-notes, or any frontend convention.
+- No code changes.
+- No new migrations.
+- No frontend touches.
+- No changes to the canonical grace-note prompt or the chat-reply safety system.
+
+After you approve, I'll switch to build mode and make exactly the edits above — nothing else.
