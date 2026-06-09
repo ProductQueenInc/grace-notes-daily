@@ -335,7 +335,10 @@ function GlobalPlayer() {
       {!expanded && (
         <div className="fixed z-40 left-3 right-3 bottom-20 md:bottom-4 md:left-auto md:right-6 md:w-[360px] animate-slide-up pointer-events-auto">
           <div className="glass-on-hue rounded-2xl overflow-hidden flex items-center gap-3 p-2 relative">
-            <span className="absolute top-0 left-0 h-0.5 w-1/3 bg-gold/80 rounded-full" />
+            <span
+              className="absolute top-0 left-0 h-0.5 bg-gold rounded-full transition-[width]"
+              style={{ width: `${isAudio ? progressPct : 33}%` }}
+            />
             <button
               onClick={() => setExpanded(true)}
               className="flex items-center gap-3 flex-1 min-w-0 text-left"
