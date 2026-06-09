@@ -1,0 +1,9 @@
+# Audio files
+*.mp3
+*.wav
+*.aiff
+*.m4a
+
+# Empty episode folders (Audio and Clips populated during production)
+Season01/*/Audio/
+Season01/*/Clips/
