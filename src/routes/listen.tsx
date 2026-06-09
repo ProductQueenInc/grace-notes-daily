@@ -9,7 +9,7 @@ import { useAudioPlayer, type Track } from "@/hooks/use-audio-player";
 import { Icon } from "@/components/icon";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
-import { getTracks } from "@/lib/tracks.functions";
+import { supabase } from "@/lib/supabase";
 import { getSignedAudioUrl } from "@/lib/listen-audio.functions";
 
 export const Route = createFileRoute("/listen")({
