@@ -15,6 +15,7 @@ import { openTallyForm } from "@/lib/tally";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Icon } from "@/components/icon";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { PlayingBars } from "@/components/playing-bars";
 
 import appCss from "../styles.css?url";
 
