@@ -232,11 +232,19 @@ Respond with valid JSON only - no markdown, no code fences:
 
 async function generateDevotionalRaw(p: AIProfile): Promise<DevotionalResult> {
   const client = anthropic();
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // Use the client's local date if supplied so the date in the devotional
+  // matches the user's actual calendar day, not the server's UTC clock.
+  const today = p.clientDate
+    ? new Date(p.clientDate + "T12:00:00").toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
   const system = `Write today's devotional for ${p.name}, a Christian ${phaseDesc(p.faithPhase)}.
 Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
@@ -245,6 +253,8 @@ Third-person teaching voice (not a letter from God). One unified spiritual thoug
 Open with a small concrete tension - move through biblical insight - land on one practical thing to do or hold today.
 Be biblically grounded. Be specific. Never preachy. Never generic.
 Don't reference time of day or what part of the day this is being read.
+
+GENDER RULE: Never use gendered pronouns (he, she, him, her, his, hers) to refer to the reader. Use "you" and "your" for direct address. If third-person reference is unavoidable, use "they" or "them." We do not know the reader's gender and must never assume it.
 
 ${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}
@@ -340,7 +350,23 @@ export const getOrCreateDevotional = createServerFn({ method: "POST" })
       .eq("date", date)
       .maybeSingle();
 
-    if (cached?.devotional) return cached.devotional as DevotionalResult;
+    if (cached?.devotional) {
+      // Always stamp the correct display date regardless of when the cache was
+      // written — prevents stale dates from old cached devotionals showing up.
+      const devotional = cached.devotional as DevotionalResult;
+      const displayDate = data.clientDate
+        ? new Date(data.clientDate + "T12:00:00").toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+      return { ...devotional, date: displayDate };
+    }
 
     const result = await generateDevotionalRaw(data);
     await supabase
