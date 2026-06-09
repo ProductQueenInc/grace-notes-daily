@@ -229,10 +229,12 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
-### 2026-06-09 (PM) — Completed pending actions
+### 2026-06-09 (PM) — Completed pending actions + Listen media scaffold
 - Seeded `public.crisis_lines` with all 51 verified entries from `gracenotes_crisis_lines.json`. `chat-reply` crisis branch now resolves country-specific hotlines via `profiles.country_code`. Re-verify entries every 6 months (numbers change).
 - Scheduled pg_cron job `generate-daily-grace-notes` at `0 1 * * *` (daily 01:00 UTC, active). Bearer token reads from `vault.decrypted_secrets.email_queue_service_role_key` (existing secret, same service-role key the email queue uses — no new secret added). First populated row in `daily_grace_notes` will appear after the next 01:00 UTC tick.
 - Verified `public/icons/icon-source.png` is 1254×1254. Larger than the 1024 store minimum; safe to downscale when Capacitor native build lands. No action needed today.
+- Created private Supabase Storage bucket `listen-audio` (no public read) and shipped `src/lib/listen-audio.functions.ts` exporting `getSignedAudioUrl` — auth-gated, path-validated, returns a 1-hour signed URL. Ready for Suno MP3 uploads + `tracks` row wiring + `<PlayerDock />` resolver.
+
 
 ### 2026-06-09 — CLAUDE.md QA pass
 - Verified every "live in production" and "pending action" claim against the repo and live DB.
