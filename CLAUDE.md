@@ -57,7 +57,8 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Tally feedback button (all pages) | `src/components/feedback-dialog.tsx`, loaded in `__root.tsx` |
 | v2 schema applied (verses, crisis_lines, user_verse_log, daily_grace_notes, chat_sessions, chat_flags, RPCs `select_verse_for_user` and `increment_session_message_count`) | Live DB as of 2026-06-09 |
 | `chat-reply` edge function (3-tier safety + streaming SSE) — DB now backs it | `supabase/functions/chat-reply/index.ts` |
-| `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5) | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5). Note: `daily_grace_notes` table is empty (0 rows) until pg_cron is scheduled — see §2 action #2. | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| PWA icons (192, 512, apple-touch-180) wired into manifest + `__root.tsx` | `public/icons/`, `public/manifest.json` |
 
 ### ⏳ Built but inactive until a one-time action is taken
 
