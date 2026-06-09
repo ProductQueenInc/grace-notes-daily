@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-06-09**.
+Last updated: **2026-06-09** (afternoon pass — pending actions completed).
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -11,12 +11,13 @@ This document hands the **backend + AI wiring** of GraceNotes Daily over to whoe
 - **Frontend**: complete and stable. Don't touch design tokens, sidebar, AppShell, NatureBackground, PageHeader, PlayerDock, icon wrapper, onboarding step structure, habit auto-mark rule, or imagery policy.
 - **Auth**: live. Email/password + Google OAuth (login + signup buttons + `/auth/callback`). Email PII is hardened.
 - **AI app logic**: TanStack `createServerFn` in `src/lib/ai.functions.ts` — grace note, devotional, heart note, daily-chat (legacy non-streaming). All sanitized for em-dashes. The grace-note system prompt at **`src/lib/ai.functions.ts:160`** is the canonical voice and the single source of truth (see §5).
-- **Backend storage**: the v2 schema (`verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`) is now applied to the live database with proper RLS + GRANTs (as of 2026-06-09). Previously the migration files existed in the repo but had never been run.
-- **Edge functions**: `chat-reply` (chat safety + streaming SSE) and `generate-daily-grace-notes` (overnight cron) are deployed. Both now talk to real tables.
-- **What's NOT done yet**: pg_cron schedule for grace notes is not wired in the live DB (verified: only `process-email-queue` is in `cron.job`); `crisis_lines` is empty (verified: 0 rows); verses library is unused (cron lets the model pick); Listen audio uses dummy URLs; no push notifications; no native (Capacitor) build.
-- **PWA icons**: shipped. `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png` exist and are wired into `manifest.json` and `__root.tsx`. Home-screen install + favicon render correctly on web and mobile.
+- **Backend storage**: the v2 schema (`verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`) is live with proper RLS + GRANTs.
+- **Edge functions**: `chat-reply` (chat safety + streaming SSE) and `generate-daily-grace-notes` (overnight cron) are deployed and now fully wired — `crisis_lines` seeded (51 countries) and pg_cron scheduled (daily 01:00 UTC).
+- **PWA icons**: shipped and verified. Master `icon-source.png` is **1254×1254** (larger than the 1024 minimum, safe to downscale for App Store / Play Store when native build lands).
+- **What's NOT done yet**: verses library is still unused (cron lets the model pick its own verse); Listen audio uses dummy URLs; no push notifications; no native (Capacitor) build.
 
-> **Checkpoint:** "MVP UI + v2 backend live" — this version is the rollback target.
+> **Checkpoint:** "MVP UI + v2 backend live + cron + crisis lines seeded" — this version is the rollback target.
+
 
 ---
 
