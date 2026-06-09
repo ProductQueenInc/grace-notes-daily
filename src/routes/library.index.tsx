@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
@@ -7,7 +7,16 @@ import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
 import { LIBRARY, ALL_TAGS, SERIES, BASE_URL, type LibraryTag } from "@/lib/library";
 
+type LibrarySearch = { tag?: LibraryTag | "All" };
+
 export const Route = createFileRoute("/library/")({
+  validateSearch: (search: Record<string, unknown>): LibrarySearch => {
+    const t = search.tag;
+    if (typeof t === "string" && (t === "All" || (ALL_TAGS as string[]).includes(t))) {
+      return { tag: t as LibraryTag | "All" };
+    }
+    return {};
+  },
   head: () => ({
     meta: [
       { title: "Notes & Letters — GraceNotes Daily" },
@@ -34,7 +43,11 @@ export const Route = createFileRoute("/library/")({
 function LibraryHub() {
   const { session, loading } = useAuth();
   const isLoggedIn = !loading && !!session;
-  const [activeTag, setActiveTag] = useState<LibraryTag | "All">("All");
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/library/" });
+  const activeTag: LibraryTag | "All" = search.tag ?? "All";
+  const setActiveTag = (t: LibraryTag | "All") =>
+    navigate({ search: t === "All" ? {} : { tag: t }, replace: true });
 
   const seriesArticles = useMemo(
     () =>

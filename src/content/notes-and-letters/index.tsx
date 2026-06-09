@@ -129,11 +129,14 @@ export const NOTES_AND_LETTERS: LibraryArticle[] = Object.values(rawFiles)
     const { front, body } = parseFrontmatter(raw);
     const meta = META[front.slug];
     const html = bodyToHtml(body);
-    const podcastUrl = front.podcast_url;
+    // Spotify episodes aren't published yet — hide the "Listen on Spotify"
+    // chip until episodes are live. Re-enable by flipping this flag.
+    const SHOW_SPOTIFY = false;
+    const podcastUrl = SHOW_SPOTIFY ? front.podcast_url : undefined;
     const podcastEpisode = front.podcast_episode;
 
     const Body = () => (
-      <div className="glass-parchment rounded-3xl p-8 md:p-10 space-y-5">
+      <div className="glass-parchment rounded-3xl p-8 md:p-12 space-y-5 shadow-xl ring-1 ring-grace/10">
         {podcastUrl && (
           <a
             href={podcastUrl}
@@ -155,7 +158,7 @@ export const NOTES_AND_LETTERS: LibraryArticle[] = Object.values(rawFiles)
           </a>
         )}
         <div
-          className="notes-prose text-foreground/80 leading-relaxed"
+          className="notes-prose text-foreground/85 leading-relaxed"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </div>
@@ -174,6 +177,7 @@ export const NOTES_AND_LETTERS: LibraryArticle[] = Object.values(rawFiles)
       readMinutes: readMinutesFrom(front.reading_time, body),
       author: front.author,
       Body,
+      kind: "notes",
     } satisfies LibraryArticle;
   })
   .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
