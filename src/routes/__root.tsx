@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -9,7 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { MessageCircle, Pause, Play, X, ChevronUp, ChevronDown } from "lucide-react";
+import { MessageCircle, Pause, Play, X, ChevronUp, ChevronDown, Rewind, FastForward } from "lucide-react";
 
 import { openTallyForm } from "@/lib/tally";
 import { FeedbackDialog } from "@/components/feedback-dialog";
@@ -139,6 +139,9 @@ function GlobalPlayer() {
   const { track, isPlaying, toggle, close, setExpanded, expanded } = useAudioPlayer();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const sendYT = (func: "playVideo" | "pauseVideo") => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -164,23 +167,50 @@ function GlobalPlayer() {
     }
   }, [isPlaying, track?.youtubeId, track?.audioUrl]);
 
+  // Reset time on track change
+  useEffect(() => {
+    setCurrentTime(0);
+    setDuration(0);
+  }, [track?.id]);
+
   if (!track) return null;
 
   const categoriesLabel = track.categories.join(" · ");
+  const isAudio = !track.youtubeId && !!track.audioUrl;
+
+  const fmt = (s: number) => {
+    if (!Number.isFinite(s) || s < 0) return "0:00";
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  const seekBy = (delta: number) => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.currentTime = Math.max(0, Math.min((a.duration || 0), a.currentTime + delta));
+    setCurrentTime(a.currentTime);
+  };
+
+  const seekTo = (sec: number) => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.currentTime = sec;
+    setCurrentTime(sec);
+  };
+
+  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <>
-      {/* ── Expanded modal ──────────────────────────────────────────────
-          display:none keeps the iframe alive in the DOM.
-          Our header bar sits above the iframe; YouTube's UI stays inside
-          the iframe box — zero overlap with our controls.                 */}
+      {/* ── Expanded modal ── */}
       <div
         style={{ display: expanded ? "flex" : "none" }}
         className="fixed inset-0 z-[60] items-center justify-center bg-black/80 backdrop-blur-sm p-4"
       >
         <div className="w-full max-w-3xl glass-on-hue rounded-3xl overflow-hidden shadow-2xl">
 
-          {/* Controls — above the video, never inside the iframe */}
+          {/* Controls — above the video */}
           <div className="flex items-center justify-between gap-4 p-4">
             <div className="min-w-0">
               <p className="font-semibold text-white leading-tight truncate">{track.title}</p>
@@ -189,13 +219,6 @@ function GlobalPlayer() {
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={toggle}
-                className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition"
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                <Icon icon={isPlaying ? Pause : Play} size="sm" tone="inherit" />
-              </button>
               <button
                 onClick={() => setExpanded(false)}
                 className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition"
@@ -213,7 +236,7 @@ function GlobalPlayer() {
             </div>
           </div>
 
-          {/* YouTube — contained box, never full-screen */}
+          {/* YouTube */}
           {track.youtubeId && (
             <div className="aspect-video bg-black">
               <iframe
@@ -227,15 +250,65 @@ function GlobalPlayer() {
             </div>
           )}
 
-          {/* Audio-only expanded view */}
-          {!track.youtubeId && track.audioUrl && (
+          {/* Audio-only expanded view with full transport */}
+          {isAudio && (
             <div className="p-8 pb-10 text-center">
               <div
                 className="w-40 h-40 mx-auto rounded-2xl bg-cover bg-center shadow-xl mb-6"
                 style={{ backgroundImage: `url(${track.thumb})` }}
               />
               <p className="font-display text-xl text-white mb-1">{track.title}</p>
-              <p className="text-sm text-white/70">{track.speaker}</p>
+              <p className="text-sm text-white/70 mb-6">{track.speaker}</p>
+
+              {/* Scrubber */}
+              <div className="max-w-md mx-auto px-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  step={0.1}
+                  value={currentTime}
+                  onMouseDown={() => setIsScrubbing(true)}
+                  onTouchStart={() => setIsScrubbing(true)}
+                  onMouseUp={() => setIsScrubbing(false)}
+                  onTouchEnd={() => setIsScrubbing(false)}
+                  onChange={(e) => seekTo(Number(e.target.value))}
+                  aria-label="Seek"
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-gold"
+                  style={{
+                    background: `linear-gradient(to right, var(--gold) 0%, var(--gold) ${progressPct}%, rgba(255,255,255,0.18) ${progressPct}%, rgba(255,255,255,0.18) 100%)`,
+                  }}
+                />
+                <div className="flex justify-between text-[11px] text-white/70 mt-1.5 tabular-nums">
+                  <span>{fmt(currentTime)}</span>
+                  <span>{fmt(duration)}</span>
+                </div>
+              </div>
+
+              {/* Transport controls */}
+              <div className="flex items-center justify-center gap-4 mt-6">
+                <button
+                  onClick={() => seekBy(-15)}
+                  className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition"
+                  aria-label="Rewind 15 seconds"
+                >
+                  <Rewind className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={toggle}
+                  className="w-14 h-14 rounded-full bg-gold hover:scale-105 text-white flex items-center justify-center shadow-lg transition"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                >
+                  {isPlaying ? <Pause className="w-6 h-6" fill="currentColor" /> : <Play className="w-6 h-6 ml-0.5" fill="currentColor" />}
+                </button>
+                <button
+                  onClick={() => seekBy(15)}
+                  className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition"
+                  aria-label="Forward 15 seconds"
+                >
+                  <FastForward className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           )}
 
@@ -243,20 +316,29 @@ function GlobalPlayer() {
       </div>
 
       {/* ── Persistent audio element (audio-only tracks) ── */}
-      {!track.youtubeId && track.audioUrl && (
+      {isAudio && (
         <audio
           ref={audioRef}
           src={track.audioUrl}
           autoPlay={isPlaying}
+          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
+          onTimeUpdate={(e) => {
+            if (!isScrubbing) setCurrentTime(e.currentTarget.currentTime);
+          }}
+          onDurationChange={(e) => setDuration(e.currentTarget.duration || 0)}
           style={{ display: "none" }}
         />
       )}
+
 
       {/* ── Mini dock ── */}
       {!expanded && (
         <div className="fixed z-40 left-3 right-3 bottom-20 md:bottom-4 md:left-auto md:right-6 md:w-[360px] animate-slide-up pointer-events-auto">
           <div className="glass-on-hue rounded-2xl overflow-hidden flex items-center gap-3 p-2 relative">
-            <span className="absolute top-0 left-0 h-0.5 w-1/3 bg-gold/80 rounded-full" />
+            <span
+              className="absolute top-0 left-0 h-0.5 bg-gold rounded-full transition-[width]"
+              style={{ width: `${isAudio ? progressPct : 33}%` }}
+            />
             <button
               onClick={() => setExpanded(true)}
               className="flex items-center gap-3 flex-1 min-w-0 text-left"
