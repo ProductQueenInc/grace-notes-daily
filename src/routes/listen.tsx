@@ -27,12 +27,20 @@ function Listen() {
 
   async function handlePlay(track: Track) {
     if (track.type === "audio" && track.audioUrl && !track.audioUrl.startsWith("http")) {
-      // audioUrl is a storage path — resolve a signed URL before playing
+      // audioUrl is a storage path — resolve a signed URL via the browser
+      // client (the user-facing Supabase project owns the listen-audio bucket;
+      // the bucket policy allows authenticated reads).
       setLoadingId(track.id);
       try {
-        const { url, error } = await getSignedAudioUrl({ data: { path: track.audioUrl } });
-        if (error || !url) throw new Error(error ?? "Could not load audio");
-        play({ ...track, audioUrl: url });
+        const { data, error } = await supabase
+          .storage
+          .from("listen-audio")
+          .createSignedUrl(track.audioUrl, 3600);
+        if (error || !data?.signedUrl) {
+          console.error("createSignedUrl failed:", error?.message);
+          throw new Error(error?.message ?? "Could not load audio");
+        }
+        play({ ...track, audioUrl: data.signedUrl });
       } finally {
         setLoadingId(null);
       }
