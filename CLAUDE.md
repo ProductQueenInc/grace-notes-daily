@@ -228,6 +228,11 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-06-09 (PM) — Completed pending actions
+- Seeded `public.crisis_lines` with all 51 verified entries from `gracenotes_crisis_lines.json`. `chat-reply` crisis branch now resolves country-specific hotlines via `profiles.country_code`. Re-verify entries every 6 months (numbers change).
+- Scheduled pg_cron job `generate-daily-grace-notes` at `0 1 * * *` (daily 01:00 UTC, active). Bearer token reads from `vault.decrypted_secrets.email_queue_service_role_key` (existing secret, same service-role key the email queue uses — no new secret added). First populated row in `daily_grace_notes` will appear after the next 01:00 UTC tick.
+- Verified `public/icons/icon-source.png` is 1254×1254. Larger than the 1024 store minimum; safe to downscale when Capacitor native build lands. No action needed today.
+
 ### 2026-06-09 — CLAUDE.md QA pass
 - Verified every "live in production" and "pending action" claim against the repo and live DB.
 - Removed stale action #3 ("Add PWA icons") — icons are already in `public/icons/` and wired into `manifest.json` + `__root.tsx`. Confirmed working on user's home-screen install + favicon.
