@@ -9,8 +9,8 @@ import { useAudioPlayer, type Track } from "@/hooks/use-audio-player";
 import { Icon } from "@/components/icon";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
+import { getTracks } from "@/lib/tracks.functions";
 import { supabase } from "@/lib/supabase";
-import { getSignedAudioUrl } from "@/lib/listen-audio.functions";
 
 export const Route = createFileRoute("/listen")({
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
@@ -27,12 +27,20 @@ function Listen() {
 
   async function handlePlay(track: Track) {
     if (track.type === "audio" && track.audioUrl && !track.audioUrl.startsWith("http")) {
-      // audioUrl is a storage path — resolve a signed URL before playing
+      // audioUrl is a storage path — resolve a signed URL via the browser
+      // client (the user-facing Supabase project owns the listen-audio bucket;
+      // the bucket policy allows authenticated reads).
       setLoadingId(track.id);
       try {
-        const { url, error } = await getSignedAudioUrl({ data: { path: track.audioUrl } });
-        if (error || !url) throw new Error(error ?? "Could not load audio");
-        play({ ...track, audioUrl: url });
+        const { data, error } = await supabase
+          .storage
+          .from("listen-audio")
+          .createSignedUrl(track.audioUrl, 3600);
+        if (error || !data?.signedUrl) {
+          console.error("createSignedUrl failed:", error?.message);
+          throw new Error(error?.message ?? "Could not load audio");
+        }
+        play({ ...track, audioUrl: data.signedUrl });
       } finally {
         setLoadingId(null);
       }
@@ -43,28 +51,22 @@ function Listen() {
 
   const { data } = useQuery({
     queryKey: ["tracks"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tracks")
-        .select("id,title,speaker,categories,type,youtube_id,audio_url,thumb")
-        .eq("published", true)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => getTracks(),
     staleTime: 5 * 60 * 1000,
   });
 
-  const media: Track[] = (data ?? []).map((t) => ({
-    id: t.id as string,
-    title: t.title as string,
-    speaker: t.speaker as string,
-    categories: (t.categories as string[] | null) ?? ["Worship"],
-    type: ((t.type as "video" | "audio" | null) ?? "audio"),
-    youtubeId: (t.youtube_id as string | null) ?? undefined,
-    audioUrl: (t.audio_url as string | null) ?? undefined,
-    thumb: t.thumb as string,
-  }));
+  const media: Track[] = (data?.tracks ?? []).length
+    ? data!.tracks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        speaker: t.speaker,
+        categories: t.categories ?? ["Worship"],
+        type: t.type ?? "audio",
+        youtubeId: t.youtube_id ?? undefined,
+        audioUrl: t.audio_url ?? undefined,
+        thumb: t.thumb,
+      }))
+    : [];
 
   // Derive category tags dynamically from loaded tracks — always matches
   // exactly what's in the library; new folders appear automatically.
@@ -100,10 +102,10 @@ function Listen() {
         {/* Type filter */}
         <div className="mb-4">
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {["Audio", "Video"].map((t) => (
+            {["All", "Audio", "Video"].map((t) => (
               <button
                 key={t}
-                onClick={() => setActiveType((curr) => (curr === t ? "All" : t))}
+                onClick={() => setActiveType(t)}
                 className={`px-4 py-1.5 rounded-full text-sm shrink-0 transition border ${
                   activeType === t
                     ? "bg-white/20 text-white border-white/30"
