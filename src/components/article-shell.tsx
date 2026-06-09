@@ -37,13 +37,23 @@ export function ArticleShell({ article }: ArticleShellProps) {
     <>
       <NatureBackground />
 
+      {/* Darkening scrim behind hero so white text stays legible over bright canopy spots */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[70vh] z-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(10,30,18,0.55) 0%, rgba(10,30,18,0.35) 35%, rgba(10,30,18,0.15) 65%, rgba(10,30,18,0) 100%)",
+        }}
+      />
+
       <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
         <Link to="/" className="flex items-center gap-2">
           <DoveMark variant="medallion" className="w-10 h-10" />
           <span className="font-display text-2xl">GraceNotes Daily</span>
         </Link>
         <div className="flex items-center gap-3">
-          <Link to="/library" className="hidden sm:inline text-white/80 hover:text-white text-sm">
+          <Link to="/library" className="hidden sm:inline text-white/90 hover:text-white text-sm">
             Notes &amp; Letters
           </Link>
           {isLoggedIn ? (
@@ -59,8 +69,8 @@ export function ArticleShell({ article }: ArticleShellProps) {
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-8 pb-6 relative z-10 text-center max-w-4xl mx-auto">
-        <div className="text-xs text-white/70 mb-3 flex items-center justify-center gap-2 flex-wrap">
+      <section className="px-6 pt-8 pb-6 relative z-10 text-center max-w-4xl mx-auto [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
+        <div className="text-sm text-white/95 mb-3 flex items-center justify-center gap-2 flex-wrap font-medium">
           <Link to="/library" className="hover:text-gold transition">
             Notes &amp; Letters
           </Link>
@@ -74,11 +84,13 @@ export function ArticleShell({ article }: ArticleShellProps) {
             </>
           )}
         </div>
-        <h1 className="font-display text-4xl md:text-6xl text-white drop-shadow leading-tight">
+        <h1 className="font-display text-4xl md:text-6xl text-white leading-tight [text-shadow:0_2px_6px_rgba(0,0,0,0.45)]">
           {article.title}
         </h1>
-        <p className="mt-4 text-white/80 text-lg max-w-2xl mx-auto">{article.lede}</p>
-        <p className="mt-4 text-white/60 text-xs">
+        <p className="mt-4 text-white text-lg max-w-2xl mx-auto font-medium leading-relaxed">
+          {article.lede}
+        </p>
+        <p className="mt-4 text-white/85 text-sm font-medium">
           {article.readMinutes} min read · {formatDate(article.publishedAt)} · {author}
         </p>
         {article.tags.length > 0 && (
@@ -88,7 +100,7 @@ export function ArticleShell({ article }: ArticleShellProps) {
                 key={t}
                 to="/library"
                 search={{ tag: t }}
-                className="px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-white/90 hover:bg-white/25 transition"
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-black/35 text-white border border-white/25 backdrop-blur-sm hover:bg-black/50 hover:border-white/40 transition [text-shadow:none]"
               >
                 {t}
               </Link>
