@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import * as PrayerJournaling from "@/content/library/prayer-journaling";
 import * as DailyDevotional from "@/content/library/daily-devotional";
 import * as ChristianJournaling from "@/content/library/christian-journaling";
+import { NOTES_AND_LETTERS } from "@/content/notes-and-letters";
 
 export type LibraryTag =
   | "Prayer"
@@ -9,7 +10,14 @@ export type LibraryTag =
   | "Devotional"
   | "Habits"
   | "Beginning"
-  | "Seasons";
+  | "Seasons"
+  | "Family"
+  | "Doubt"
+  | "Work"
+  | "Grief"
+  | "Singleness"
+  | "Identity"
+  | "Waiting";
 
 export const ALL_TAGS: LibraryTag[] = [
   "Prayer",
@@ -18,6 +26,13 @@ export const ALL_TAGS: LibraryTag[] = [
   "Habits",
   "Beginning",
   "Seasons",
+  "Identity",
+  "Family",
+  "Work",
+  "Grief",
+  "Doubt",
+  "Singleness",
+  "Waiting",
 ];
 
 export interface LibrarySeries {
@@ -104,6 +119,7 @@ export const LIBRARY: LibraryArticle[] = [
     Body: ChristianJournaling.Body,
     faqs: ChristianJournaling.faqs,
   },
+  ...NOTES_AND_LETTERS,
 ];
 
 export const BASE_URL = "https://www.gracenotesdaily.com";
