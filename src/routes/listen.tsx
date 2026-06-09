@@ -30,8 +30,9 @@ function Listen() {
       // audioUrl is a storage path — resolve a signed URL before playing
       setLoadingId(track.id);
       try {
-        const { signedUrl } = await getSignedAudioUrl({ data: { path: track.audioUrl } });
-        play({ ...track, audioUrl: signedUrl });
+        const { url, error } = await getSignedAudioUrl({ data: { path: track.audioUrl } });
+        if (error || !url) throw new Error(error ?? "Could not load audio");
+        play({ ...track, audioUrl: url });
       } finally {
         setLoadingId(null);
       }
