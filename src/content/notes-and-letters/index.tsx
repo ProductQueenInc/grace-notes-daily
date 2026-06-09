@@ -108,8 +108,14 @@ function bodyToHtml(body: string): string {
     .replace(/^\s*\*By [^*]+\*\r?\n/, "")
     .replace(/^\s*---\r?\n/, "");
   let html = marked.parse(cleaned, { async: false }) as string;
-  // Highlight parenthetical scripture refs like (Luke 22:62), (1 Samuel 1-2), (John 21:15-17).
-  // Match: optional 1-3 prefix, capitalised book, optional second word, chapter, optional :verse(-verse).
+  // Inline scripture refs WITH chapter:verse (no parens), e.g. "Proverbs 16:3 says..."
+  // Must require the colon form to avoid false positives like dates or "World War 2".
+  // Negative lookbehind on "(" so we don't double-wrap parenthetical refs handled below.
+  html = html.replace(
+    /(?<![(\w>])((?:[1-3]\s)?[A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s\d+:\d+(?:-\d+)?)\b/g,
+    '<span class="scripture-ref inline">$1</span>',
+  );
+  // Parenthetical scripture refs like (Luke 22:62), (1 Samuel 1-2), (John 21:15-17).
   html = html.replace(
     /\(((?:[1-3]\s)?[A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s\d+(?::\d+(?:-\d+)?)?)\)/g,
     '<span class="scripture-ref">$1</span>',
