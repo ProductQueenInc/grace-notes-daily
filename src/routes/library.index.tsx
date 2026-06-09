@@ -43,7 +43,11 @@ export const Route = createFileRoute("/library/")({
 function LibraryHub() {
   const { session, loading } = useAuth();
   const isLoggedIn = !loading && !!session;
-  const [activeTag, setActiveTag] = useState<LibraryTag | "All">("All");
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/library/" });
+  const activeTag: LibraryTag | "All" = search.tag ?? "All";
+  const setActiveTag = (t: LibraryTag | "All") =>
+    navigate({ search: t === "All" ? {} : { tag: t }, replace: true });
 
   const seriesArticles = useMemo(
     () =>
