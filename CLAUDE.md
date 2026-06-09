@@ -294,6 +294,7 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 | Daily chat | `src/hooks/use-daily-chat.ts` |
 | Daily grace note (client) | `src/hooks/use-daily-grace-note.ts` |
 | Audio player | `src/hooks/use-audio-player.ts` |
+| Listen signed-URL fn (private `listen-audio` bucket) | `src/lib/listen-audio.functions.ts` |
 | Share / download UI | `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx` |
 | Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Verses library seed (unused for now) | `scripts/seed_verses.js`, `gracenotes_verse_library.json` |
