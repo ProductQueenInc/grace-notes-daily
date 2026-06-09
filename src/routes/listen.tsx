@@ -4,9 +4,10 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Headphones, Play, Loader2 } from "lucide-react";
+import { Headphones, Play, Pause, Loader2 } from "lucide-react";
 import { useAudioPlayer, type Track } from "@/hooks/use-audio-player";
 import { Icon } from "@/components/icon";
+import { PlayingBars } from "@/components/playing-bars";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
@@ -21,7 +22,7 @@ function Listen() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeType, setActiveType] = useState("All");
   const { profile } = useAuth();
-  const { play } = useAudioPlayer();
+  const { play, toggle, track: currentTrack, isPlaying } = useAudioPlayer();
   const railTitle = pickListenRailTitle(profile);
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
