@@ -103,13 +103,13 @@ function Listen() {
       <section className="max-w-6xl mx-auto px-4 md:px-8 md:pt-10" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 3.5rem, 4rem)" }}>
         {/* Header */}
         <div className="mb-8 fade-up">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-white/70 mb-2">
+          <p className="inline-block text-[11px] uppercase tracking-[0.22em] text-white font-semibold mb-2 px-2.5 py-1 rounded-full bg-black/35 backdrop-blur-sm">
             {railTitle}
           </p>
           <h1 className="font-display text-4xl md:text-5xl text-white leading-tight max-w-2xl">
             Soundscapes for a held heart.
           </h1>
-          <p className="text-white/75 mt-2 max-w-xl flex items-center gap-2">
+          <p className="text-white/85 mt-2 max-w-xl flex items-center gap-2">
             <Icon icon={Headphones} size="sm" tone="hue" /> Worship, prayer, and teaching to walk with you.
           </p>
         </div>
@@ -121,10 +121,10 @@ function Listen() {
               <button
                 key={t}
                 onClick={() => setActiveType(t)}
-                className={`px-4 py-1.5 rounded-full text-sm shrink-0 transition border ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium shrink-0 transition border ${
                   activeType === t
-                    ? "bg-white/20 text-white border-white/30"
-                    : "bg-white/8 text-white/80 border-white/15 hover:bg-white/12"
+                    ? "bg-white text-[var(--grace-deep)] border-white shadow-sm"
+                    : "bg-black/35 text-white border-white/30 hover:bg-black/45 backdrop-blur-sm"
                 }`}
               >
                 {t}
@@ -140,10 +140,10 @@ function Listen() {
               <button
                 key={c}
                 onClick={() => setActiveCategory(c)}
-                className={`px-4 py-1.5 rounded-full text-sm shrink-0 transition border ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium shrink-0 transition border ${
                   activeCategory === c
-                    ? "bg-white/20 text-white border-white/30"
-                    : "bg-white/8 text-white/80 border-white/15 hover:bg-white/12"
+                    ? "bg-white text-[var(--grace-deep)] border-white shadow-sm"
+                    : "bg-black/35 text-white border-white/30 hover:bg-black/45 backdrop-blur-sm"
                 }`}
               >
                 {c}
@@ -160,25 +160,57 @@ function Listen() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pb-32">
-            {filtered.map((m) => (
+            {filtered.map((m) => {
+              const isActive = currentTrack?.id === m.id;
+              const isThisPlaying = isActive && isPlaying;
+              const isLoading = loadingId === m.id;
+              return (
               <button
                 key={m.id}
                 onClick={() => handlePlay(m)}
-                disabled={loadingId === m.id}
-                className="glass-on-hue rounded-2xl overflow-hidden text-left group hover:scale-[1.01] transition disabled:opacity-70 disabled:cursor-wait"
+                disabled={isLoading}
+                aria-label={isThisPlaying ? `Pause ${m.title}` : `Play ${m.title}`}
+                className={`glass-on-hue rounded-2xl overflow-hidden text-left group hover:scale-[1.01] transition disabled:cursor-wait ${
+                  isActive ? "ring-2 ring-gold shadow-lg shadow-gold/20" : ""
+                }`}
               >
                 {/* Thumbnail */}
                 <div
                   className="relative aspect-video bg-cover bg-center"
                   style={{ backgroundImage: `url(${m.thumb})` }}
                 >
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition" />
+                  <div className={`absolute inset-0 transition ${isActive ? "bg-black/40" : "bg-black/10 group-hover:bg-black/20"}`} />
+                  {/* Play / Pause overlay button */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span
+                      className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition ${
+                        isThisPlaying
+                          ? "bg-gold text-white scale-100"
+                          : isActive
+                            ? "bg-white text-[var(--grace-deep)] scale-100"
+                            : "bg-white/90 text-[var(--grace-deep)] scale-90 group-hover:scale-100"
+                      }`}
+                    >
+                      {isLoading
+                        ? <Loader2 className="w-5 h-5 animate-spin" />
+                        : isThisPlaying
+                          ? <Pause className="w-5 h-5" fill="currentColor" />
+                          : <Play className="w-5 h-5 ml-0.5" fill="currentColor" />}
+                    </span>
+                  </div>
+                  {/* Now-playing badge */}
+                  {isActive && (
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-semibold">
+                      <PlayingBars playing={isThisPlaying} className="text-gold" />
+                      {isThisPlaying ? "Playing" : "Paused"}
+                    </div>
+                  )}
                 </div>
                 {/* Info */}
                 <div className="p-3 flex items-start gap-2.5">
-                  <span className="mt-0.5 w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
-                    {loadingId === m.id
-                      ? <Icon icon={Loader2} size="sm" tone="active" className="animate-spin" />
+                  <span className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isActive ? "bg-gold/25" : "bg-white/15"}`}>
+                    {isActive
+                      ? <PlayingBars playing={isThisPlaying} className="text-gold" />
                       : <Icon icon={m.type === "audio" ? Headphones : Play} size="sm" tone="active" />
                     }
                   </span>
@@ -191,7 +223,8 @@ function Listen() {
                   </div>
                 </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
