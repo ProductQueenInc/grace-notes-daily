@@ -202,9 +202,9 @@ Deno.serve(async (req) => {
           user_id: user.id,
           date: dateStr,
           grace_note: note.message,
-          // verse_id is NOT NULL with FK to verses; we use 0 as a synthetic
-          // "model-picked" id. If verses table is in use, swap to a real id.
-          verse_id: 0,
+          // verse_id is nullable; the model picks its own verse rather than
+          // selecting from the curated `verses` library.
+          verse_id: null,
           verse_text: verseText,
           verse_reference: verseRef,
           theme: 'model-picked',
