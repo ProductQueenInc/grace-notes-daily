@@ -9,7 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { MessageCircle, Pause, Play, X, ChevronUp, ChevronDown } from "lucide-react";
+import { MessageCircle, Pause, Play, X, ChevronUp, ChevronDown, Rewind, FastForward } from "lucide-react";
 
 import { openTallyForm } from "@/lib/tally";
 import { FeedbackDialog } from "@/components/feedback-dialog";
