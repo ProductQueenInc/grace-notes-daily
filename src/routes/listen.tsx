@@ -100,10 +100,10 @@ function Listen() {
         {/* Type filter */}
         <div className="mb-4">
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {["All", "Audio", "Video"].map((t) => (
+            {["Audio", "Video"].map((t) => (
               <button
                 key={t}
-                onClick={() => setActiveType(t)}
+                onClick={() => setActiveType((curr) => (curr === t ? "All" : t))}
                 className={`px-4 py-1.5 rounded-full text-sm shrink-0 transition border ${
                   activeType === t
                     ? "bg-white/20 text-white border-white/30"
