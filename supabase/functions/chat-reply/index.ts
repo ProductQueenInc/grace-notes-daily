@@ -190,6 +190,8 @@ Reply with one word only.`,
       .from('chat_sessions')
       .update({ status: 'closed_inappropriate' })
       .eq('id', session_id)
+      .eq('user_id', user_id)
+
 
     return new Response(
       JSON.stringify({ response: redirectResponse, session_closed: true, close_reason: 'inappropriate' }),
