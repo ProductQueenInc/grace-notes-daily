@@ -182,6 +182,15 @@ export function ArticleShell({ article }: ArticleShellProps) {
                 <ArticleCard key={a.slug} article={a} />
               ))}
             </div>
+            <div className="mt-8 text-center">
+              <Link
+                to="/library"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/90 text-grace font-semibold text-sm hover:bg-white transition shadow-md"
+              >
+                Browse all Notes &amp; Letters
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
         </section>
       )}
