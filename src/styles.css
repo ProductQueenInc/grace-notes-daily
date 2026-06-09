@@ -291,21 +291,16 @@
 }
 .notes-prose blockquote p { font-size: inherit; line-height: inherit; }
 
-/* Ornamental section break — gold asterism replaces the flat rule */
+/* Ornamental section break — brand gold quatrefoil ornament */
 .notes-prose hr {
   border: 0;
-  height: 1.4em;
-  margin: 2.2em auto;
-  position: relative;
-  text-align: center;
-  overflow: visible;
-}
-.notes-prose hr::before {
-  content: "\2756";
-  font-size: 0.9rem;
-  letter-spacing: 0.8em;
-  color: var(--gold);
-  opacity: 0.7;
+  height: 2.25rem;
+  margin: 2.4em auto;
+  background-image: url("/brand/grace-ornament.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 2.25rem;
+  opacity: 0.85;
 }
 
 /* Inline scripture references — auto-wrapped by the loader */
@@ -316,8 +311,43 @@
   color: color-mix(in oklab, var(--grace-deep, var(--grace)) 60%, var(--gold) 40%);
   letter-spacing: 0.01em;
 }
-.notes-prose .scripture-ref::before { content: "("; }
-.notes-prose .scripture-ref::after { content: ")"; }
+/* Parenthetical refs (the default class without .inline) get the parens added back. */
+.notes-prose .scripture-ref:not(.inline)::before { content: "("; }
+.notes-prose .scripture-ref:not(.inline)::after { content: ")"; }
+/* Inline refs read as the verse name in flow — slightly heavier, gold-leaning. */
+.notes-prose .scripture-ref.inline {
+  font-weight: 600;
+  color: color-mix(in oklab, var(--grace-deep, var(--grace)) 45%, var(--gold) 55%);
+}
+
+/* Any paragraph that opens with a Bible reference is treated as a verse
+ * call-out: warm parchment tint, gold left rule, small ornament marker. */
+.notes-prose p:has(> .scripture-ref.inline:first-child) {
+  position: relative;
+  padding: 1.1rem 1.25rem 1.1rem 2.6rem;
+  margin: 1.6em 0;
+  background: color-mix(in oklab, var(--gold) 8%, transparent);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 0.75rem 0.75rem 0;
+  font-family: var(--font-display, "Fraunces"), serif;
+  font-style: italic;
+  font-size: 1.05em;
+  line-height: 1.7;
+  color: color-mix(in oklab, var(--grace-deep, var(--grace)) 88%, transparent);
+}
+.notes-prose p:has(> .scripture-ref.inline:first-child)::before {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  top: 1.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  background-image: url("/brand/grace-ornament.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+}
 
 .notes-prose a {
   color: var(--grace);
