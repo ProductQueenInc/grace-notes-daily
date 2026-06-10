@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
 
 
   // ── TIER 3: CRISIS CHECK ──────────────────────────────────────────────────
-  if (isCrisisMessage(message)) {
+  if (isCrisisMessage(safeMessage)) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('country_code')
@@ -195,7 +195,7 @@ HARMFUL = abusive, sexually explicit, deliberately hostile.
 MILD = off-topic, slightly inappropriate but not hostile.
 SAFE = everything else.
 
-Message: "${message}"
+Message: "${safeMessage.replace(/"/g, "\x27")}"
 
 Reply with one word only.`,
     }],
@@ -250,7 +250,7 @@ Reply with one word only.`,
           ),
           messages: [
             ...conversation_history,
-            { role: 'user', content: message },
+            { role: 'user', content: safeMessage },
           ],
         })
 
