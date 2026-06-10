@@ -322,6 +322,7 @@ function GlobalPlayer() {
       {/* ── Persistent audio element (audio-only tracks) ── */}
       {isAudio && (
         <audio
+          key={track.id}
           ref={audioRef}
           src={track.audioUrl}
           autoPlay={isPlaying}
@@ -330,6 +331,7 @@ function GlobalPlayer() {
             if (!isScrubbing) setCurrentTime(e.currentTarget.currentTime);
           }}
           onDurationChange={(e) => setDuration(e.currentTarget.duration || 0)}
+          onError={(e) => console.error("audio element error:", (e.currentTarget as HTMLAudioElement).error)}
           style={{ display: "none" }}
         />
       )}
