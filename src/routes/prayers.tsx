@@ -241,10 +241,13 @@ function Prayers() {
         </div>
         <div className="space-y-3">
           {answered.map((p) => (
-            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5">
-              <p className="font-semibold text-gold-foreground">{p.text}</p>
-              {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
-              <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
+            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-gold-foreground">{p.text}</p>
+                {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
+                <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
+              </div>
+              <PrayerMenu p={p} tone="gold" />
             </div>
           ))}
           {!answered.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">Your testimonies will gather here.</p>}
