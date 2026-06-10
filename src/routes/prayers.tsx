@@ -276,6 +276,49 @@ function Prayers() {
           </div>
         </div>
       )}
+
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up">
+            <div className="gradient-grace text-white px-6 py-4 flex items-center justify-between">
+              <span className="font-semibold flex items-center gap-2"><Pencil className="w-4 h-4" /> Edit Prayer</span>
+              <button onClick={() => setEditing(null)}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Prayer</label>
+                <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
+              </div>
+              {editing.answeredAt && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Thanksgiving (optional)</label>
+                  <textarea value={editThanks} onChange={(e) => setEditThanks(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
+                </div>
+              )}
+              <p className="text-xs text-foreground/60">Original date kept: {editing.answeredAt ? `Answered ${editing.answeredAt}` : `Added ${editing.createdAt}`}</p>
+              <div className="flex gap-2">
+                <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-full border border-border font-semibold">Cancel</button>
+                <button onClick={saveEdit} className="flex-1 py-3 rounded-full bg-grace text-white font-semibold shadow-lg">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this prayer?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the prayer from your list. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
