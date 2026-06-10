@@ -4,11 +4,13 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
-import { HandHeart, CheckCircle2, Clock, Plus, X } from "lucide-react";
+import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { generousAnsweredConfetti, subtleConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/prayers")({
   head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
