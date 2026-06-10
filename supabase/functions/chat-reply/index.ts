@@ -240,14 +240,15 @@ Reply with one word only.`,
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 200,
           system: CHAT_REPLY_PROMPT(
-            segment,
-            posture,
-            grace_note,
-            verse_text,
-            verse_reference,
-            mode ?? 'conversational',
+            safeSegment,
+            safePosture,
+            safeGraceNote,
+            safeVerseText,
+            safeVerseRef,
+            safeMode,
             isMild
           ),
+
           messages: [
             ...conversation_history,
             { role: 'user', content: safeMessage },
