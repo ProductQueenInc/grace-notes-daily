@@ -6,15 +6,33 @@ import { requireTkoebo as requireSupabaseAuth } from "@/lib/auth-tkoebo.server";
 
 // ── Input schemas ─────────────────────────────────────────────────────────────
 
+// Strip characters/markers commonly used for prompt-boundary injection.
+// Removes backtick fences, role markers, common override phrases, and control chars.
+function sanitizeForPrompt(input: string): string {
+  return input
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/```+/g, "")
+    .replace(/^[-*_]{3,}$/gm, "")
+    .replace(/<\/?\s*(system|assistant|user|instructions?)[^>]*>/gi, "")
+    .replace(/\b(SYSTEM|ASSISTANT|USER)\s*:/g, "")
+    .replace(/\bignore (all |previous |above )?(instructions?|prompts?)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const safeStr = (max: number) =>
+  z.string().max(max).transform(sanitizeForPrompt);
+
 const AIProfileSchema = z.object({
-  name: z.string().max(200),
-  faithPhase: z.string().max(50),
-  voice: z.string().max(50),
-  seasons: z.array(z.string().max(100)).max(20),
+  name: safeStr(200),
+  faithPhase: safeStr(50),
+  voice: safeStr(50),
+  seasons: z.array(safeStr(100)).max(20),
   // Client-supplied local date (YYYY-MM-DD). Used as the cache key so the
   // grace note / devotional roll over at the user's LOCAL midnight, not UTC.
   clientDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
+
 
 const HeartNoteInputSchema = z.object({
   text: z.string().min(1).max(5000),

@@ -95,6 +95,32 @@ Deno.serve(async (req) => {
   // user_id always comes from the validated JWT — never trust the body.
   const user_id = authenticatedUserId
 
+  // ── Input sanitization: prevent prompt-injection via interpolated fields ──
+  function sanitizeForPrompt(input: unknown, max: number): string {
+    const s = typeof input === 'string' ? input : ''
+    return s
+      .slice(0, max)
+      .replace(/[\u0000-\u001F\u007F]/g, ' ')
+      .replace(/```+/g, '')
+      .replace(/^[-*_]{3,}$/gm, '')
+      .replace(/<\/?\s*(system|assistant|user|instructions?)[^>]*>/gi, '')
+      .replace(/\b(SYSTEM|ASSISTANT|USER)\s*:/g, '')
+      .replace(/\bignore (all |previous |above )?(instructions?|prompts?)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+  const ALLOWED_SEGMENTS = new Set(['newbie', 'returnee', 'growth', 'elder'])
+  const ALLOWED_POSTURES = new Set(['morning', 'midday', 'evening', 'night', 'anytime'])
+  const ALLOWED_MODES = new Set(['conversational', 'closing'])
+
+  const safeSegment = ALLOWED_SEGMENTS.has(String(segment)) ? String(segment) : 'growth'
+  const safePosture = ALLOWED_POSTURES.has(String(posture)) ? String(posture) : 'anytime'
+  const safeMode = ALLOWED_MODES.has(String(mode)) ? String(mode) : 'conversational'
+  const safeGraceNote = sanitizeForPrompt(grace_note, 1000)
+  const safeVerseText = sanitizeForPrompt(verse_text, 500)
+  const safeVerseRef = sanitizeForPrompt(verse_reference, 100)
+  const safeMessage = typeof message === 'string' ? message.slice(0, 4000) : ''
+
   // Verify the session belongs to this user before any writes (service-role bypasses RLS).
   if (!session_id || typeof session_id !== 'string') {
     return new Response(
@@ -117,8 +143,9 @@ Deno.serve(async (req) => {
 
 
 
+
   // ── TIER 3: CRISIS CHECK ──────────────────────────────────────────────────
-  if (isCrisisMessage(message)) {
+  if (isCrisisMessage(safeMessage)) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('country_code')
@@ -168,7 +195,7 @@ HARMFUL = abusive, sexually explicit, deliberately hostile.
 MILD = off-topic, slightly inappropriate but not hostile.
 SAFE = everything else.
 
-Message: "${message}"
+Message: "${safeMessage.replace(/"/g, "\x27")}"
 
 Reply with one word only.`,
     }],
@@ -213,17 +240,18 @@ Reply with one word only.`,
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 200,
           system: CHAT_REPLY_PROMPT(
-            segment,
-            posture,
-            grace_note,
-            verse_text,
-            verse_reference,
-            mode ?? 'conversational',
+            safeSegment,
+            safePosture,
+            safeGraceNote,
+            safeVerseText,
+            safeVerseRef,
+            safeMode,
             isMild
           ),
+
           messages: [
             ...conversation_history,
-            { role: 'user', content: message },
+            { role: 'user', content: safeMessage },
           ],
         })
 
