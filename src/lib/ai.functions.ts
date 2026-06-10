@@ -239,9 +239,9 @@ Respond with valid JSON only - no markdown, no code fences:
 { "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "", "chatPrompt": "a single question or gentle invitation that flows naturally from this specific grace note. Specific — could only follow this note, not any other. Example style: 'What is one thing you have been waiting for?' or 'Where does it feel hardest to be still right now?'" }`;
 
   const msg = await client.messages.create({
-    model: "claude-haiku-4-5",
+    model: "claude-sonnet-4-5",
     max_tokens: 400,
-    temperature: 0.7,
+    temperature: 0.5,
     system,
     messages: [{ role: "user", content: "Write today's note." }],
   } as Parameters<typeof client.messages.create>[0]);
