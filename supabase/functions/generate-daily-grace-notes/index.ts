@@ -123,9 +123,9 @@ Respond with valid JSON only - no markdown, no code fences:
 
 async function generateGraceNote(faithPhase: string, seasons: string[]): Promise<GraceNote> {
   const msg = await anthropic.messages.create({
-    model: 'claude-haiku-4-5',
+    model: 'claude-sonnet-4-5',
     max_tokens: 400,
-    temperature: 0.7,
+    temperature: 0.5,
     system: GRACE_NOTE_SYSTEM(faithPhase, seasons),
     messages: [{ role: 'user', content: "Write today's note." }],
   })
