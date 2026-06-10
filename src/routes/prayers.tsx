@@ -278,12 +278,6 @@ function Prayers() {
                 <label className="block text-sm font-medium mb-2">Prayer</label>
                 <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
               </div>
-              {editing.answeredAt && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">Thanksgiving (optional)</label>
-                  <textarea value={editThanks} onChange={(e) => setEditThanks(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
-                </div>
-              )}
               <p className="text-xs text-foreground/60">Original date kept: {editing.answeredAt ? `Answered ${editing.answeredAt}` : `Added ${editing.createdAt}`}</p>
               <div className="flex gap-2">
                 <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-full border border-border font-semibold">Cancel</button>
