@@ -4,11 +4,13 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
-import { HandHeart, CheckCircle2, Clock, Plus, X } from "lucide-react";
+import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { generousAnsweredConfetti, subtleConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/prayers")({
   head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
@@ -26,10 +28,75 @@ function Prayers() {
   const [draft, setDraft] = useState("");
   const [celebrating, setCelebrating] = useState<Prayer | null>(null);
   const [thanksgivingText, setThanksgivingText] = useState("");
+  const [editing, setEditing] = useState<Prayer | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editThanks, setEditThanks] = useState("");
+  const [deleting, setDeleting] = useState<Prayer | null>(null);
   const { user } = useAuth();
 
   const active = items.filter((p) => !p.answeredAt);
   const answered = items.filter((p) => p.answeredAt);
+
+  function openEdit(p: Prayer) {
+    setEditing(p);
+    setEditText(p.text);
+    setEditThanks(p.thanksgiving ?? "");
+  }
+
+  async function saveEdit() {
+    if (!editing) return;
+    const text = editText.trim();
+    if (!text) { toast.error("Prayer cannot be empty."); return; }
+    const thanks = editThanks.trim();
+    const target = editing;
+
+    setItems((s) => s.map((x) => x.id === target.id ? { ...x, text, thanksgiving: target.answeredAt ? (thanks || undefined) : x.thanksgiving } : x));
+
+    if (supabaseConfigured && user) {
+      await supabase.from("prayers").update({ body: text }).eq("id", target.id).eq("user_id", user.id);
+      if (target.answeredAt) {
+        const { data: existing } = await supabase.from("thanksgivings").select("id").eq("prayer_id", target.id).maybeSingle();
+        if (thanks) {
+          if (existing) await supabase.from("thanksgivings").update({ content: thanks }).eq("id", existing.id as string);
+          else await supabase.from("thanksgivings").insert({ user_id: user.id, prayer_id: target.id, content: thanks });
+        } else if (existing) {
+          await supabase.from("thanksgivings").delete().eq("id", existing.id as string);
+        }
+      }
+    }
+    setEditing(null);
+    toast.success("Prayer updated.");
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return;
+    const target = deleting;
+    setItems((s) => s.filter((x) => x.id !== target.id));
+    if (supabaseConfigured && user) {
+      await supabase.from("prayers").update({ deleted_at: new Date().toISOString() }).eq("id", target.id).eq("user_id", user.id);
+    }
+    setDeleting(null);
+    toast.success("Prayer removed.");
+  }
+
+  function PrayerMenu({ p, tone }: { p: Prayer; tone: "light" | "gold" }) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            aria-label="Prayer options"
+            className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition ${tone === "gold" ? "text-gold-foreground/70 hover:bg-gold/20" : "text-foreground/60 hover:bg-foreground/10"}`}
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDeleting(p)} className="text-destructive focus:text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
 
   useEffect(() => {
     if (!supabaseConfigured || !user) return;
@@ -152,13 +219,16 @@ function Prayers() {
         <div className="space-y-3 mb-8">
           {active.map((p) => (
             <div key={p.id} className="glass rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold break-words">{p.text}</p>
                 <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3 shrink-0" /> Added {p.createdAt}</p>
               </div>
-              <button onClick={() => markAnswered(p)} className="shrink-0 self-stretch sm:self-auto px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> Mark as Answered
-              </button>
+              <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto">
+                <button onClick={() => markAnswered(p)} className="flex-1 sm:flex-initial px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> Mark as Answered
+                </button>
+                <PrayerMenu p={p} tone="light" />
+              </div>
             </div>
           ))}
           {!active.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">No active prayers. Add one above.</p>}
@@ -171,10 +241,13 @@ function Prayers() {
         </div>
         <div className="space-y-3">
           {answered.map((p) => (
-            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5">
-              <p className="font-semibold text-gold-foreground">{p.text}</p>
-              {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
-              <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
+            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-gold-foreground">{p.text}</p>
+                {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
+                <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
+              </div>
+              <PrayerMenu p={p} tone="gold" />
             </div>
           ))}
           {!answered.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">Your testimonies will gather here.</p>}
@@ -203,6 +276,49 @@ function Prayers() {
           </div>
         </div>
       )}
+
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up">
+            <div className="gradient-grace text-white px-6 py-4 flex items-center justify-between">
+              <span className="font-semibold flex items-center gap-2"><Pencil className="w-4 h-4" /> Edit Prayer</span>
+              <button onClick={() => setEditing(null)}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Prayer</label>
+                <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
+              </div>
+              {editing.answeredAt && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Thanksgiving (optional)</label>
+                  <textarea value={editThanks} onChange={(e) => setEditThanks(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
+                </div>
+              )}
+              <p className="text-xs text-foreground/60">Original date kept: {editing.answeredAt ? `Answered ${editing.answeredAt}` : `Added ${editing.createdAt}`}</p>
+              <div className="flex gap-2">
+                <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-full border border-border font-semibold">Cancel</button>
+                <button onClick={saveEdit} className="flex-1 py-3 rounded-full bg-grace text-white font-semibold shadow-lg">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this prayer?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the prayer from your list. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
