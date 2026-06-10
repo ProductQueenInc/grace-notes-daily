@@ -157,13 +157,17 @@ function GlobalPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, track?.youtubeId]);
 
-  // Sync audio element play/pause
+  // Sync audio element play/pause. When src changes we must call .load()
+  // first — otherwise the element keeps the old buffered media and .play()
+  // can reject silently (this caused the 2nd song to never load).
   useEffect(() => {
-    if (!audioRef.current || track?.youtubeId) return;
+    const a = audioRef.current;
+    if (!a || track?.youtubeId) return;
     if (isPlaying) {
-      audioRef.current.play().catch(() => {});
+      a.load();
+      a.play().catch((err) => console.error("audio play failed:", err));
     } else {
-      audioRef.current.pause();
+      a.pause();
     }
   }, [isPlaying, track?.youtubeId, track?.audioUrl]);
 
