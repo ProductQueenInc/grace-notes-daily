@@ -28,10 +28,75 @@ function Prayers() {
   const [draft, setDraft] = useState("");
   const [celebrating, setCelebrating] = useState<Prayer | null>(null);
   const [thanksgivingText, setThanksgivingText] = useState("");
+  const [editing, setEditing] = useState<Prayer | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editThanks, setEditThanks] = useState("");
+  const [deleting, setDeleting] = useState<Prayer | null>(null);
   const { user } = useAuth();
 
   const active = items.filter((p) => !p.answeredAt);
   const answered = items.filter((p) => p.answeredAt);
+
+  function openEdit(p: Prayer) {
+    setEditing(p);
+    setEditText(p.text);
+    setEditThanks(p.thanksgiving ?? "");
+  }
+
+  async function saveEdit() {
+    if (!editing) return;
+    const text = editText.trim();
+    if (!text) { toast.error("Prayer cannot be empty."); return; }
+    const thanks = editThanks.trim();
+    const target = editing;
+
+    setItems((s) => s.map((x) => x.id === target.id ? { ...x, text, thanksgiving: target.answeredAt ? (thanks || undefined) : x.thanksgiving } : x));
+
+    if (supabaseConfigured && user) {
+      await supabase.from("prayers").update({ body: text }).eq("id", target.id).eq("user_id", user.id);
+      if (target.answeredAt) {
+        const { data: existing } = await supabase.from("thanksgivings").select("id").eq("prayer_id", target.id).maybeSingle();
+        if (thanks) {
+          if (existing) await supabase.from("thanksgivings").update({ content: thanks }).eq("id", existing.id as string);
+          else await supabase.from("thanksgivings").insert({ user_id: user.id, prayer_id: target.id, content: thanks });
+        } else if (existing) {
+          await supabase.from("thanksgivings").delete().eq("id", existing.id as string);
+        }
+      }
+    }
+    setEditing(null);
+    toast.success("Prayer updated.");
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return;
+    const target = deleting;
+    setItems((s) => s.filter((x) => x.id !== target.id));
+    if (supabaseConfigured && user) {
+      await supabase.from("prayers").update({ deleted_at: new Date().toISOString() }).eq("id", target.id).eq("user_id", user.id);
+    }
+    setDeleting(null);
+    toast.success("Prayer removed.");
+  }
+
+  function PrayerMenu({ p, tone }: { p: Prayer; tone: "light" | "gold" }) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            aria-label="Prayer options"
+            className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition ${tone === "gold" ? "text-gold-foreground/70 hover:bg-gold/20" : "text-foreground/60 hover:bg-foreground/10"}`}
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDeleting(p)} className="text-destructive focus:text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
 
   useEffect(() => {
     if (!supabaseConfigured || !user) return;
