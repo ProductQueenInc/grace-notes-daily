@@ -30,7 +30,7 @@ function Prayers() {
   const [thanksgivingText, setThanksgivingText] = useState("");
   const [editing, setEditing] = useState<Prayer | null>(null);
   const [editText, setEditText] = useState("");
-  const [editThanks, setEditThanks] = useState("");
+  
   const [deleting, setDeleting] = useState<Prayer | null>(null);
   const { user } = useAuth();
 
@@ -40,29 +40,18 @@ function Prayers() {
   function openEdit(p: Prayer) {
     setEditing(p);
     setEditText(p.text);
-    setEditThanks(p.thanksgiving ?? "");
   }
 
   async function saveEdit() {
     if (!editing) return;
     const text = editText.trim();
     if (!text) { toast.error("Prayer cannot be empty."); return; }
-    const thanks = editThanks.trim();
     const target = editing;
 
-    setItems((s) => s.map((x) => x.id === target.id ? { ...x, text, thanksgiving: target.answeredAt ? (thanks || undefined) : x.thanksgiving } : x));
+    setItems((s) => s.map((x) => x.id === target.id ? { ...x, text } : x));
 
     if (supabaseConfigured && user) {
       await supabase.from("prayers").update({ body: text }).eq("id", target.id).eq("user_id", user.id);
-      if (target.answeredAt) {
-        const { data: existing } = await supabase.from("thanksgivings").select("id").eq("prayer_id", target.id).maybeSingle();
-        if (thanks) {
-          if (existing) await supabase.from("thanksgivings").update({ content: thanks }).eq("id", existing.id as string);
-          else await supabase.from("thanksgivings").insert({ user_id: user.id, prayer_id: target.id, content: thanks });
-        } else if (existing) {
-          await supabase.from("thanksgivings").delete().eq("id", existing.id as string);
-        }
-      }
     }
     setEditing(null);
     toast.success("Prayer updated.");
@@ -289,12 +278,6 @@ function Prayers() {
                 <label className="block text-sm font-medium mb-2">Prayer</label>
                 <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
               </div>
-              {editing.answeredAt && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">Thanksgiving (optional)</label>
-                  <textarea value={editThanks} onChange={(e) => setEditThanks(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-grace resize-none" />
-                </div>
-              )}
               <p className="text-xs text-foreground/60">Original date kept: {editing.answeredAt ? `Answered ${editing.answeredAt}` : `Added ${editing.createdAt}`}</p>
               <div className="flex gap-2">
                 <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-full border border-border font-semibold">Cancel</button>
