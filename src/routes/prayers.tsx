@@ -219,13 +219,16 @@ function Prayers() {
         <div className="space-y-3 mb-8">
           {active.map((p) => (
             <div key={p.id} className="glass rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold break-words">{p.text}</p>
                 <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3 shrink-0" /> Added {p.createdAt}</p>
               </div>
-              <button onClick={() => markAnswered(p)} className="shrink-0 self-stretch sm:self-auto px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> Mark as Answered
-              </button>
+              <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto">
+                <button onClick={() => markAnswered(p)} className="flex-1 sm:flex-initial px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> Mark as Answered
+                </button>
+                <PrayerMenu p={p} tone="light" />
+              </div>
             </div>
           ))}
           {!active.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">No active prayers. Add one above.</p>}
