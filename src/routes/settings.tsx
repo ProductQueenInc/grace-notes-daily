@@ -263,7 +263,7 @@ function Settings() {
 
         {/* Account / Email */}
         <div className="glass rounded-3xl p-5 sm:p-6 mb-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-foreground/40 px-1 pb-3">Account</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground/65 px-1 pb-3">Account</p>
           <p className="text-sm text-foreground/70 mb-1">
             Signed in as <strong>{user?.email}</strong>
           </p>
@@ -293,7 +293,7 @@ function Settings() {
 
         {/* Info & Legal */}
         <div className="glass rounded-3xl p-5 sm:p-6 space-y-2 mb-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-foreground/40 px-1 pb-1">Info & Legal</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground/65 px-1 pb-1">Info & Legal</p>
           <Link to="/about" className="w-full flex items-center gap-2 px-4 py-3 min-h-12 rounded-2xl hover:bg-grace-soft text-left">
             <Info className="w-4 h-4 text-grace" /> About GraceNotes Daily
           </Link>
