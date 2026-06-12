@@ -295,7 +295,7 @@ function Landing() {
             to={isLoggedIn ? "/home" : "/login"}
             className="inline-block px-8 py-4 rounded-full bg-grace text-white font-semibold shadow-xl hover:opacity-95 transition"
           >
-            {isLoggedIn ? "Open your space →" : "Begin your journey →"}
+            {isLoggedIn ? "Open your space →" : "Come on in, get started →"}
           </Link>
         </div>
       </section>
