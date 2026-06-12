@@ -120,22 +120,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Icon icon={X} size="md" />
                   </button>
                 </div>
-                {DRAWER_ITEMS.map((it) => (
-                  <Link
-                    key={it.to}
-                    to={it.to}
-                    onClick={() => setMenuOpen(false)}
-                    className="px-3 py-3 rounded-xl hover:bg-white/10 text-white/90 flex items-center gap-3"
+                <div className="flex-1 flex flex-col gap-1">
+                  {DRAWER_ITEMS.map((it) => (
+                    <Link
+                      key={it.to}
+                      to={it.to}
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-3 rounded-xl hover:bg-white/10 text-white/90 flex items-center gap-3"
+                    >
+                      <Icon icon={it.icon} size="md" /> {it.label}
+                    </Link>
+                  ))}
+                </div>
+                <div className="border-t border-white/15 pt-2 mt-2 flex flex-col gap-1">
+                  {DRAWER_FOOTER_ITEMS.map((it) => (
+                    <Link
+                      key={it.to}
+                      to={it.to}
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-3 rounded-xl hover:bg-white/10 text-white/90 flex items-center gap-3"
+                    >
+                      <Icon icon={it.icon} size="md" /> {it.label}
+                    </Link>
+                  ))}
+                  <button
+                    onClick={signOut}
+                    className="px-3 py-3 rounded-xl hover:bg-white/10 text-white/90 flex items-center gap-3 text-left"
                   >
-                    <Icon icon={it.icon} size="md" /> {it.label}
-                  </Link>
-                ))}
-                <button
-                  onClick={signOut}
-                  className="px-3 py-3 rounded-xl hover:bg-white/10 text-white/90 flex items-center gap-3 text-left"
-                >
-                  <Icon icon={LogOut} size="md" /> Sign out
-                </button>
+                    <Icon icon={LogOut} size="md" /> Sign out
+                  </button>
+                </div>
               </div>
             </div>
           )}
