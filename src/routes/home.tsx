@@ -231,7 +231,7 @@ function Home() {
                 )}
               </div>
               <h3 className="font-display text-2xl sm:text-3xl text-white">{devotionalPreview?.title ?? "Today's Devotional"}</h3>
-              <p className="text-sm text-white/70 mt-1">{devotionalPreview ? `${devotionalPreview.verseRef} · ${devotionalPreview.date}` : "Loading…"}</p>
+              <p className="text-sm text-white/70 mt-1">{devotionalPreview ? `${devotionalPreview.verseRef} · ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}` : "Loading…"}</p>
               <span className={`inline-block mt-3 text-sm font-semibold ${habits.devotional ? "text-white/75" : "text-gold"}`}>
                 {habits.devotional ? "Read again →" : "Read Today's Devotional →"}
               </span>

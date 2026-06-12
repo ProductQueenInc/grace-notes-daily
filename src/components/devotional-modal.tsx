@@ -8,17 +8,24 @@ import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
 import { useAuth } from "@/hooks/use-auth";
 import { useHabits } from "@/hooks/use-habits";
-import { localTodayISO } from "@/lib/today";
+import { isoForDate } from "@/lib/today";
 
-function todayISO() {
-  return localTodayISO();
+function formatDisplayDate(iso: string): string {
+  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
   const { profile } = useAuth();
   const { habits } = useHabits();
   const received = habits.devotional;
-  const today = todayISO();
+  const today = isoForDate(new Date());
+  // Always display today's date — never trust what the server or AI returns for
+  // the date field, which can be stale from cache or hallucinated by the model.
+  const todayDisplay = formatDisplayDate(today);
 
   // Shares cache key with home.tsx prefetch - opens instantly if warmed.
   const { data } = useQuery({
@@ -66,7 +73,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
             </div>
 
             <h2 className="font-display text-3xl md:text-4xl text-grace mb-1">{data.title}</h2>
-            <p className="text-xs text-foreground/55 uppercase tracking-[0.18em] mb-6">{data.date}</p>
+            <p className="text-xs text-foreground/55 uppercase tracking-[0.18em] mb-6">{todayDisplay}</p>
 
             <div className="space-y-4 text-foreground/85 leading-relaxed max-w-[64ch]">
               {data.body.map((p, i) => <p key={i}>{p}</p>)}
