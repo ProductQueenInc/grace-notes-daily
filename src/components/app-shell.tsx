@@ -6,6 +6,7 @@ import {
   Compass,
   Menu,
   NotebookPen,
+  BookOpen,
   HandHeart,
   Settings as SettingsIcon,
   LogOut,
