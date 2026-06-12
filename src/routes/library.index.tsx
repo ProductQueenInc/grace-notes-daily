@@ -114,10 +114,10 @@ function LibraryHub() {
           Notes &amp; Letters
         </p>
         <h1 className="font-display text-5xl md:text-6xl text-white drop-shadow max-w-3xl mx-auto leading-tight">
-          Slow reads for the long walk.
+          Essays for the long walk home.
         </h1>
-        <p className="mt-4 text-white/80 text-lg max-w-2xl mx-auto">
-          Long-form writing on prayer, journaling, and walking with God. Quiet, honest, free to read.
+        <p className="mt-4 text-white/90 text-lg max-w-2xl mx-auto leading-relaxed">
+          Unhurried essays and letters on prayer, journaling, and the quiet work of walking with God. Honest writing, gently kept, always free to read.
         </p>
       </section>
 
