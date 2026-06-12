@@ -31,6 +31,7 @@ const MOBILE_TABS = [
 const DRAWER_ITEMS = [
   { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen },
   { to: "/prayers", label: "Prayers", icon: HandHeart },
+  { to: "/library", label: "Notes & Letters", icon: BookOpen },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
