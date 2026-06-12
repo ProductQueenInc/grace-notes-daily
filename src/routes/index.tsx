@@ -182,7 +182,7 @@ function Landing() {
               to={isLoggedIn ? "/home" : "/login"}
               className="px-8 py-4 rounded-full bg-gold text-gold-foreground font-semibold shadow-xl hover:scale-[1.02] transition text-base"
             >
-              {isLoggedIn ? "Open your space →" : "Begin your journey"}
+              {isLoggedIn ? "Open your space →" : "Come on in, get started"}
             </Link>
           </div>
           <p className="text-xs text-white/70 mt-5 flex items-center justify-center gap-1.5">
