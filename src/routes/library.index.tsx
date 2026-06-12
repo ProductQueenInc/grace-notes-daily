@@ -99,11 +99,11 @@ function LibraryHub() {
         </Link>
         {isLoggedIn ? (
           <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
-            Open app
+            Home
           </Link>
         ) : (
           <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
-            Get started
+            Come on in
           </Link>
         )}
       </header>
