@@ -316,26 +316,28 @@ Respond with valid JSON only - no markdown, no code fences:
 
   const block = (msg as Anthropic.Message).content[0];
   const raw = block.type === "text" ? block.text : "";
-  return sanitizeDevotional(
-    parseJSON<DevotionalResult>(raw, {
-      title: "Mercies, New",
-      verseOfDay:
-        "The steadfast love of the LORD never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.",
-      verseRef: "Lamentations 3:22-23",
-      date: today,
-      body: [
-        "These words were written in ruins. The prophet was not looking out at a calm field. He was looking at rubble.",
-        "And still: new every morning. Not earned. Not deserved. Renewed, like breath. Mercy that does not depend on yesterday going well.",
-        "Whatever today asks of you, the supply is already there. You don't have to manufacture it.",
-      ],
-      related: [
-        { ref: "Psalm 136:1", text: "Give thanks to the LORD, for he is good. His love endures forever." },
-        { ref: "2 Corinthians 5:17", text: "Therefore, if anyone is in Christ, the new creation has come." },
-        { ref: "Matthew 28:20", text: "And surely I am with you always, to the very end of the age." },
-      ],
-      takeaway: "Receive today as already supplied. You don't have to produce the mercy. It's here.",
-    }),
-  );
+  const parsed = parseJSON<DevotionalResult>(raw, {
+    title: "Mercies, New",
+    verseOfDay:
+      "The steadfast love of the LORD never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.",
+    verseRef: "Lamentations 3:22-23",
+    date: today,
+    body: [
+      "These words were written in ruins. The prophet was not looking out at a calm field. He was looking at rubble.",
+      "And still: new every morning. Not earned. Not deserved. Renewed, like breath. Mercy that does not depend on yesterday going well.",
+      "Whatever today asks of you, the supply is already there. You don't have to manufacture it.",
+    ],
+    related: [
+      { ref: "Psalm 136:1", text: "Give thanks to the LORD, for he is good. His love endures forever." },
+      { ref: "2 Corinthians 5:17", text: "Therefore, if anyone is in Christ, the new creation has come." },
+      { ref: "Matthew 28:20", text: "And surely I am with you always, to the very end of the age." },
+    ],
+    takeaway: "Receive today as already supplied. You don't have to produce the mercy. It's here.",
+  });
+  // Force the date to the server-computed value — the AI occasionally hallucinates
+  // old dates from its training data regardless of what the prompt specifies.
+  parsed.date = today;
+  return sanitizeDevotional(parsed);
 }
 
 // ── Server Function: Get or Create Grace Note (cached per user per day) ───────
