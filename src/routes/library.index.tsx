@@ -117,7 +117,7 @@ function LibraryHub() {
           Essays for the long walk home.
         </h1>
         <p className="mt-4 text-white/90 text-lg max-w-2xl mx-auto leading-relaxed">
-          Unhurried essays and letters on prayer, journaling, and the quiet work of walking with God. Honest writing, gently kept, always free to read.
+          Unhurried thoughts on prayer, journaling, and the quiet work of walking with God.
         </p>
       </section>
 
