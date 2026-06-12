@@ -131,7 +131,7 @@ function Home() {
                     <PopoverTrigger asChild>
                       <button
                         aria-label="About today's Grace Note"
-                        className="ml-1 text-white/55 hover:text-white/90 shrink-0"
+                        className="ml-1 text-white/75 hover:text-white/90 shrink-0"
                       >
                         <Icon icon={Info} size="sm" />
                       </button>
@@ -160,7 +160,7 @@ function Home() {
                   <button
                     onClick={() => openTallyForm("VL4NY6")}
                     aria-label="Flag this note"
-                    className="text-white/55 hover:text-white/90 shrink-0"
+                    className="text-white/75 hover:text-white/90 shrink-0"
                   >
                     <Icon icon={Flag} size="sm" />
                   </button>
@@ -207,7 +207,7 @@ function Home() {
                         </div>
                       );
                     })()}
-                    <p className="text-right text-sm text-white/55 italic mt-4">- {graceNote.signed}</p>
+                    <p className="text-right text-sm text-white/75 italic mt-4">- {graceNote.signed}</p>
                   </>
                 )}
 
@@ -225,14 +225,14 @@ function Home() {
                   <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily Devotional
                 </div>
                 {habits.devotional && (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-white/60 bg-white/10 rounded-full px-2.5 py-1 shrink-0">
+                  <span className="flex items-center gap-1 text-xs font-semibold text-white/80 bg-white/10 rounded-full px-2.5 py-1 shrink-0">
                     <Icon icon={Check} size="sm" tone="inherit" /> Received
                   </span>
                 )}
               </div>
               <h3 className="font-display text-2xl sm:text-3xl text-white">{devotionalPreview?.title ?? "Today's Devotional"}</h3>
               <p className="text-sm text-white/70 mt-1">{devotionalPreview ? `${devotionalPreview.verseRef} · ${devotionalPreview.date}` : "Loading…"}</p>
-              <span className={`inline-block mt-3 text-sm font-semibold ${habits.devotional ? "text-white/50" : "text-gold"}`}>
+              <span className={`inline-block mt-3 text-sm font-semibold ${habits.devotional ? "text-white/75" : "text-gold"}`}>
                 {habits.devotional ? "Read again →" : "Read Today's Devotional →"}
               </span>
             </button>
@@ -246,7 +246,7 @@ function Home() {
                   <h3 className="font-display text-xl text-white">Daily Rhythms</h3>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button aria-label="How this works" className="text-white/55 hover:text-white/90">
+                      <button aria-label="How this works" className="text-white/75 hover:text-white/90">
                         <Icon icon={Info} size="sm" />
                       </button>
                     </TooltipTrigger>
@@ -380,10 +380,10 @@ function DailyMessageChat({
             ? "Keep the conversation going…"
             : "Share what's on your heart…"
         }
-        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-gold text-white placeholder:text-white/45 resize-none disabled:opacity-60"
+        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-gold text-white placeholder:text-white/60 resize-none disabled:opacity-60"
       />
       <div className="flex items-center justify-between mt-3">
-        <p className="text-xs text-white/55">Conversation resets at midnight</p>
+        <p className="text-xs text-white/75">Conversation resets at midnight</p>
         <button
           onClick={onSubmit}
           disabled={!text.trim() || pending || !!closeReason}
@@ -409,7 +409,7 @@ function HabitCircle({
         {done ? <Icon icon={Check} size="md" tone="inherit" /> : <Icon icon={icon} size="md" tone="inherit" />}
       </span>
       <span className="text-xs text-white/80 font-medium">{label}</span>
-      <span className="text-[10px] text-white/50">{hint}</span>
+      <span className="text-[10px] text-white/75">{hint}</span>
     </button>
   );
 }

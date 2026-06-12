@@ -32,7 +32,7 @@ export function ShareBar({ url, title, description }: ShareBarProps) {
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
-      <span className="text-white/50 text-sm">Share:</span>
+      <span className="text-white/75 text-sm">Share:</span>
 
       {/* WhatsApp */}
       <a

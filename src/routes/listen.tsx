@@ -170,7 +170,7 @@ function Listen() {
 
         {/* Track grid */}
         {filtered.length === 0 ? (
-          <div className="text-center py-16 text-white/60">
+          <div className="text-center py-16 text-white/80">
             <p className="font-display text-2xl mb-2">Nothing here yet.</p>
             <p className="text-sm">Try a different category.</p>
           </div>
@@ -231,11 +231,11 @@ function Listen() {
                     }
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-wider text-white/60 mb-0.5">
+                    <div className="text-[10px] uppercase tracking-wider text-white/80 mb-0.5">
                       {m.categories.join(" · ")}
                     </div>
                     <h3 className="font-semibold text-sm leading-snug text-white truncate">{m.title}</h3>
-                    <p className="text-xs text-white/65 mt-0.5 truncate">{m.speaker}</p>
+                    <p className="text-xs text-white/80 mt-0.5 truncate">{m.speaker}</p>
                   </div>
                 </div>
               </button>

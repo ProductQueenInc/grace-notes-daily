@@ -45,7 +45,7 @@ export function DownloadGuideModal({
       <div className="w-full max-w-md glass-parchment rounded-3xl overflow-hidden shadow-2xl relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 transition"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 transition"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
@@ -78,13 +78,13 @@ export function DownloadGuideModal({
               /* Fallback shown while Beehiiv isn't wired up yet */
               <div className="bg-white/5 rounded-2xl p-4 text-center">
                 <Mail className="w-8 h-8 text-gold mx-auto mb-3" />
-                <p className="text-white/60 text-sm">
+                <p className="text-white/80 text-sm">
                   Beehiiv form coming soon — check back shortly.
                 </p>
               </div>
             )}
 
-            <p className="text-white/40 text-xs text-center mt-4">
+            <p className="text-white/70 text-xs text-center mt-4">
               No spam. Unsubscribe any time.
             </p>
           </div>

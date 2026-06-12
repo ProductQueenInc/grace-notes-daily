@@ -13,10 +13,10 @@ export function TopBar() {
       <div className="h-12 flex items-center gap-3">
         <SidebarTrigger className="text-white/85 hover:bg-white/10 hidden md:inline-flex" />
         <div className="relative flex-1 max-w-md">
-          <Icon icon={Search} size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-white/55" />
+          <Icon icon={Search} size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-white/75" />
           <input
             placeholder="Search devotionals, notes, prayers"
-            className="w-full bg-transparent hover:bg-white/5 focus:bg-white/8 placeholder:text-white/45 text-white/90 text-sm rounded-full pl-9 pr-3 py-1.5 outline-none border border-white/15 focus:border-white/30 transition"
+            className="w-full bg-transparent hover:bg-white/5 focus:bg-white/8 placeholder:text-white/60 text-white/90 text-sm rounded-full pl-9 pr-3 py-1.5 outline-none border border-white/15 focus:border-white/30 transition"
           />
         </div>
         <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/85 px-2.5 py-1 rounded-full border border-white/15">

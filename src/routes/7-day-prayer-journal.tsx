@@ -166,7 +166,7 @@ function SevenDayPrayerJournal() {
                 <div className="mb-6">
                   <p className="text-gold text-sm font-semibold uppercase tracking-wider mb-1">{day.number}</p>
                   <h2 className="font-display text-2xl text-white mb-1">{day.subtitle}</h2>
-                  <p className="text-white/60 text-sm italic">{day.tagline}</p>
+                  <p className="text-white/80 text-sm italic">{day.tagline}</p>
                 </div>
 
                 <div className="text-white/80 leading-relaxed space-y-3 mb-6">
@@ -181,16 +181,16 @@ function SevenDayPrayerJournal() {
                 </blockquote>
 
                 <div className="bg-white/5 rounded-xl p-4 mb-4">
-                  <p className="text-white/60 text-xs uppercase tracking-wider mb-2">Today's reflection</p>
+                  <p className="text-white/80 text-xs uppercase tracking-wider mb-2">Today's reflection</p>
                   <p className="text-white/80 text-sm italic leading-relaxed">{day.reflection}</p>
                 </div>
 
                 <div className="bg-white/5 rounded-xl p-4 mb-4">
-                  <p className="text-white/60 text-xs uppercase tracking-wider mb-2">Your prayer today</p>
-                  <p className="text-white/50 text-sm italic">Open GraceNotes Daily to write your prayer in your private journal.</p>
+                  <p className="text-white/80 text-xs uppercase tracking-wider mb-2">Your prayer today</p>
+                  <p className="text-white/75 text-sm italic">Open GraceNotes Daily to write your prayer in your private journal.</p>
                 </div>
 
-                <p className="text-white/60 text-sm italic text-center">{day.closing}</p>
+                <p className="text-white/80 text-sm italic text-center">{day.closing}</p>
               </section>
             ))}
           </div>
@@ -209,7 +209,7 @@ function SevenDayPrayerJournal() {
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-white/50 text-sm">
+            <p className="text-white/75 text-sm">
               More guides:{" "}
               <Link to="/free-prayer-toolkit" className="text-gold underline">The Effective Prayer Toolkit</Link>
               {" "}·{" "}
