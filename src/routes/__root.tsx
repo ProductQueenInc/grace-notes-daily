@@ -9,7 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { MessageCircle, Pause, Play, X, ChevronUp, ChevronDown, Rewind, FastForward } from "lucide-react";
+import { MessageCircle, Pause, Play, X, ChevronUp, ChevronDown, Rewind, FastForward, Shuffle, SkipForward } from "lucide-react";
 
 import { openTallyForm } from "@/lib/tally";
 import { FeedbackDialog } from "@/components/feedback-dialog";
@@ -136,7 +136,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * display:none.
  */
 function GlobalPlayer() {
-  const { track, isPlaying, toggle, close, setExpanded, expanded } = useAudioPlayer();
+  const { track, isPlaying, toggle, close, setExpanded, expanded, playNext, toggleShuffle, shuffled, queue } = useAudioPlayer();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -292,6 +292,13 @@ function GlobalPlayer() {
               {/* Transport controls */}
               <div className="flex items-center justify-center gap-4 mt-6">
                 <button
+                  onClick={toggleShuffle}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition ${shuffled ? "bg-gold text-white shadow-md" : "bg-white/15 hover:bg-white/25 text-white/70 hover:text-white"}`}
+                  aria-label={shuffled ? "Shuffle on" : "Shuffle off"}
+                >
+                  <Shuffle className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => seekBy(-15)}
                   className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition"
                   aria-label="Rewind 15 seconds"
@@ -312,6 +319,14 @@ function GlobalPlayer() {
                 >
                   <FastForward className="w-5 h-5" />
                 </button>
+                <button
+                  onClick={playNext}
+                  disabled={queue.length <= 1}
+                  className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Next track"
+                >
+                  <SkipForward className="w-4 h-4" />
+                </button>
               </div>
             </div>
           )}
@@ -331,6 +346,7 @@ function GlobalPlayer() {
             if (!isScrubbing) setCurrentTime(e.currentTarget.currentTime);
           }}
           onDurationChange={(e) => setDuration(e.currentTarget.duration || 0)}
+          onEnded={playNext}
           onError={(e) => console.error("audio element error:", (e.currentTarget as HTMLAudioElement).error)}
           style={{ display: "none" }}
         />
@@ -375,6 +391,15 @@ function GlobalPlayer() {
             >
               <Icon icon={isPlaying ? Pause : Play} size="sm" tone="inherit" />
             </button>
+            {queue.length > 1 && (
+              <button
+                onClick={playNext}
+                className="w-8 h-8 rounded-full hover:bg-white/15 text-white/70 hover:text-white flex items-center justify-center shrink-0 transition"
+                aria-label="Next track"
+              >
+                <SkipForward className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={close}
               className="w-8 h-8 rounded-full hover:bg-white/15 text-white/70 flex items-center justify-center shrink-0 transition"

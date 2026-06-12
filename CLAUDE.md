@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-06-09** (afternoon pass — pending actions completed).
+Last updated: **2026-06-12**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -14,7 +14,7 @@ This document hands the **backend + AI wiring** of GraceNotes Daily over to whoe
 - **Backend storage**: the v2 schema (`verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`) is live with proper RLS + GRANTs.
 - **Edge functions**: `chat-reply` (chat safety + streaming SSE) and `generate-daily-grace-notes` (overnight cron) are deployed and now fully wired — `crisis_lines` seeded (51 countries) and pg_cron scheduled (daily 01:00 UTC).
 - **PWA icons**: shipped and verified. Master `icon-source.png` is **1254×1254** (larger than the 1024 minimum, safe to downscale for App Store / Play Store when native build lands).
-- **What's NOT done yet**: verses library is still unused (cron lets the model pick its own verse); Listen audio uses dummy URLs; no push notifications; no native (Capacitor) build.
+- **What's NOT done yet**: verses library is still unused (cron lets the model pick its own verse); no push notifications; no native (Capacitor) build.
 
 > **Checkpoint:** "MVP UI + v2 backend live + cron + crisis lines seeded" — this version is the rollback target.
 
@@ -35,7 +35,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 
 ---
 
-## 2. Build status (as of 2026-06-09)
+## 2. Build status (as of 2026-06-12)
 
 ### ✅ Live in production (code shipped AND backed by DB / config)
 
@@ -53,6 +53,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Journey page reading from real data | `src/routes/journey.tsx` |
 | Email infra (auth emails + transactional queue + suppression) | `email_*` tables, `src/routes/lovable/email/*` |
 | Sidebar + AppShell + PlayerDock | `src/components/app-sidebar.tsx`, `app-shell.tsx`, `player-dock.tsx` |
+| Listen feature: tracks loaded from Supabase `tracks` table, private `listen-audio` bucket with signed URLs, auto-play next track on end, shuffle mode | `src/routes/listen.tsx`, `src/hooks/use-audio-player.ts`, `src/routes/__root.tsx` (GlobalPlayer) |
 | SEO landing pages (6 routes + 3 content guides), share bar, llms.txt, expanded sitemap | `src/routes/quiet-time-app.tsx` and siblings, `content/*`, `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx`, `public/llms.txt`, `public/sitemap.xml` |
 | PWA manifest + theme-color + Apple PWA meta | `public/manifest.json`, `src/routes/__root.tsx` |
 | Tally feedback button (all pages) | `src/components/feedback-dialog.tsx`, loaded in `__root.tsx` |
@@ -71,10 +72,10 @@ _(None blocking. The verses library remains unseeded by choice — see "Not star
 ### ❌ Not started
 
 - Push notifications (VAPID keys + send edge function).
-- Listen / audio playback wiring: private bucket `listen-audio` exists; signed-URL server fn `getSignedAudioUrl` in `src/lib/listen-audio.functions.ts` is live. Still TODO: upload Suno MP3s to the bucket, seed real rows into the `tracks` table (point `audio_url` at the storage path, e.g. `album-1/track-03.mp3`), and update `src/routes/listen.tsx` + `<PlayerDock />` to resolve `audio_url` through `getSignedAudioUrl` before playback.
 - Background image upload script (`background_images` table exists; URLs are still hard-coded in `src/components/nature-background.tsx`).
 - Path B native build via Capacitor (`capacitor.config.ts` is a stub; no `@capacitor/*` packages installed, no iOS / Android folders).
 - Verses library is created but unseeded and currently unused — the cron lets the model pick its own verse. If you ever want curated rotation, run `scripts/seed_verses.js` and wire `select_verse_for_user` back in to the cron.
+- Favourites: allow users to heart a track, filter by favourites, and auto-play within favourites only (next logical feature after shuffle).
 
 
 ### Server-side split
@@ -201,7 +202,18 @@ Default policies:
 
 ---
 
-## 9. Things to NOT touch
+## 9. CLAUDE.md update rule
+
+**Every code change committed to this repo must be reflected in CLAUDE.md before the commit is pushed.** This includes:
+- Moving a feature from "Not started" to "Live in production" when it ships
+- Adding new tables, edge functions, hooks, or routes to the Quick reference table
+- Logging the change in §11 (Recent changes log) with the date
+
+This keeps CLAUDE.md as a live, accurate handover document rather than a snapshot that rots.
+
+---
+
+## 10a. Things to NOT touch
 
 - `src/styles.css` (design tokens are locked)
 - `src/components/app-sidebar.tsx`, `app-shell.tsx`, `nature-background.tsx`, `page-header.tsx`, `player-dock.tsx`, `icon.tsx`
@@ -215,7 +227,7 @@ If you need to change any of the above, open a question for the human owner firs
 
 ---
 
-## 10. Imagery policy (locked)
+## 10b. Imagery policy (locked)
 
 GraceNotes Daily is a Christian devotional product. Every image (background, hero, illustration, audio cover art, marketing) must feel reverent and safe.
 
@@ -228,6 +240,16 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-06-12 — Devotional date fix + Listen auto-play + shuffle
+
+- **Devotional date bug fixed** (`src/lib/ai.functions.ts`): the AI model (Haiku) occasionally hallucinated old dates (e.g. January 2025) from its training data, ignoring the date injected into the prompt. Fixed by force-overwriting `parsed.date = today` after AI generation. The displayed date is now always the server-computed date, never what the model outputs.
+- **Listen: tracks are live** — tracks are seeded in the Supabase `tracks` table and served from the private `listen-audio` bucket via signed URLs. `listen.tsx` queries Supabase directly (no server fn needed). `src/lib/tracks.functions.ts` (old server fn) still exists but is not used by the Listen page.
+- **Auto-play next track** (`src/hooks/use-audio-player.ts`, `src/routes/__root.tsx`): when an audio track ends, `playNext()` is called automatically via the `onEnded` event on the `<audio>` element. Plays the next track in the queue in order (or random if shuffle is on).
+- **Shuffle mode** (`src/hooks/use-audio-player.ts`, `src/routes/__root.tsx`): toggle button in the expanded player (gold when on). When on, `playNext()` picks a random track from the queue instead of sequential order.
+- **Queue** (`src/hooks/use-audio-player.ts`): `play(track, queue?)` now accepts an optional queue. `listen.tsx` passes the current `filtered` list so auto-play respects the active category/type filter. Queue resets to `[]` on close.
+- **Mini dock** (`src/routes/__root.tsx`): skip-forward button appears in the dock when queue has more than one track.
+- **New rule added to CLAUDE.md**: every code change must be reflected in CLAUDE.md before the commit is pushed (§9).
 
 ### 2026-06-09 (PM) — Completed pending actions + Listen media scaffold
 - Seeded `public.crisis_lines` with all 51 verified entries from `gracenotes_crisis_lines.json`. `chat-reply` crisis branch now resolves country-specific hotlines via `profiles.country_code`. Re-verify entries every 6 months (numbers change).
@@ -293,8 +315,10 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 | Habits / streak | `src/hooks/use-habits.ts`, `use-streak.ts` |
 | Daily chat | `src/hooks/use-daily-chat.ts` |
 | Daily grace note (client) | `src/hooks/use-daily-grace-note.ts` |
-| Audio player | `src/hooks/use-audio-player.ts` |
-| Listen signed-URL fn (private `listen-audio` bucket) | `src/lib/listen-audio.functions.ts` |
+| Audio player (queue, shuffle, auto-play, playNext) | `src/hooks/use-audio-player.ts` |
+| GlobalPlayer (UI + audio element + onEnded wiring) | `src/routes/__root.tsx` |
+| Listen page (track grid, filter, signed URLs) | `src/routes/listen.tsx` |
+| Listen signed-URL helper (private `listen-audio` bucket) | `src/lib/listen-audio.functions.ts` |
 | Share / download UI | `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx` |
 | Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Verses library seed (unused for now) | `scripts/seed_verses.js`, `gracenotes_verse_library.json` |

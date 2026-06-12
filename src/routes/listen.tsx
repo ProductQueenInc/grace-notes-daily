@@ -95,7 +95,8 @@ function Listen() {
       toggle();
       return;
     }
-    play(track);
+    // Pass the current filtered list so auto-play and shuffle stay in context.
+    play(track, filtered);
   }
 
 
