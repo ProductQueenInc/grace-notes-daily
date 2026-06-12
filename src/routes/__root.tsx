@@ -366,7 +366,7 @@ function GlobalPlayer() {
                   {track.speaker} · {categoriesLabel}
                 </span>
               </span>
-              <Icon icon={ChevronUp} size="sm" className="text-white/60 shrink-0" />
+              <Icon icon={ChevronUp} size="sm" className="text-white/80 shrink-0" />
             </button>
             <button
               onClick={toggle}

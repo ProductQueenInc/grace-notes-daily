@@ -243,7 +243,7 @@ function Onboarding() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
+                  className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-gold"
                 />
               </>
             )}
@@ -268,7 +268,7 @@ function Onboarding() {
                       >
                         <Icon icon={p.icon} size="md" className={selected ? "text-gold" : "text-white/80"} tone="inherit" />
                         <div className="font-semibold mt-2">{p.title}</div>
-                        <div className="text-xs text-white/65 mt-1">{p.desc}</div>
+                        <div className="text-xs text-white/80 mt-1">{p.desc}</div>
                       </button>
                     );
                   })}
@@ -343,12 +343,12 @@ function Onboarding() {
                       >
                         <Icon icon={v.icon} size="md" className={selected ? "text-gold" : "text-white/80"} tone="inherit" />
                         <div className="font-semibold mt-2">{v.title}</div>
-                        <div className="text-xs text-white/65 mt-1">{v.desc}</div>
+                        <div className="text-xs text-white/80 mt-1">{v.desc}</div>
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-white/55 mt-4 flex items-center gap-1.5">
+                <p className="text-[11px] text-white/75 mt-4 flex items-center gap-1.5">
                   <Icon icon={Sparkles} size="sm" className="text-gold" />
                   You can change any of these in Settings, anytime.
                 </p>
@@ -377,7 +377,7 @@ function Onboarding() {
                       placeholder={askingFor === "email" ? "Email address" : "Phone number (with country code)"}
                       inputMode={askingFor === "email" ? "email" : "tel"}
                       autoComplete={askingFor === "email" ? "email" : "tel"}
-                      className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
+                      className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/15 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-gold"
                     />
                     <button
                       onClick={sendBackup}
@@ -427,7 +427,7 @@ function Onboarding() {
                     <p className="text-sm text-white/85">
                       We sent a confirmation link to <strong>{backupValue}</strong>. Open it whenever you have a moment — your backup will activate the next time you sign in.
                     </p>
-                    <p className="text-xs text-white/55">
+                    <p className="text-xs text-white/75">
                       You don't need to wait. Tap Begin below to continue.
                     </p>
                   </div>
@@ -440,7 +440,7 @@ function Onboarding() {
                   </div>
                 )}
 
-                <p className="text-[11px] text-white/55 mt-4">
+                <p className="text-[11px] text-white/75 mt-4">
                   You can also add or change this in Settings, anytime.
                 </p>
               </>

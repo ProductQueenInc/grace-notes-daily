@@ -228,12 +228,12 @@ export function AppSidebar() {
                           {displayName}
                         </span>
                         {user?.email && (
-                          <span className="block text-[11px] text-white/65 truncate">
+                          <span className="block text-[11px] text-white/80 truncate">
                             {user.email}
                           </span>
                         )}
                       </span>
-                      <Icon icon={ChevronUp} size="sm" className="text-white/65" />
+                      <Icon icon={ChevronUp} size="sm" className="text-white/80" />
                     </>
                   )}
                 </SidebarMenuButton>

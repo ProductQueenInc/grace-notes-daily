@@ -53,7 +53,7 @@ export function SiteFooter() {
         </FooterColumn>
       </div>
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-5 text-xs text-white/60 flex flex-wrap items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-6 py-5 text-xs text-white/80 flex flex-wrap items-center justify-between gap-2">
           <span>© {new Date().getFullYear()} GraceNotes Daily</span>
         </div>
       </div>

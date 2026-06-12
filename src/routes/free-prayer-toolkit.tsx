@@ -214,7 +214,7 @@ function FreePrayerToolkit() {
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-white/50 text-sm">
+            <p className="text-white/75 text-sm">
               More guides:{" "}
               <Link to="/fasting-guide" className="text-gold underline">A Guide to Fasting</Link>
               {" "}·{" "}
