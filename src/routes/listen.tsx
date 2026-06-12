@@ -24,33 +24,7 @@ function Listen() {
   const { profile } = useAuth();
   const { play, toggle, track: currentTrack, isPlaying } = useAudioPlayer();
   const railTitle = pickListenRailTitle(profile);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-
-  async function handlePlay(track: Track) {
-    // If this is already the loaded track, just toggle pause/play.
-    if (currentTrack?.id === track.id) {
-      toggle();
-      return;
-    }
-    if (track.type === "audio" && track.audioUrl && !track.audioUrl.startsWith("http")) {
-      setLoadingId(track.id);
-      try {
-        const { data, error } = await supabase
-          .storage
-          .from("listen-audio")
-          .createSignedUrl(track.audioUrl, 3600);
-        if (error || !data?.signedUrl) {
-          console.error("createSignedUrl failed:", error?.message);
-          throw new Error(error?.message ?? "Could not load audio");
-        }
-        play({ ...track, audioUrl: data.signedUrl });
-      } finally {
-        setLoadingId(null);
-      }
-    } else {
-      play(track);
-    }
-  }
+  const loadingId: string | null = null;
 
   const { data } = useQuery({
     queryKey: ["tracks"],
@@ -69,7 +43,7 @@ function Listen() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const media: Track[] = (data?.tracks ?? []).length
+  const rawTracks: Track[] = (data?.tracks ?? []).length
     ? data!.tracks.map((t: Record<string, unknown>) => ({
         id: String(t.id),
         title: String(t.title),
@@ -81,6 +55,48 @@ function Listen() {
         thumb: String(t.thumb ?? ""),
       }))
     : [];
+
+  // Pre-sign every private audio URL up front. On mobile Safari any await
+  // between the user tap and audio.play() loses the user-gesture token and
+  // playback fails silently — handlePlay MUST be synchronous.
+  const privatePaths = rawTracks
+    .filter((t) => t.type === "audio" && t.audioUrl && !t.audioUrl.startsWith("http"))
+    .map((t) => t.audioUrl!);
+  const pathsKey = privatePaths.join("|");
+
+  const { data: signedMap } = useQuery({
+    queryKey: ["tracks-signed", pathsKey],
+    enabled: privatePaths.length > 0,
+    staleTime: 50 * 60 * 1000, // signed URLs live 1h
+    queryFn: async () => {
+      const { data, error } = await supabase.storage
+        .from("listen-audio")
+        .createSignedUrls(privatePaths, 3600);
+      if (error) {
+        console.error("createSignedUrls failed:", error.message);
+        return {} as Record<string, string>;
+      }
+      const map: Record<string, string> = {};
+      for (const r of data ?? []) {
+        if (r.path && r.signedUrl) map[r.path] = r.signedUrl;
+      }
+      return map;
+    },
+  });
+
+  const media: Track[] = rawTracks.map((t) =>
+    t.type === "audio" && t.audioUrl && !t.audioUrl.startsWith("http") && signedMap?.[t.audioUrl]
+      ? { ...t, audioUrl: signedMap[t.audioUrl] }
+      : t,
+  );
+
+  function handlePlay(track: Track) {
+    if (currentTrack?.id === track.id) {
+      toggle();
+      return;
+    }
+    play(track);
+  }
 
 
   // Derive category tags dynamically from loaded tracks — always matches
