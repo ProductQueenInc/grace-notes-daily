@@ -64,26 +64,26 @@ const previewRows: PreviewItem[][] = [
 
 function PreviewCard({ item }: { item: PreviewItem }) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-white/20 bg-white/10 backdrop-blur-sm shadow-[0_20px_60px_rgba(9,24,15,0.18)] transition duration-300 hover:-translate-y-1 hover:bg-white/14">
-      <div className="p-3 sm:p-4">
-        <div className="overflow-hidden rounded-[24px] bg-white/5 ring-1 ring-white/10">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-white/20 bg-white/10 backdrop-blur-sm shadow-[0_16px_48px_rgba(9,24,15,0.18)] transition duration-300 hover:-translate-y-1 hover:bg-white/14">
+      <div className="p-2.5 sm:p-3">
+        <div className="aspect-[3/2] overflow-hidden rounded-[18px] bg-white/5 ring-1 ring-white/10">
           <img
             src={item.imageUrl}
             alt={item.alt}
             loading="lazy"
-            className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.015]"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.015]"
           />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-5 pb-5 pt-1 sm:px-6 sm:pb-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-1 sm:px-5 sm:pb-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
           {item.eyebrow}
         </p>
-        <h3 className="mt-2 font-display text-[1.9rem] leading-none text-white sm:text-[2.1rem]">
+        <h3 className="mt-1.5 font-display text-[1.5rem] leading-none text-white sm:text-[1.65rem]">
           {item.title}
         </h3>
-        <p className="mt-3 max-w-[30ch] text-sm leading-relaxed text-white/82 sm:text-[15px]">
+        <p className="mt-2 max-w-[32ch] text-[13px] leading-relaxed text-white/82 sm:text-[13.5px]">
           {item.description}
         </p>
       </div>
