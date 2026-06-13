@@ -355,25 +355,21 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 function NotesAndLettersSnapshot() {
   const articles = useMemo(() => {
-    const all = LIBRARY.filter((a) => a.kind === "notes" || a.series);
-    const foundations = all
-      .filter((a) => a.series)
-      .sort((a, b) => (a.series!.order ?? 0) - (b.series!.order ?? 0));
-    const notes = all.filter((a) => !a.series);
-
-    const byRecent = (xs: typeof notes) =>
-      [...xs].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-
-    const abundance = byRecent(notes.filter((a) => a.tags.includes("Abundance & Success")));
-    const seen = new Set(abundance.map((a) => a.slug));
-    const faithDoubt = byRecent(
-      notes.filter((a) => !seen.has(a.slug) && a.tags.includes("Faith & Doubt")),
-    );
-    faithDoubt.forEach((a) => seen.add(a.slug));
-    const rest = byRecent(notes.filter((a) => !seen.has(a.slug)));
-
-    return [...foundations, ...abundance, ...faithDoubt, ...rest].slice(0, 8);
+    // Non-foundation Notes & Letters only, most recent first, capped at 7
+    return LIBRARY
+      .filter((a) => (a.kind === "notes" || a.series == null) && !a.series)
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .slice(0, 7);
   }, []);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollBy = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>("[data-card]");
+    const step = card ? card.offsetWidth + 20 : el.clientWidth * 0.8;
+    el.scrollBy({ left: step * dir, behavior: "smooth" });
+  };
 
   return (
     <section className="px-6 pb-24">
@@ -387,20 +383,42 @@ function NotesAndLettersSnapshot() {
               Gentle reads for the in-between
             </h2>
           </div>
-          <Link
-            to="/library"
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition whitespace-nowrap"
-          >
-            See all <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="hidden sm:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollBy(-1)}
+              aria-label="Previous"
+              className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center transition"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollBy(1)}
+              aria-label="Next"
+              className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center transition"
+            >
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <Link
+              to="/library"
+              className="ml-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition whitespace-nowrap"
+            >
+              See all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
-        {/* Horizontal scroll rail */}
-        <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Horizontal scroll rail — uniform card sizes via fixed widths + clamped excerpt */}
+        <div
+          ref={scrollerRef}
+          className="snapshot-rail flex gap-5 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {articles.map((a) => (
             <div
               key={a.slug}
-              className="snap-start shrink-0 w-[78vw] sm:w-[340px] lg:w-[360px]"
+              data-card
+              className="snap-start shrink-0 w-[78vw] sm:w-[320px] lg:w-[340px]"
             >
               <ArticleCard article={a} />
             </div>
@@ -416,6 +434,15 @@ function NotesAndLettersSnapshot() {
           </Link>
         </div>
       </div>
+      {/* Clamp excerpts inside this rail only so every card matches height */}
+      <style>{`
+        .snapshot-rail [data-card] > a > div:last-child > p:nth-of-type(1) {
+          display: -webkit-box;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </section>
   );
 }
