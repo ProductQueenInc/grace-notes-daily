@@ -241,6 +241,10 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-06-13 — Homepage preview card asset correction
+
+- **Homepage six-card preview assets corrected** (`src/components/home-previews.tsx`): the first three cards, Grace Notes, Listen, and Daily Rhythms, now import the uploaded SVG asset pointers instead of the older PNG pointers. Verified by source search and browser network requests showing `.svg.asset.json` imports with `content_type = "image/svg+xml"` for all six cards.
+
 ### 2026-06-12 — Devotional date fix + Listen auto-play + shuffle
 
 - **Devotional date bug fixed** (`src/lib/ai.functions.ts`): the AI model (Haiku) occasionally hallucinated old dates (e.g. January 2025) from its training data, ignoring the date injected into the prompt. Fixed by force-overwriting `parsed.date = today` after AI generation. The displayed date is now always the server-computed date, never what the model outputs.
