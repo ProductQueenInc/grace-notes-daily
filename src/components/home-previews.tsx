@@ -1,9 +1,9 @@
-import graceNotesPreview from "@/assets/home-previews/grace-notes-home.svg.asset.json";
-import listenPreview from "@/assets/home-previews/listen-home.svg.asset.json";
-import dailyRhythmsPreview from "@/assets/home-previews/daily-rhythms-home.svg.asset.json";
-import heartNotesPreview from "@/assets/home-previews/heart-notes-home.png.asset.json";
-import prayerPreview from "@/assets/home-previews/prayer-home.png.asset.json";
-import journeyPreview from "@/assets/home-previews/journey-home.png.asset.json";
+import graceNotesPreview from "@/assets/home-previews/grace-notes-home.png.asset.json";
+import listenPreview from "@/assets/home-previews/listen-home.png.asset.json";
+import dailyRhythmsPreview from "@/assets/home-previews/daily-rhythms-home.png.asset.json";
+import heartNotesPreview from "@/assets/home-previews/heart-notes-home.svg.asset.json";
+import prayerPreview from "@/assets/home-previews/prayer-home.svg.asset.json";
+import journeyPreview from "@/assets/home-previews/journey-home.svg.asset.json";
 
 type PreviewItem = {
   title: string;

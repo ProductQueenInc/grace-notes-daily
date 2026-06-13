@@ -300,7 +300,7 @@ function Header() {
           variant="medallion"
           className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 transition-transform group-hover:scale-105"
         />
-        <span className="font-display text-[1.15rem] xs:text-[1.3rem] leading-none sm:text-3xl tracking-tight whitespace-nowrap truncate">
+        <span className="font-display text-[1.6rem] leading-none sm:text-3xl tracking-tight whitespace-nowrap">
           GraceNotes Daily
         </span>
       </Link>
