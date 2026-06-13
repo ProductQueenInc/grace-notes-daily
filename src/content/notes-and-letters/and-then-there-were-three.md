@@ -1,5 +1,5 @@
 ---
-title: "And Then There Were Three: What Nobody Tells You About the Faith It Takes to Be a Parent"
+title: "Why Does Loving My Baby Make Me Feel Closer to God?"
 description: "Nobody warns you, before you have a child, that the love is terrifying. Imani found out at two in the morning, three weeks in. On Hannah, Mary, and learning to hold a life that was never fully yours to keep."
 date: 2026-06-10
 author: "GraceNotes Daily"
@@ -27,7 +27,7 @@ tags:
 llm_summary: "Article about new parenthood using Imani's story. Draws on Hannah giving Samuel back in 1 Samuel 1-2, Mary's yes in Luke 1:38, and Psalm 127:3. Addresses the specific terror of loving someone this much and the theology of holding loosely. Warm, non-preachy, honest about fear alongside joy."
 ---
 
-# And Then There Were Three: What Nobody Tells You About the Faith It Takes to Be a Parent
+# Why Does Loving My Baby Make Me Feel Closer to God?
 
 *By GraceNotes Daily*
 
@@ -47,7 +47,7 @@ Imani had heard people say that having a child changes your relationship with Go
 
 Hannah prayed for a child for years. Wept in the temple. Was so undone in her prayer that a priest thought she was drunk. And when Samuel was born, she held him and loved him, and then, when he was old enough, she brought him back to the temple and gave him to God. And she did it willingly, which is the part that stays with you. One of the most luminous songs of praise in the whole Old Testament pours out of her at the moment she hands him back. Because she understood something that most parents come to slowly: he had always belonged to God first. She was holding someone on loan.
 
-That is not a cold theology. It turns out to be a freeing one. Because if the child belongs to God first, then God's interest in their life is greater than yours. His capacity to hold them is larger than yours. The love you feel for them is a fraction of the love they are already held in.
+It sounds that way at first. Then it turns out to be the most freeing thing about it. Because if the child belongs to God first, then God's interest in their life is greater than yours. His capacity to hold them is larger than yours. The love you feel for them is a fraction of the love they are already held in.
 
 ---
 
