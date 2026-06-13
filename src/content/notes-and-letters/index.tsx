@@ -63,37 +63,37 @@ function stripQuotes(s: string): string {
 // (same imagery policy as nature-background.tsx).
 const META: Record<string, { tags: LibraryTag[]; cover: string }> = {
   "and-then-there-were-three": {
-    tags: ["Family", "Seasons"],
+    tags: ["Abundance & Success", "Family & Parenting", "Family", "Seasons"],
     cover:
       "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1600&q=70&auto=format&fit=crop",
   },
   "i-still-believe-i-just-dont-believe-that-anymore": {
-    tags: ["Doubt", "Seasons"],
+    tags: ["Faith & Doubt", "Doubt", "Seasons"],
     cover:
       "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=70&auto=format&fit=crop",
   },
   "losing-your-job-as-a-christian": {
-    tags: ["Work", "Identity"],
+    tags: ["Work & Calling", "Work", "Identity"],
     cover:
       "https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=70&auto=format&fit=crop",
   },
   "still-single-what-the-church-gets-wrong": {
-    tags: ["Singleness", "Waiting"],
+    tags: ["Love & Relationships", "Singleness", "Waiting"],
     cover:
       "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=70&auto=format&fit=crop",
   },
   "what-do-you-do-when-you-dont-recognise-your-life": {
-    tags: ["Identity", "Seasons"],
+    tags: ["Faith & Doubt", "Identity", "Seasons"],
     cover:
       "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&q=70&auto=format&fit=crop",
   },
   "when-grief-breaks-your-theology": {
-    tags: ["Grief", "Seasons"],
+    tags: ["Grief & Loss", "Faith & Doubt", "Grief", "Seasons"],
     cover:
       "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=70&auto=format&fit=crop",
   },
   "when-the-answer-finally-comes": {
-    tags: ["Seasons", "Identity"],
+    tags: ["Abundance & Success", "Seasons", "Identity"],
     cover:
       "https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=70&auto=format&fit=crop",
   },
