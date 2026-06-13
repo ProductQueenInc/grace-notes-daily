@@ -176,7 +176,7 @@ function Journey() {
           icon={Compass}
           eyebrow="Your story"
           title="Your Journey"
-          subtitle="Look back on how far you've come."
+          subtitle="Find the record of your HeartNotes and your answered prayers, and delight in the journey that's been"
         />
 
         <div className="glass-on-hue rounded-3xl p-4 mb-5 space-y-3">

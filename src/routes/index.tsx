@@ -190,7 +190,7 @@ function Landing() {
       {/* SOFT REASSURANCE STRIP */}
       <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto glass rounded-3xl p-8 md:p-12 text-center">
-          <DoveMark variant="green" className="w-8 h-8 mx-auto mb-3" />
+          <DoveMark variant="green" className="w-12 h-12 mx-auto mb-4 drop-shadow-lg" />
           <p className="font-display text-2xl md:text-3xl text-grace leading-snug max-w-3xl mx-auto">
             "Come to me, all who are weary and burdened, and I will give you rest."
           </p>
@@ -241,7 +241,7 @@ function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mt-10">
             {bibleStories.map((s) => (
               <div key={s.who} className="glass rounded-3xl p-6 text-foreground">
-                <DoveMark variant="green" className="w-6 h-6 mb-3" />
+                <DoveMark variant="green" className="w-10 h-10 mb-4 drop-shadow-md" />
                 <p className="font-display text-lg text-grace leading-snug">"{s.verse}"</p>
                 <p className="text-xs text-grace-deep font-bold mt-2">{s.ref}</p>
                 <p className="text-xs text-foreground/80 mt-1">– {s.who}</p>
