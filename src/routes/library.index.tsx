@@ -422,9 +422,9 @@ function LibraryHub() {
 
       {/* ============ FOUNDATIONS ROW (mobile + desktop) ============ */}
       {seriesArticles.length > 0 && isAll && (
-        <section className="px-6 pb-16 pt-4 relative z-10">
+        <section className="px-6 pb-16 pt-6 sm:pt-4 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-baseline justify-between mb-3 sm:mb-4">
+            <div className="flex items-baseline justify-between mb-5 sm:mb-4">
               <div>
                 <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold">
                   Foundations
