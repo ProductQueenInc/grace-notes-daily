@@ -98,14 +98,6 @@ const phases = [
   { icon: BookHeart, title: "Elder", desc: "Faith is a way of life for me." },
 ];
 
-const features = [
-  { icon: Sparkles, title: "Daily Grace Notes", desc: "A fresh word of love each morning - written to meet you exactly where you are." },
-  { icon: BookHeart, title: "Heart Notes", desc: "A gentle journaling space. Pour out your heart and receive a quiet, grace-filled reply." },
-  { icon: HandHeart, title: "Prayer Tracker", desc: "Hold your prayers in one place. Celebrate the answers with confetti and thanksgiving." },
-  { icon: Compass, title: "Your Journey", desc: "Look back on how far you've come - every note, prayer, and answered moment." },
-  { icon: Headphones, title: "Listen", desc: "Worship, prayer, and teaching curated to walk with you wherever you are." },
-  { icon: Sun, title: "Daily Rhythms", desc: "Three soft, daily practices that build a gentle rhythm with God." },
-];
 
 const bibleStories = [
   {
