@@ -248,6 +248,11 @@ function Landing() {
         </div>
       </section>
 
+      {/* NOTES & LETTERS SNAPSHOT (non-signed-in) */}
+      {!isLoggedIn && <NotesAndLettersSnapshot />}
+
+
+
       {/* FAQ */}
       <section id="faq" className="px-6 pb-24">
         <div className="max-w-3xl mx-auto">
