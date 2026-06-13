@@ -2,11 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { DoveMark } from "@/components/dove-mark";
+import { HomeFeaturePreviews } from "@/components/home-previews";
+import { ArticleCard } from "@/components/article-card";
+import { LIBRARY } from "@/lib/library";
 import {
-  Sparkles, BookHeart, HandHeart, Compass, Headphones,
-  ChevronDown, Quote, ShieldCheck, Sun, Moon,
+  Sparkles, BookHeart, HandHeart, Compass,
+  ChevronDown, Quote, ShieldCheck, Sun, Moon, ArrowRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 const homepageSchema = [
