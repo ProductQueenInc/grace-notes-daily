@@ -93,11 +93,11 @@ export interface LibraryArticle {
 export const LIBRARY: LibraryArticle[] = [
   {
     slug: "prayer-journaling",
-    title: "Prayer Journaling: Writing Your Way Closer to God",
+    title: "What Happens When You Start Writing Your Prayers Down",
     kicker: "Prayer Journaling",
-    lede: "Write your prayers. Watch God answer them.",
+    lede: "Specific prayers, written down, have a way of becoming a record. You'll see it when you look back.",
     description:
-      "Discover how prayer journaling can deepen your faith, build a daily prayer habit, and help you see God's faithfulness over time.",
+      "What happens when you write your prayers down and keep them. On specific prayer, answered prayers, and building a record of God's faithfulness over time.",
     excerpt:
       "Specific prayers, written down, become a record of God's faithfulness in your own life. A gentle on-ramp for beginners and a deeper home for seasoned writers.",
     cover: "/library/prayer-journaling/cover.jpg",
