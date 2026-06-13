@@ -198,12 +198,16 @@ function Landing() {
         </div>
       </section>
 
-      {/* FEATURES — product-flavoured preview cards */}
+      {/* FEATURES — homepage product showcase */}
       <section className="pb-24">
         <div className="max-w-6xl mx-auto px-6">
-          <SectionTitle eyebrow="What's inside" title="Everything you need for a gentle rhythm with God" />
+          <SectionTitle
+            eyebrow="A look inside"
+            title="Six spaces designed to hold your walk with God"
+            subtitle="From listening and daily rhythms to prayer, journaling, and remembrance — each part is built to feel calm, clear, and deeply personal."
+          />
         </div>
-        <div className="mt-12">
+        <div className="mt-12 px-0 sm:px-6">
           <HomeFeaturePreviews />
         </div>
       </section>
