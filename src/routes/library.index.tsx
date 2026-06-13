@@ -1,11 +1,26 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
-import { LIBRARY, ALL_TAGS, SERIES, BASE_URL, type LibraryTag } from "@/lib/library";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { SlidersHorizontal } from "lucide-react";
+import {
+  LIBRARY,
+  ALL_TAGS,
+  PRIMARY_TAGS,
+  SERIES,
+  BASE_URL,
+  type LibraryTag,
+} from "@/lib/library";
 
 type LibrarySearch = { tag?: LibraryTag | "All" };
 
@@ -67,6 +82,16 @@ function LibraryHub() {
     LIBRARY.forEach((a) => a.tags.forEach((t) => set.add(t)));
     return ALL_TAGS.filter((t) => set.has(t));
   }, []);
+
+  const primaryTagsInUse = useMemo(
+    () => PRIMARY_TAGS.filter((t) => tagsInUse.includes(t)),
+    [tagsInUse],
+  );
+  const longTailTagsInUse = useMemo(
+    () => tagsInUse.filter((t) => !(PRIMARY_TAGS as LibraryTag[]).includes(t)),
+    [tagsInUse],
+  );
+  const [moreOpen, setMoreOpen] = useState(false);
 
   return (
     <>
@@ -170,13 +195,13 @@ function LibraryHub() {
       {/* Tag chips */}
       <section className="px-6 pb-6 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             <TagChip
               label="All"
               active={activeTag === "All"}
               onClick={() => setActiveTag("All")}
             />
-            {tagsInUse.map((t) => (
+            {primaryTagsInUse.map((t) => (
               <TagChip
                 key={t}
                 label={t}
@@ -184,6 +209,62 @@ function LibraryHub() {
                 onClick={() => setActiveTag(t)}
               />
             ))}
+            {/* If the active tag is long-tail, surface it as a chip so user sees what's selected */}
+            {activeTag !== "All" &&
+              !(PRIMARY_TAGS as LibraryTag[]).includes(activeTag) && (
+                <TagChip label={activeTag} active onClick={() => setActiveTag("All")} />
+              )}
+            {longTailTagsInUse.length > 0 && (
+              <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="px-4 py-2 rounded-full text-sm font-medium bg-white/10 text-white/85 hover:bg-white/20 transition inline-flex items-center gap-2"
+                    aria-label="More filters"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    More filters
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>More filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => {
+                        setActiveTag("All");
+                        setMoreOpen(false);
+                      }}
+                      className={[
+                        "px-4 py-2 rounded-full text-sm font-medium transition",
+                        activeTag === "All"
+                          ? "bg-grace text-white"
+                          : "bg-grace-haze text-grace hover:bg-grace/15",
+                      ].join(" ")}
+                    >
+                      All
+                    </button>
+                    {[...primaryTagsInUse, ...longTailTagsInUse].map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => {
+                          setActiveTag(t);
+                          setMoreOpen(false);
+                        }}
+                        className={[
+                          "px-4 py-2 rounded-full text-sm font-medium transition",
+                          activeTag === t
+                            ? "bg-grace text-white"
+                            : "bg-grace-haze text-grace hover:bg-grace/15",
+                        ].join(" ")}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
         </div>
       </section>

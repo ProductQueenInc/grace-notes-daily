@@ -2,11 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { DoveMark } from "@/components/dove-mark";
+import { HomeFeaturePreviews } from "@/components/home-previews";
+import { ArticleCard } from "@/components/article-card";
+import { LIBRARY } from "@/lib/library";
 import {
-  Sparkles, BookHeart, HandHeart, Compass, Headphones,
-  ChevronDown, Quote, ShieldCheck, Sun, Moon,
+  Sparkles, BookHeart, HandHeart, Compass,
+  ChevronDown, Quote, ShieldCheck, Sun, Moon, ArrowRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 const homepageSchema = [
@@ -95,14 +98,6 @@ const phases = [
   { icon: BookHeart, title: "Elder", desc: "Faith is a way of life for me." },
 ];
 
-const features = [
-  { icon: Sparkles, title: "Daily Grace Notes", desc: "A fresh word of love each morning - written to meet you exactly where you are." },
-  { icon: BookHeart, title: "Heart Notes", desc: "A gentle journaling space. Pour out your heart and receive a quiet, grace-filled reply." },
-  { icon: HandHeart, title: "Prayer Tracker", desc: "Hold your prayers in one place. Celebrate the answers with confetti and thanksgiving." },
-  { icon: Compass, title: "Your Journey", desc: "Look back on how far you've come - every note, prayer, and answered moment." },
-  { icon: Headphones, title: "Listen", desc: "Worship, prayer, and teaching curated to walk with you wherever you are." },
-  { icon: Sun, title: "Daily Rhythms", desc: "Three soft, daily practices that build a gentle rhythm with God." },
-];
 
 const bibleStories = [
   {
@@ -203,33 +198,13 @@ function Landing() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="pb-24 sm:px-6">
-        <div className="max-w-6xl mx-auto px-6 sm:px-0">
+      {/* FEATURES — product-flavoured preview cards */}
+      <section className="pb-24">
+        <div className="max-w-6xl mx-auto px-6">
           <SectionTitle eyebrow="What's inside" title="Everything you need for a gentle rhythm with God" />
         </div>
-        {/* Mobile: horizontal snap rail. Tablet+: grid */}
-        <div className="mt-10 sm:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-6 pb-3 -mx-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {features.map((f) => (
-            <div key={f.title} className="glass rounded-3xl p-6 text-foreground min-w-[78vw] snap-start">
-              <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
-                <f.icon className="w-5 h-5" />
-              </span>
-              <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
-              <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-        <div className="max-w-6xl mx-auto hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
-          {features.map((f) => (
-            <div key={f.title} className="glass rounded-3xl p-6 text-foreground hover:scale-[1.01] transition">
-              <span className="w-11 h-11 rounded-full bg-grace-soft text-grace flex items-center justify-center mb-4">
-                <f.icon className="w-5 h-5" />
-              </span>
-              <h3 className="font-display text-2xl text-grace mb-1">{f.title}</h3>
-              <p className="text-sm text-foreground/70 leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
+        <div className="mt-12">
+          <HomeFeaturePreviews />
         </div>
       </section>
 
@@ -272,6 +247,11 @@ function Landing() {
           </div>
         </div>
       </section>
+
+      {/* NOTES & LETTERS SNAPSHOT (non-signed-in) */}
+      {!isLoggedIn && <NotesAndLettersSnapshot />}
+
+
 
       {/* FAQ */}
       <section id="faq" className="px-6 pb-24">
@@ -370,5 +350,72 @@ function FaqItem({ q, a }: { q: string; a: string }) {
       </button>
       {open && <div className="px-5 pb-5 text-sm text-foreground/75 leading-relaxed">{a}</div>}
     </div>
+  );
+}
+
+function NotesAndLettersSnapshot() {
+  const articles = useMemo(() => {
+    const all = LIBRARY.filter((a) => a.kind === "notes" || a.series);
+    const foundations = all
+      .filter((a) => a.series)
+      .sort((a, b) => (a.series!.order ?? 0) - (b.series!.order ?? 0));
+    const notes = all.filter((a) => !a.series);
+
+    const byRecent = (xs: typeof notes) =>
+      [...xs].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+
+    const abundance = byRecent(notes.filter((a) => a.tags.includes("Abundance & Success")));
+    const seen = new Set(abundance.map((a) => a.slug));
+    const faithDoubt = byRecent(
+      notes.filter((a) => !seen.has(a.slug) && a.tags.includes("Faith & Doubt")),
+    );
+    faithDoubt.forEach((a) => seen.add(a.slug));
+    const rest = byRecent(notes.filter((a) => !seen.has(a.slug)));
+
+    return [...foundations, ...abundance, ...faithDoubt, ...rest].slice(0, 8);
+  }, []);
+
+  return (
+    <section className="px-6 pb-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-end justify-between gap-4 mb-8">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] font-semibold drop-shadow mb-3 text-white">
+              Notes &amp; Letters
+            </p>
+            <h2 className="font-display text-3xl md:text-5xl text-white drop-shadow leading-tight">
+              Gentle reads for the in-between
+            </h2>
+          </div>
+          <Link
+            to="/library"
+            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition whitespace-nowrap"
+          >
+            See all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* Horizontal scroll rail */}
+        <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {articles.map((a) => (
+            <div
+              key={a.slug}
+              className="snap-start shrink-0 w-[78vw] sm:w-[340px] lg:w-[360px]"
+            >
+              <ArticleCard article={a} />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 sm:hidden text-center">
+          <Link
+            to="/library"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition"
+          >
+            See all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

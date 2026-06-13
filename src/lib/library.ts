@@ -5,6 +5,14 @@ import * as ChristianJournaling from "@/content/library/christian-journaling";
 import { NOTES_AND_LETTERS } from "@/content/notes-and-letters";
 
 export type LibraryTag =
+  // Primary buckets (shown as chips on /library)
+  | "Abundance & Success"
+  | "Faith & Doubt"
+  | "Love & Relationships"
+  | "Grief & Loss"
+  | "Work & Calling"
+  | "Family & Parenting"
+  // Long-tail tags (surface in More filters sheet)
   | "Prayer"
   | "Journaling"
   | "Devotional"
@@ -19,7 +27,21 @@ export type LibraryTag =
   | "Identity"
   | "Waiting";
 
+/**
+ * Primary tag whitelist — these render as chips on the library page.
+ * Order here is the display order. Abundance & Success leads the set.
+ */
+export const PRIMARY_TAGS: LibraryTag[] = [
+  "Abundance & Success",
+  "Faith & Doubt",
+  "Love & Relationships",
+  "Grief & Loss",
+  "Work & Calling",
+  "Family & Parenting",
+];
+
 export const ALL_TAGS: LibraryTag[] = [
+  ...PRIMARY_TAGS,
   "Prayer",
   "Journaling",
   "Devotional",
