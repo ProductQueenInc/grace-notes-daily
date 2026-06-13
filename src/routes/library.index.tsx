@@ -63,7 +63,11 @@ function LibraryHub() {
   const navigate = useNavigate({ from: "/library/" });
   const activeTag: LibraryTag | "All" = search.tag ?? "All";
   const setActiveTag = (t: LibraryTag | "All") => {
-    navigate({ search: t === "All" ? {} : { tag: t }, replace: true });
+    navigate({
+      search: t === "All" ? {} : { tag: t },
+      replace: true,
+      resetScroll: false,
+    });
     // Smooth-scroll to the all-essays grid when user picks a tag
     if (t !== "All" && typeof document !== "undefined") {
       requestAnimationFrame(() => {
@@ -239,7 +243,7 @@ function LibraryHub() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-baseline justify-between mb-4">
               <p className="text-gold uppercase tracking-widest text-xs font-semibold">
-                Latest essay
+                Latest letter
               </p>
             </div>
             <Link
@@ -280,48 +284,11 @@ function LibraryHub() {
         </section>
       )}
 
-      {/* Themed sections — Browse by theme */}
-      {themedSections.length > 0 && (
-        <section className="px-6 pb-12 relative z-10 space-y-10">
-          {themedSections.map(({ tag, items }) => (
-            <div key={tag} className="max-w-6xl mx-auto">
-              <div className="flex items-baseline justify-between mb-4 gap-3 flex-wrap">
-                <h2 className="font-display text-2xl md:text-[1.7rem] text-white drop-shadow">
-                  {tag}
-                </h2>
-                <button
-                  onClick={() => setActiveTag(tag)}
-                  className="text-white/85 hover:text-white text-sm font-semibold inline-flex items-center gap-1.5 transition"
-                >
-                  See all in {tag} <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Mobile: snap row */}
-              <div className="sm:hidden -mx-6 px-6 flex gap-4 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {items.map((a) => (
-                  <div key={a.slug} className="min-w-[78vw] snap-start">
-                    <ArticleCard article={a} />
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop: 3-up */}
-              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6">
-                {items.map((a) => (
-                  <ArticleCard key={a.slug} article={a} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* All essays — tag-filtered grid */}
+      {/* All letters — tag-filtered grid */}
       <section id="all-essays" className="px-6 pb-6 relative z-10 scroll-mt-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="font-display text-2xl md:text-[1.7rem] text-white drop-shadow mb-4">
-            All essays
+            All letters
           </h2>
           <div className="flex gap-2 flex-wrap items-center">
             <TagChip
