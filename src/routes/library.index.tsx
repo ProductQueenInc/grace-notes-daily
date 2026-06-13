@@ -12,13 +12,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ArrowRight } from "lucide-react";
 import {
   LIBRARY,
   ALL_TAGS,
   PRIMARY_TAGS,
   SERIES,
   BASE_URL,
+  type LibraryArticle,
   type LibraryTag,
 } from "@/lib/library";
 
@@ -61,8 +62,17 @@ function LibraryHub() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/library/" });
   const activeTag: LibraryTag | "All" = search.tag ?? "All";
-  const setActiveTag = (t: LibraryTag | "All") =>
+  const setActiveTag = (t: LibraryTag | "All") => {
     navigate({ search: t === "All" ? {} : { tag: t }, replace: true });
+    // Smooth-scroll to the all-essays grid when user picks a tag
+    if (t !== "All" && typeof document !== "undefined") {
+      requestAnimationFrame(() => {
+        document
+          .getElementById("all-essays")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  };
 
   const seriesArticles = useMemo(
     () =>
@@ -72,10 +82,41 @@ function LibraryHub() {
     [],
   );
 
+  // Newest-first across all articles
+  const sorted = useMemo(
+    () => [...LIBRARY].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)),
+    [],
+  );
+
+  // Latest essay = newest non-series article (foundations are evergreen)
+  const latest: LibraryArticle | undefined = useMemo(
+    () => sorted.find((a) => !a.series),
+    [sorted],
+  );
+
+  // Themed sections: up to 3 primary tags that have ≥2 articles available.
+  // Exclude the "latest" article from these to avoid double-showing it.
+  const themedSections = useMemo(() => {
+    const pool = sorted.filter((a) => a.slug !== latest?.slug);
+    const used = new Set<string>();
+    const sections: { tag: LibraryTag; items: LibraryArticle[] }[] = [];
+    for (const tag of PRIMARY_TAGS) {
+      const items = pool
+        .filter((a) => a.tags.includes(tag) && !used.has(a.slug))
+        .slice(0, 3);
+      if (items.length >= 2) {
+        sections.push({ tag, items });
+        items.forEach((a) => used.add(a.slug));
+      }
+      if (sections.length === 3) break;
+    }
+    return sections;
+  }, [sorted, latest]);
+
   const filtered = useMemo(() => {
-    if (activeTag === "All") return LIBRARY;
-    return LIBRARY.filter((a) => a.tags.includes(activeTag));
-  }, [activeTag]);
+    if (activeTag === "All") return sorted;
+    return sorted.filter((a) => a.tags.includes(activeTag));
+  }, [sorted, activeTag]);
 
   const tagsInUse = useMemo(() => {
     const set = new Set<LibraryTag>();
@@ -146,9 +187,9 @@ function LibraryHub() {
         </p>
       </section>
 
-      {/* Series strip */}
+      {/* Series strip — Foundations */}
       {seriesArticles.length > 0 && (
-        <section className="px-6 pb-8 relative z-10">
+        <section className="px-6 pb-10 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="glass-parchment rounded-3xl p-6 md:p-8">
               <div className="flex items-baseline justify-between gap-4 mb-4 flex-wrap">
@@ -192,9 +233,96 @@ function LibraryHub() {
         </section>
       )}
 
-      {/* Tag chips */}
-      <section className="px-6 pb-6 relative z-10">
+      {/* Latest essay — featured */}
+      {latest && (
+        <section className="px-6 pb-12 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-baseline justify-between mb-4">
+              <p className="text-gold uppercase tracking-widest text-xs font-semibold">
+                Latest essay
+              </p>
+            </div>
+            <Link
+              to="/library/$slug"
+              params={{ slug: latest.slug }}
+              className="group glass-parchment rounded-3xl overflow-hidden grid md:grid-cols-2 transition hover:shadow-lg"
+            >
+              <div className="aspect-[16/10] md:aspect-auto overflow-hidden bg-grace-haze">
+                <img
+                  src={latest.cover}
+                  alt=""
+                  loading="lazy"
+                  width={1600}
+                  height={1000}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              </div>
+              <div className="p-6 md:p-10 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-3 text-xs">
+                  {latest.tags[0] && (
+                    <span className="text-foreground/60 uppercase tracking-wider">
+                      {latest.tags[0]}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-display text-3xl md:text-4xl text-grace leading-tight mb-3 group-hover:text-grace-deep transition">
+                  {latest.title}
+                </h3>
+                <p className="text-foreground/75 leading-relaxed mb-4">
+                  {latest.excerpt}
+                </p>
+                <p className="text-foreground/50 text-xs">
+                  {latest.readMinutes} min read
+                </p>
+              </div>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Themed sections — Browse by theme */}
+      {themedSections.length > 0 && (
+        <section className="px-6 pb-12 relative z-10 space-y-10">
+          {themedSections.map(({ tag, items }) => (
+            <div key={tag} className="max-w-6xl mx-auto">
+              <div className="flex items-baseline justify-between mb-4 gap-3 flex-wrap">
+                <h2 className="font-display text-2xl md:text-[1.7rem] text-white drop-shadow">
+                  {tag}
+                </h2>
+                <button
+                  onClick={() => setActiveTag(tag)}
+                  className="text-white/85 hover:text-white text-sm font-semibold inline-flex items-center gap-1.5 transition"
+                >
+                  See all in {tag} <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Mobile: snap row */}
+              <div className="sm:hidden -mx-6 px-6 flex gap-4 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {items.map((a) => (
+                  <div key={a.slug} className="min-w-[78vw] snap-start">
+                    <ArticleCard article={a} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop: 3-up */}
+              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6">
+                {items.map((a) => (
+                  <ArticleCard key={a.slug} article={a} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* All essays — tag-filtered grid */}
+      <section id="all-essays" className="px-6 pb-6 relative z-10 scroll-mt-8">
         <div className="max-w-6xl mx-auto">
+          <h2 className="font-display text-2xl md:text-[1.7rem] text-white drop-shadow mb-4">
+            All essays
+          </h2>
           <div className="flex gap-2 flex-wrap items-center">
             <TagChip
               label="All"
@@ -209,7 +337,6 @@ function LibraryHub() {
                 onClick={() => setActiveTag(t)}
               />
             ))}
-            {/* If the active tag is long-tail, surface it as a chip so user sees what's selected */}
             {activeTag !== "All" &&
               !(PRIMARY_TAGS as LibraryTag[]).includes(activeTag) && (
                 <TagChip label={activeTag} active onClick={() => setActiveTag("All")} />
@@ -269,8 +396,7 @@ function LibraryHub() {
         </div>
       </section>
 
-      {/* Article grid */}
-      <section className="px-6 pb-20 relative z-10">
+      <section className="px-6 pb-20 pt-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           {filtered.length === 0 ? (
             <p className="text-white/70 text-center py-12">
