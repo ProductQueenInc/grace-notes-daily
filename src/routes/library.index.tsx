@@ -284,13 +284,11 @@ function LibraryHub() {
         </section>
       )}
 
-      {/* Themed sections — Browse by theme */}
       {/* All letters — tag-filtered grid */}
       <section id="all-essays" className="px-6 pb-6 relative z-10 scroll-mt-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="font-display text-2xl md:text-[1.7rem] text-white drop-shadow mb-4">
             All letters
-          </h2>
           </h2>
           <div className="flex gap-2 flex-wrap items-center">
             <TagChip
