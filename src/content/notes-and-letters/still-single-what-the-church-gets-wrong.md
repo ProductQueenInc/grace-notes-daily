@@ -53,7 +53,7 @@ God made Abraham a promise when he was seventy-five years old: you will have a s
 
 And God held the promise through all of it. Through the doubt and the laughter and the mistakes. The promise did not expire because Abraham stopped performing patience correctly.
 
-Psalm 27:14 says: wait for the Lord, be strong and take heart, and wait for the Lord. The Hebrew word translated as wait is qavah, which also means to lean toward, to stretch toward something expected. It is not a passive word. It is the posture of someone who has not stopped expecting, who keeps their eyes in the direction of what they are waiting for.
+Psalm 27:14 says: wait for the Lord, be strong and take heart, and wait for the Lord. The Hebrew word translated as wait is qavah. It means to lean toward something, to keep your eyes in the direction of what you are expecting. Not to sit still and endure. To stay oriented toward what you believe is coming.
 
 ---
 
@@ -69,7 +69,7 @@ Naledi got married two years after that Sunday lunch. She met her husband throug
 
 She still attends the same church. She still sometimes gets asked if there's any news, and now she smiles because there always is.
 
-You are not behind. You are not forgotten. Your life is happening now. God is in it, in this specific season, working in ways that have not fully revealed themselves yet. That is not a platitude. It is a promise.
+You are not behind, and you are not forgotten. Your life is happening now, in this season, and God is in it. Working in ways that haven't fully shown themselves yet. That much is a promise.
 
 ---
 
