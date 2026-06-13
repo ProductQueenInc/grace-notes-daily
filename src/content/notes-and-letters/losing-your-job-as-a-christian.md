@@ -49,8 +49,6 @@ She had, without realising it, built her sense of God's approval around things g
 
 Your anger is allowed. Your silence is allowed. You are allowed to tell God that you do not know how to talk to Him right now.
 
-What you are not required to do is perform a peace you do not have.
-
 ---
 
 Psalm 34 says God is close to the brokenhearted. That word, close, means present in the room with you, not simply willing to come if called. David wrote it not from comfort but from humiliation; he was hiding in a foreign court, pretending to be mad to save his own life. The closeness was in the hiding. God was in that car park too.
