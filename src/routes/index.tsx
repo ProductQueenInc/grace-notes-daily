@@ -418,7 +418,7 @@ function NotesAndLettersSnapshot() {
             <div
               key={a.slug}
               data-card
-              className="snap-start shrink-0 w-[78vw] sm:w-[320px] lg:w-[340px]"
+              className="snap-start shrink-0 w-[78vw] sm:w-[320px] lg:w-[340px] flex [&>a]:h-full [&>a]:w-full"
             >
               <ArticleCard article={a} />
             </div>
