@@ -15,9 +15,13 @@ export const Route = createFileRoute("/library/$slug")({
       };
     }
     const url = `${BASE_URL}/library/${article.slug}`;
-    const coverAbs = /^https?:\/\//i.test(article.cover)
+    const rawCover = /^https?:\/\//i.test(article.cover)
       ? article.cover
       : `${BASE_URL}${article.cover}`;
+    const isUnsplash = /unsplash\.com/.test(rawCover);
+    const coverAbs = isUnsplash
+      ? `${rawCover}${rawCover.includes("?") ? "&" : "?"}w=1200&q=80&fm=jpg`
+      : rawCover;
     const author = article.author ?? DEFAULT_AUTHOR;
     const series = article.series ? SERIES[article.series.slug] : null;
 
@@ -79,6 +83,9 @@ export const Route = createFileRoute("/library/$slug")({
         { property: "og:url", content: url },
         { property: "og:type", content: "article" },
         { property: "og:image", content: coverAbs },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: article.title },
         { property: "article:published_time", content: article.publishedAt },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: article.title },
