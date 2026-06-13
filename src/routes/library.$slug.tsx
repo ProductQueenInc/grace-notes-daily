@@ -15,7 +15,9 @@ export const Route = createFileRoute("/library/$slug")({
       };
     }
     const url = `${BASE_URL}/library/${article.slug}`;
-    const coverAbs = `${BASE_URL}${article.cover}`;
+    const coverAbs = /^https?:\/\//i.test(article.cover)
+      ? article.cover
+      : `${BASE_URL}${article.cover}`;
     const author = article.author ?? DEFAULT_AUTHOR;
     const series = article.series ? SERIES[article.series.slug] : null;
 
