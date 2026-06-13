@@ -47,7 +47,7 @@ At the end of the book, God speaks. And then He says something remarkable to Eli
 
 Job, who argued and demanded and was furious enough to refuse every easy answer he was handed. He spoke what was right. The friends who defended God politely and kept everything theologically neat did not.
 
-God preferred the honest wrestling to the polished theology.
+God preferred the honest wrestling to the polished answers.
 
 ---
 
