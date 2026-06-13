@@ -55,7 +55,7 @@ const previewRows: PreviewItem[][] = [
     {
       title: "Journey",
       eyebrow: "Your story",
-      description: "Return to milestones, answered prayers, and the shape of your growth.",
+      description: "Return to Heart Notes and answered prayers that remind you exactly why you call him Father.",
       imageUrl: journeyPreview.url,
       alt: "GraceNotes Daily journey archive mockup on a warm stone background",
     },
