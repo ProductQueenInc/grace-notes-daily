@@ -110,11 +110,11 @@ export const LIBRARY: LibraryArticle[] = [
   },
   {
     slug: "daily-devotional",
-    title: "Daily Devotional: Showing Up Is the Practice",
+    title: "Ten Minutes Before the Day Gets to You",
     kicker: "Daily Devotional",
-    lede: "The thing that orients your day, before the day gets to you.",
+    lede: "You probably want more time with God, not less. The morning just keeps getting in the way.",
     description:
-      "Build a daily quiet time habit that actually sticks. Why showing up matters more than getting it right, and how to begin.",
+      "What a daily devotional practice actually does, and what it doesn't require from you. On building the habit that orients everything else.",
     excerpt:
       "Not a rule you follow. The thing that orients your day before the day gets to you. Ten minutes, given fully, is enough.",
     cover: "/library/daily-devotional/cover.jpg",
@@ -127,7 +127,7 @@ export const LIBRARY: LibraryArticle[] = [
   },
   {
     slug: "christian-journaling",
-    title: "Christian Journaling: Your Honest Conversation with God",
+    title: "The Psalms Were a Journal. Yours Can Be Too.",
     kicker: "Christian Journaling",
     lede: "Tell God everything and watch what He does with it.",
     description:
