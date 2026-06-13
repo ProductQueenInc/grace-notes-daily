@@ -63,7 +63,11 @@ function LibraryHub() {
   const navigate = useNavigate({ from: "/library/" });
   const activeTag: LibraryTag | "All" = search.tag ?? "All";
   const setActiveTag = (t: LibraryTag | "All") => {
-    navigate({ search: t === "All" ? {} : { tag: t }, replace: true });
+    navigate({
+      search: t === "All" ? {} : { tag: t },
+      replace: true,
+      resetScroll: false,
+    });
     // Smooth-scroll to the all-essays grid when user picks a tag
     if (t !== "All" && typeof document !== "undefined") {
       requestAnimationFrame(() => {
