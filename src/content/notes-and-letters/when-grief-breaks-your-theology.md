@@ -1,5 +1,5 @@
 ---
-title: "When Grief Breaks Your Theology Before It Breaks Your Heart"
+title: "When Grief Breaks Your Answers Before It Breaks Your Heart"
 description: "When loss arrives, the hardest thing isn't always the grief itself. It's what the grief does to your faith. Adaeze's story, Psalm 13, and the God who stands in the pain with you before the miracle."
 date: 2026-06-10
 author: "GraceNotes Daily"
@@ -28,7 +28,7 @@ tags:
 llm_summary: "Article about Christian grief using Adaeze's story of losing her mother. Addresses the specific spiritual loneliness of grieving Christians, anger at God, and the permission found in Psalm 13 and John 11:35. References Lamentations 3:22-23. Honest tone, no false comfort."
 ---
 
-# When Grief Breaks Your Theology Before It Breaks Your Heart
+# When Grief Breaks Your Answers Before It Breaks Your Heart
 
 *By GraceNotes Daily*
 
