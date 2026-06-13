@@ -468,8 +468,8 @@ function SwipeRow({
 }) {
   if (items.length === 0) return null;
   return (
-    <section className="pb-8">
-      <div className="px-6 mb-3">
+    <section className="pt-2 pb-10">
+      <div className="px-6 mb-5">
         <p className="text-gold uppercase tracking-widest text-[11px] font-semibold">
           {eyebrow}
         </p>
