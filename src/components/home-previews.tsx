@@ -71,7 +71,7 @@ function PreviewCard({ item }: { item: PreviewItem }) {
             src={item.imageUrl}
             alt={item.alt}
             loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.015]"
+            className="h-full w-full object-cover scale-[1.12] transition duration-500 group-hover:scale-[1.14]"
           />
         </div>
       </div>
