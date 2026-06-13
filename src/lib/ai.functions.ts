@@ -14,11 +14,11 @@ function logAudit(
   result: "success" | "cached" | "error",
   opts?: { error_msg?: string; meta?: Record<string, unknown> }
 ) {
-  supabaseAdmin
+  void (supabaseAdmin as unknown as { from: (t: string) => { insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }> } })
     .from("audit_log")
     .insert({ user_id: userId, fn, result, error_msg: opts?.error_msg ?? null, meta: opts?.meta ?? null })
     .then(({ error }) => { if (error) console.warn("audit_log insert failed:", error.message) })
-    .catch(() => {})
+    .catch(() => {});
 }
 
 // ── Input schemas ─────────────────────────────────────────────────────────────
