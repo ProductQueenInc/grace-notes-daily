@@ -7,9 +7,9 @@ import { ArticleCard } from "@/components/article-card";
 import { LIBRARY } from "@/lib/library";
 import {
   Sparkles, BookHeart, HandHeart, Compass,
-  ChevronDown, Quote, ShieldCheck, Sun, Moon, ArrowRight,
+  ChevronDown, Quote, ShieldCheck, Sun, Moon, ArrowRight, ArrowLeft,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 const homepageSchema = [
