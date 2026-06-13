@@ -15,9 +15,13 @@ export const Route = createFileRoute("/library/$slug")({
       };
     }
     const url = `${BASE_URL}/library/${article.slug}`;
-    const coverAbs = /^https?:\/\//i.test(article.cover)
+    const rawCover = /^https?:\/\//i.test(article.cover)
       ? article.cover
       : `${BASE_URL}${article.cover}`;
+    const isUnsplash = /unsplash\.com/.test(rawCover);
+    const coverAbs = isUnsplash
+      ? `${rawCover}${rawCover.includes("?") ? "&" : "?"}w=1200&q=80&fm=jpg`
+      : rawCover;
     const author = article.author ?? DEFAULT_AUTHOR;
     const series = article.series ? SERIES[article.series.slug] : null;
 
