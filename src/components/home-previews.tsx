@@ -120,9 +120,9 @@ function PreviewRow({ items, mobileLabel }: { items: PreviewItem[]; mobileLabel:
 
 export function HomeFeaturePreviews() {
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <PreviewRow items={previewRows[0]} mobileLabel="Explore the app" />
-      <div className="hidden sm:block h-6 lg:h-8" />
+      <div className="hidden sm:block h-5 lg:h-7" />
       <PreviewRow items={previewRows[1]} mobileLabel="Write, pray, remember" />
     </div>
   );

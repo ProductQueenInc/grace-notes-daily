@@ -7,7 +7,7 @@ import { ArticleCard } from "@/components/article-card";
 import { LIBRARY } from "@/lib/library";
 import {
   Sparkles, BookHeart, HandHeart, Compass,
-  ChevronDown, Quote, ShieldCheck, Sun, Moon, ArrowRight, ArrowLeft,
+  ChevronDown, ShieldCheck, Moon, ArrowRight, ArrowLeft,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -190,7 +190,7 @@ function Landing() {
       {/* SOFT REASSURANCE STRIP */}
       <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto glass rounded-3xl p-8 md:p-12 text-center">
-          <Quote className="w-7 h-7 text-gold mx-auto mb-3" />
+          <DoveMark variant="green" className="w-8 h-8 mx-auto mb-3" />
           <p className="font-display text-2xl md:text-3xl text-grace leading-snug max-w-3xl mx-auto">
             "Come to me, all who are weary and burdened, and I will give you rest."
           </p>
@@ -241,7 +241,7 @@ function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mt-10">
             {bibleStories.map((s) => (
               <div key={s.who} className="glass rounded-3xl p-6 text-foreground">
-                <Quote className="w-5 h-5 text-gold mb-3" />
+                <DoveMark variant="green" className="w-6 h-6 mb-3" />
                 <p className="font-display text-lg text-grace leading-snug">"{s.verse}"</p>
                 <p className="text-xs text-grace-deep font-bold mt-2">{s.ref}</p>
                 <p className="text-xs text-foreground/80 mt-1">– {s.who}</p>
@@ -260,7 +260,7 @@ function Landing() {
       {/* FAQ */}
       <section id="faq" className="px-6 pb-24">
         <div className="max-w-3xl mx-auto">
-          <SectionTitle eyebrow="Frequently asked" title="Gentle answers to common questions" />
+          <SectionTitle eyebrow="Frequently asked" title="Honest answers to common questions" />
           <div className="space-y-3 mt-10">
             {faqs.map((f, i) => <FaqItem key={i} q={f.q} a={f.a} />)}
           </div>
