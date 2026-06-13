@@ -7,7 +7,7 @@ import { ArticleCard } from "@/components/article-card";
 import { LIBRARY } from "@/lib/library";
 import {
   Sparkles, BookHeart, HandHeart, Compass,
-  ChevronDown, Quote, ShieldCheck, Sun, Moon, ArrowRight, ArrowLeft,
+  ChevronDown, ShieldCheck, Moon, ArrowRight, ArrowLeft,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -190,7 +190,7 @@ function Landing() {
       {/* SOFT REASSURANCE STRIP */}
       <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto glass rounded-3xl p-8 md:p-12 text-center">
-          <Quote className="w-7 h-7 text-gold mx-auto mb-3" />
+          <DoveMark variant="green" className="w-8 h-8 mx-auto mb-3" />
           <p className="font-display text-2xl md:text-3xl text-grace leading-snug max-w-3xl mx-auto">
             "Come to me, all who are weary and burdened, and I will give you rest."
           </p>
@@ -241,7 +241,7 @@ function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mt-10">
             {bibleStories.map((s) => (
               <div key={s.who} className="glass rounded-3xl p-6 text-foreground">
-                <Quote className="w-5 h-5 text-gold mb-3" />
+                <DoveMark variant="green" className="w-6 h-6 mb-3" />
                 <p className="font-display text-lg text-grace leading-snug">"{s.verse}"</p>
                 <p className="text-xs text-grace-deep font-bold mt-2">{s.ref}</p>
                 <p className="text-xs text-foreground/80 mt-1">– {s.who}</p>
@@ -260,7 +260,7 @@ function Landing() {
       {/* FAQ */}
       <section id="faq" className="px-6 pb-24">
         <div className="max-w-3xl mx-auto">
-          <SectionTitle eyebrow="Frequently asked" title="Gentle answers to common questions" />
+          <SectionTitle eyebrow="Frequently asked" title="Honest answers to common questions" />
           <div className="space-y-3 mt-10">
             {faqs.map((f, i) => <FaqItem key={i} q={f.q} a={f.a} />)}
           </div>
@@ -378,39 +378,33 @@ function NotesAndLettersSnapshot() {
   return (
     <section className="px-6 pb-24">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-end justify-between gap-4 mb-8">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] font-semibold drop-shadow mb-3 text-white">
-              Notes &amp; Letters
-            </p>
-            <h2 className="font-display text-3xl md:text-5xl text-white drop-shadow leading-tight">
-              Gentle reads for the in-between
-            </h2>
-          </div>
-          <div className="hidden sm:flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => scrollBy(-1)}
-              aria-label="Previous"
-              className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center transition"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollBy(1)}
-              aria-label="Next"
-              className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center transition"
-            >
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <Link
-              to="/library"
-              className="ml-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition whitespace-nowrap"
-            >
-              See all <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+        <SectionTitle
+          eyebrow="Notes &amp; Letters"
+          title="Gentle reads for the in-between"
+        />
+        <div className="hidden sm:flex items-center justify-center gap-2 mt-6 mb-8">
+          <button
+            type="button"
+            onClick={() => scrollBy(-1)}
+            aria-label="Previous"
+            className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <Link
+            to="/library"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition whitespace-nowrap"
+          >
+            See all <ArrowRight className="w-4 h-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => scrollBy(1)}
+            aria-label="Next"
+            className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center transition"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Horizontal scroll rail — uniform card sizes via fixed widths + clamped excerpt */}

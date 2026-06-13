@@ -302,16 +302,14 @@
 }
 .notes-prose blockquote p { font-size: inherit; line-height: inherit; }
 
-/* Ornamental section break — GraceNotes dove mark */
+/* Thin centered gold separator between article sections */
 .notes-prose hr {
   border: 0;
-  height: 3rem;
-  margin: 2.6em auto;
-  background-image: url("/brand/grace-ornament.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 3rem;
-  opacity: 0.95;
+  height: 1px;
+  width: 96px;
+  margin: 2.4em auto;
+  background: color-mix(in oklab, var(--gold) 70%, transparent);
+  opacity: 0.85;
 }
 
 /* Inline scripture references — auto-wrapped by the loader */
