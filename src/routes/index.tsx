@@ -352,3 +352,70 @@ function FaqItem({ q, a }: { q: string; a: string }) {
     </div>
   );
 }
+
+function NotesAndLettersSnapshot() {
+  const articles = useMemo(() => {
+    const all = LIBRARY.filter((a) => a.kind === "notes" || a.series);
+    const foundations = all
+      .filter((a) => a.series)
+      .sort((a, b) => (a.series!.order ?? 0) - (b.series!.order ?? 0));
+    const notes = all.filter((a) => !a.series);
+
+    const byRecent = (xs: typeof notes) =>
+      [...xs].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+
+    const abundance = byRecent(notes.filter((a) => a.tags.includes("Abundance & Success")));
+    const seen = new Set(abundance.map((a) => a.slug));
+    const faithDoubt = byRecent(
+      notes.filter((a) => !seen.has(a.slug) && a.tags.includes("Faith & Doubt")),
+    );
+    faithDoubt.forEach((a) => seen.add(a.slug));
+    const rest = byRecent(notes.filter((a) => !seen.has(a.slug)));
+
+    return [...foundations, ...abundance, ...faithDoubt, ...rest].slice(0, 8);
+  }, []);
+
+  return (
+    <section className="px-6 pb-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-end justify-between gap-4 mb-8">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] font-semibold drop-shadow mb-3 text-white">
+              Notes &amp; Letters
+            </p>
+            <h2 className="font-display text-3xl md:text-5xl text-white drop-shadow leading-tight">
+              Gentle reads for the in-between
+            </h2>
+          </div>
+          <Link
+            to="/library"
+            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition whitespace-nowrap"
+          >
+            See all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* Horizontal scroll rail */}
+        <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {articles.map((a) => (
+            <div
+              key={a.slug}
+              className="snap-start shrink-0 w-[78vw] sm:w-[340px] lg:w-[360px]"
+            >
+              <ArticleCard article={a} />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 sm:hidden text-center">
+          <Link
+            to="/library"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-sm font-semibold border border-white/20 transition"
+          >
+            See all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
