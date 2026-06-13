@@ -45,12 +45,20 @@ export function ArticleCardCompact({ article }: ArticleCardCompactProps) {
 }
 
 /**
- * "See all" tile placed at the end of a swipe row.
+ * "See all" tile placed at the end of a swipe row. Links back to /library
+ * with the given tag pre-selected (or no tag for "All letters").
  */
-export function SeeAllTile({ to, label }: { to: string; label: string }) {
+export function SeeAllTile({
+  tag,
+  label,
+}: {
+  tag?: string;
+  label: string;
+}) {
   return (
     <Link
-      to={to}
+      to="/library"
+      search={tag ? { tag } : {}}
       className="glass-parchment rounded-2xl flex flex-col items-center justify-center text-center p-6 w-full h-full transition hover:shadow-lg hover:bg-grace/5"
     >
       <span className="font-display text-grace text-lg leading-tight">
