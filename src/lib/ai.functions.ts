@@ -3,6 +3,23 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { z } from "zod";
 import { requireTkoebo as requireSupabaseAuth } from "@/lib/auth-tkoebo.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+// ── Audit logging ─────────────────────────────────────────────────────────────
+// Fire-and-forget: never awaited, never throws, never slows down the response.
+
+function logAudit(
+  userId: string,
+  fn: string,
+  result: "success" | "cached" | "error",
+  opts?: { error_msg?: string; meta?: Record<string, unknown> }
+) {
+  supabaseAdmin
+    .from("audit_log")
+    .insert({ user_id: userId, fn, result, error_msg: opts?.error_msg ?? null, meta: opts?.meta ?? null })
+    .then(({ error }) => { if (error) console.warn("audit_log insert failed:", error.message) })
+    .catch(() => {})
+}
 
 // ── Input schemas ─────────────────────────────────────────────────────────────
 
@@ -249,15 +266,14 @@ Respond with valid JSON only - no markdown, no code fences:
 
   const block = (msg as Anthropic.Message).content[0];
   const raw = block.type === "text" ? block.text : "";
-  return sanitizeGraceNote(
-    parseJSON<GraceNoteResult>(raw, {
-      message:
-        "You are held today. Not because of what you did or did not do - just held. The work in front of you is carried too.",
-      verse: "The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17",
-      signed: "",
-      chatPrompt: "What is on your mind as you start today?",
-    }),
-  );
+  // Throw on empty or unparseable response so the caller does NOT cache the
+  // fallback as real content. The next request will try again fresh.
+  if (!raw.trim()) throw new Error("Grace note: AI returned empty response");
+  const parsed = parseJSON<GraceNoteResult | null>(raw, null);
+  if (!parsed?.message || !parsed?.verse) {
+    throw new Error("Grace note: AI returned invalid JSON — will retry on next request");
+  }
+  return sanitizeGraceNote(parsed);
 }
 
 async function generateDevotionalRaw(p: AIProfile): Promise<DevotionalResult> {
@@ -316,24 +332,13 @@ Respond with valid JSON only - no markdown, no code fences:
 
   const block = (msg as Anthropic.Message).content[0];
   const raw = block.type === "text" ? block.text : "";
-  const parsed = parseJSON<DevotionalResult>(raw, {
-    title: "Mercies, New",
-    verseOfDay:
-      "The steadfast love of the LORD never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.",
-    verseRef: "Lamentations 3:22-23",
-    date: today,
-    body: [
-      "These words were written in ruins. The prophet was not looking out at a calm field. He was looking at rubble.",
-      "And still: new every morning. Not earned. Not deserved. Renewed, like breath. Mercy that does not depend on yesterday going well.",
-      "Whatever today asks of you, the supply is already there. You don't have to manufacture it.",
-    ],
-    related: [
-      { ref: "Psalm 136:1", text: "Give thanks to the LORD, for he is good. His love endures forever." },
-      { ref: "2 Corinthians 5:17", text: "Therefore, if anyone is in Christ, the new creation has come." },
-      { ref: "Matthew 28:20", text: "And surely I am with you always, to the very end of the age." },
-    ],
-    takeaway: "Receive today as already supplied. You don't have to produce the mercy. It's here.",
-  });
+  // Throw on empty or unparseable response so the caller does NOT cache the
+  // fallback as real content. The next request will try again fresh.
+  if (!raw.trim()) throw new Error("Devotional: AI returned empty response");
+  const parsed = parseJSON<DevotionalResult | null>(raw, null);
+  if (!parsed?.title || !parsed?.body?.length) {
+    throw new Error("Devotional: AI returned invalid JSON — will retry on next request");
+  }
   // Force the date to the server-computed value — the AI occasionally hallucinates
   // old dates from its training data regardless of what the prompt specifies.
   parsed.date = today;
@@ -359,13 +364,20 @@ export const getOrCreateGraceNote = createServerFn({ method: "POST" })
 
     // Sanitize cached content on the way out so em-dashes stored in old cache
     // entries are stripped even if they pre-date the sanitizer being added.
-    if (cached?.grace_note) return sanitizeGraceNote(cached.grace_note as GraceNoteResult);
+    if (cached?.grace_note) {
+      logAudit(userId, "getOrCreateGraceNote", "cached")
+      return sanitizeGraceNote(cached.grace_note as GraceNoteResult)
+    }
 
-    const result = await generateGraceNoteRaw(data);
-    await supabase
-      .from("daily_content")
-      .upsert({ user_id: userId, date, grace_note: result });
-    return result;
+    try {
+      const result = await generateGraceNoteRaw(data);
+      await supabase.from("daily_content").upsert({ user_id: userId, date, grace_note: result });
+      logAudit(userId, "getOrCreateGraceNote", "success")
+      return result;
+    } catch (err) {
+      logAudit(userId, "getOrCreateGraceNote", "error", { error_msg: err instanceof Error ? err.message : String(err) })
+      throw err
+    }
   });
 
 // ── Server Function: Get or Create Devotional (cached per user per day) ───────
@@ -399,14 +411,19 @@ export const getOrCreateDevotional = createServerFn({ method: "POST" })
             month: "long",
             day: "numeric",
           });
+      logAudit(userId, "getOrCreateDevotional", "cached")
       return { ...devotional, date: displayDate };
     }
 
-    const result = await generateDevotionalRaw(data);
-    await supabase
-      .from("daily_content")
-      .upsert({ user_id: userId, date, devotional: result });
-    return result;
+    try {
+      const result = await generateDevotionalRaw(data);
+      await supabase.from("daily_content").upsert({ user_id: userId, date, devotional: result });
+      logAudit(userId, "getOrCreateDevotional", "success")
+      return result;
+    } catch (err) {
+      logAudit(userId, "getOrCreateDevotional", "error", { error_msg: err instanceof Error ? err.message : String(err) })
+      throw err
+    }
   });
 
 // ── Server Function: Respond to Heart Note ────────────────────────────────────
@@ -472,7 +489,8 @@ With Grace.
 export const callRespondToHeartNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => HeartNoteInputSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context
     const client = anthropic();
     const baseSystem = `You are responding to ${data.profile.name}'s personal heart note as God, their Father.
 Faith phase: ${phaseDesc(data.profile.faithPhase)}.
@@ -519,7 +537,9 @@ ${NO_EM_DASH_RULE}`;
     }
 
     reply = sanitizeHeartNote(reply);
-    return reply ? stripEmDashes(reply) : "He hears every whisper, every sigh.";
+    const final = reply ? stripEmDashes(reply) : "He hears every whisper, every sigh."
+    logAudit(userId, "callRespondToHeartNote", "success", { meta: { retried: issues.length > 0 } })
+    return final
   });
 
 
@@ -528,7 +548,8 @@ ${NO_EM_DASH_RULE}`;
 export const callRespondToDailyMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => DailyMessageInputSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context
     const client = openai();
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
@@ -557,7 +578,7 @@ ${NO_EM_DASH_RULE}`,
       messages,
     });
 
-
+    logAudit(userId, "callRespondToDailyMessage", "success")
     return stripEmDashes(res.choices[0]?.message?.content ?? "He hears you. Stay close.");
   });
 
@@ -583,7 +604,8 @@ export function buildAIProfile(profile: {
 export const callSummarizeHeartNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => SummarizeInputSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context
     const client = anthropic();
     const system = `Write a 4 to 7 word title for this personal reflection. Plain, specific, gentle. No quotes, no trailing punctuation, no clichés like "Finding peace" or "A moment of grace". Title-case the first word only. Reply with just the title, nothing else.
 
@@ -604,8 +626,10 @@ ${NO_EM_DASH_RULE}`;
         .replace(/[.!?]+\s*$/g, "")
         .split("\n")[0]
         .trim();
+      logAudit(userId, "callSummarizeHeartNote", "success")
       return cleaned || "Heart Note";
     } catch {
+      logAudit(userId, "callSummarizeHeartNote", "error")
       return "Heart Note";
     }
   });

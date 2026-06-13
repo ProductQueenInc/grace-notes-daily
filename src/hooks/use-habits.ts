@@ -30,7 +30,7 @@ function readLocal(): HabitState {
 
 function writeLocal(state: HabitState) {
   localStorage.setItem(todayKey(), JSON.stringify(state));
-  window.dispatchEvent(new CustomEvent("gn:habits-change"));
+  window.dispatchEvent(new CustomEvent("gn:habits-change", { detail: { state } }));
 }
 
 // ── DB helpers ────────────────────────────────────────────────────────────────
@@ -106,6 +106,8 @@ export function useHabits() {
       if (supabaseConfigured && userId) {
         const next = await markInDB(userId, key);
         setHabits(next);
+        // Notify streak hook so the flame updates immediately on gold day.
+        window.dispatchEvent(new CustomEvent("gn:habits-change", { detail: { state: next } }));
       } else {
         const next = { ...readLocal(), [key]: true };
         writeLocal(next);
