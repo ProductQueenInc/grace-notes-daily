@@ -243,7 +243,7 @@ function LibraryHub() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-baseline justify-between mb-4">
               <p className="text-gold uppercase tracking-widest text-xs font-semibold">
-                Latest essay
+                Latest letter
               </p>
             </div>
             <Link
