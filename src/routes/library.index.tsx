@@ -176,7 +176,7 @@ function LibraryHub() {
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-8 pb-8 sm:pt-10 sm:pb-10 relative z-10 text-center">
+      <section className="px-6 pt-8 pb-12 sm:pt-10 sm:pb-10 relative z-10 text-center">
         <p className="text-gold uppercase tracking-widest text-xs font-semibold mb-3">
           Notes &amp; Letters
         </p>
@@ -422,9 +422,9 @@ function LibraryHub() {
 
       {/* ============ FOUNDATIONS ROW (mobile + desktop) ============ */}
       {seriesArticles.length > 0 && isAll && (
-        <section className="px-6 pb-16 pt-4 relative z-10">
+        <section className="px-6 pb-16 pt-6 sm:pt-4 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-baseline justify-between mb-3 sm:mb-4">
+            <div className="flex items-baseline justify-between mb-5 sm:mb-4">
               <div>
                 <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold">
                   Foundations
@@ -468,8 +468,8 @@ function SwipeRow({
 }) {
   if (items.length === 0) return null;
   return (
-    <section className="pb-8">
-      <div className="px-6 mb-3">
+    <section className="pt-2 pb-10">
+      <div className="px-6 mb-5">
         <p className="text-gold uppercase tracking-widest text-[11px] font-semibold">
           {eyebrow}
         </p>
