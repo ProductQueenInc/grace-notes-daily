@@ -176,7 +176,7 @@ function LibraryHub() {
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-8 pb-12 sm:pt-10 sm:pb-10 relative z-10 text-center">
+      <section className="px-6 pt-8 pb-16 sm:pt-10 sm:pb-10 relative z-10 text-center">
         <p className="text-gold uppercase tracking-widest text-xs font-semibold mb-3">
           Notes &amp; Letters
         </p>
@@ -468,8 +468,8 @@ function SwipeRow({
 }) {
   if (items.length === 0) return null;
   return (
-    <section className="pt-2 pb-10">
-      <div className="px-6 mb-5">
+    <section className="pt-6 pb-10">
+      <div className="px-6 mb-6">
         <p className="text-gold uppercase tracking-widest text-[11px] font-semibold">
           {eyebrow}
         </p>
