@@ -103,9 +103,9 @@ function Home() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-5">
+        <div className="grid xl:grid-cols-3 gap-5">
           {/* Left column */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="xl:col-span-2 space-y-5 min-w-0">
             {/* Today's Grace Note + Daily Message chat */}
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
@@ -228,14 +228,14 @@ function Home() {
           </div>
 
           {/* Right column */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             <div className="glass-on-hue rounded-3xl p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-display text-xl text-white">Daily Rhythms</h3>
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="font-display text-xl text-white whitespace-nowrap">Daily Rhythms</h3>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button aria-label="How this works" className="text-white/75 hover:text-white/90">
+                      <button aria-label="How this works" className="text-white/75 hover:text-white/90 shrink-0">
                         <Icon icon={Info} size="sm" />
                       </button>
                     </TooltipTrigger>
@@ -244,7 +244,7 @@ function Home() {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-semibold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-semibold whitespace-nowrap shrink-0">
                   <Icon icon={Flame} size="sm" tone="inherit" /> {streak} {streak === 1 ? "day" : "days"}
                 </span>
               </div>
@@ -475,12 +475,12 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
 
   return (
     <div className="glass-on-hue rounded-3xl p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5">
-          <h3 className="font-display text-xl text-white">Spiritual Journey</h3>
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <h3 className="font-display text-xl text-white whitespace-nowrap">Spiritual Journey</h3>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button aria-label="How this works" className="text-white/70 hover:text-white">
+              <button aria-label="How this works" className="text-white/70 hover:text-white shrink-0">
                 <Icon icon={Info} size="sm" />
               </button>
             </TooltipTrigger>
@@ -489,9 +489,9 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 text-sm text-white/90">
+        <div className="flex items-center gap-2 text-sm text-white/90 shrink-0">
           <button aria-label="Previous month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronLeft} size="sm" /></button>
-          <span className="font-medium">{monthName}</span>
+          <span className="font-medium whitespace-nowrap">{monthName}</span>
           <button aria-label="Next month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronRight} size="sm" /></button>
         </div>
       </div>
