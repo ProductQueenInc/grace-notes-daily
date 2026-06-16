@@ -488,12 +488,12 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
 
   return (
     <div className="glass-on-hue rounded-3xl p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5">
-          <h3 className="font-display text-xl text-white">Spiritual Journey</h3>
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <h3 className="font-display text-xl text-white whitespace-nowrap">Spiritual Journey</h3>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button aria-label="How this works" className="text-white/70 hover:text-white">
+              <button aria-label="How this works" className="text-white/70 hover:text-white shrink-0">
                 <Icon icon={Info} size="sm" />
               </button>
             </TooltipTrigger>
@@ -502,9 +502,9 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 text-sm text-white/90">
+        <div className="flex items-center gap-2 text-sm text-white/90 shrink-0">
           <button aria-label="Previous month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronLeft} size="sm" /></button>
-          <span className="font-medium">{monthName}</span>
+          <span className="font-medium whitespace-nowrap">{monthName}</span>
           <button aria-label="Next month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronRight} size="sm" /></button>
         </div>
       </div>
