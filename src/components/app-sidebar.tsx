@@ -186,7 +186,7 @@ export function AppSidebar() {
                       {streakText}
                     </span>
                   </span>
-                  <span className="text-white/70 text-sm">day streak</span>
+                  <span className="text-white/70 text-sm">{streak === 1 ? "day" : "days"} streak</span>
                 </>
               )}
             </SidebarMenuButton>
