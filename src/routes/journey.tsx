@@ -57,7 +57,31 @@ function Journey() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const { user } = useAuth();
+
+  async function saveTitle(entry: Entry) {
+    const t = titleDraft.trim();
+    if (!t) return;
+    const rawId = entry.id.replace(/^hn-/, "");
+    setAll((prev) => prev.map((e) => (e.id === entry.id ? { ...e, title: t } : e)));
+    setEditingId(null);
+    if (supabaseConfigured && user) {
+      await supabase.from("heart_notes").update({ summary: t }).eq("id", rawId);
+    }
+  }
+
+  async function doDelete(entry: Entry) {
+    const rawId = entry.id.replace(/^hn-/, "");
+    setAll((prev) => prev.filter((e) => e.id !== entry.id));
+    setConfirmDeleteId(null);
+    if (open === entry.id) setOpen(null);
+    if (supabaseConfigured && user) {
+      await supabase.from("heart_notes").delete().eq("id", rawId);
+    }
+  }
 
   useEffect(() => {
     if (!supabaseConfigured || !user) { setLoading(false); return; }
