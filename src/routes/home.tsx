@@ -241,14 +241,14 @@ function Home() {
           </div>
 
           {/* Right column */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             <div className="glass-on-hue rounded-3xl p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-display text-xl text-white">Daily Rhythms</h3>
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="font-display text-xl text-white whitespace-nowrap">Daily Rhythms</h3>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button aria-label="How this works" className="text-white/75 hover:text-white/90">
+                      <button aria-label="How this works" className="text-white/75 hover:text-white/90 shrink-0">
                         <Icon icon={Info} size="sm" />
                       </button>
                     </TooltipTrigger>
@@ -257,7 +257,7 @@ function Home() {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-semibold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-semibold whitespace-nowrap shrink-0">
                   <Icon icon={Flame} size="sm" tone="inherit" /> {streak} {streak === 1 ? "day" : "days"}
                 </span>
               </div>
