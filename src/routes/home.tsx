@@ -96,6 +96,7 @@ function Home() {
           </p>
           <h1 className="font-display text-4xl md:text-6xl text-white leading-[1.05] tracking-tight">
             {authLoading ? " " : `${pickRhythmGreeting(profile)}.`}
+            {authLoading ? " " : `${pickRhythmGreeting(profile)}.`}
           </h1>
           <p className="text-white/80 mt-3 text-base md:text-lg max-w-xl">
             Your daily space for spiritual growth and reflection.
