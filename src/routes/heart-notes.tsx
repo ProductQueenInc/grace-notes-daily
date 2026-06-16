@@ -5,11 +5,21 @@ import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useHabits } from "@/hooks/use-habits";
 import { useEffect, useState } from "react";
-import { respondToHeartNote } from "@/lib/ai-stubs";
+import { respondToHeartNote, summarizeHeartNote } from "@/lib/ai-stubs";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { BookHeart, Send } from "lucide-react";
+import { BookHeart, Send, Pencil, Trash2, Check, X } from "lucide-react";
 import { localTodayISO } from "@/lib/today";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/heart-notes")({
   head: () => ({ meta: [{ title: "Heart Notes - GraceNotes Daily" }] }),
@@ -24,9 +34,15 @@ function todayISO() {
 
 function HeartNotes() {
   const [text, setText] = useState("");
+  const [rowId, setRowId] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [response, setResponse] = useState<string | null>(null);
+  const [title, setTitle] = useState<string | null>(null);
+  const [titleLoading, setTitleLoading] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { markComplete } = useHabits();
   const { user, profile } = useAuth();
 
@@ -36,34 +52,82 @@ function HeartNotes() {
     if (!supabaseConfigured || !user) return;
     supabase
       .from("heart_notes")
-      .select("body, ai_response")
+      .select("id, body, ai_response, summary")
       .eq("user_id", user.id)
       .eq("date", todayISO())
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
+          setRowId(data.id as string);
           setSubmitted(data.body as string);
           setResponse(data.ai_response as string | null);
+          setTitle((data.summary as string | null) ?? null);
         }
       });
   }, [user]);
 
   async function submit() {
     if (!text.trim() || words > LIMIT) return;
-    setSubmitted(text);
+    const body = text;
+    setSubmitted(body);
     setLoading(true);
+    setTitleLoading(true);
     markComplete("journal");
 
-    const r = await respondToHeartNote(text, profile);
+    const r = await respondToHeartNote(body, profile);
     setResponse(r);
     setLoading(false);
 
+    let newId = rowId;
     if (supabaseConfigured && user) {
-      await supabase.from("heart_notes").upsert(
-        { user_id: user.id, date: todayISO(), body: text, ai_response: r },
-        { onConflict: "user_id,date" },
-      );
+      const { data } = await supabase
+        .from("heart_notes")
+        .upsert(
+          { user_id: user.id, date: todayISO(), body, ai_response: r },
+          { onConflict: "user_id,date" },
+        )
+        .select("id")
+        .maybeSingle();
+      if (data?.id) {
+        newId = data.id as string;
+        setRowId(newId);
+      }
     }
+
+    // Generate and persist title
+    try {
+      const t = await summarizeHeartNote(body);
+      setTitle(t);
+      if (supabaseConfigured && user && newId) {
+        await supabase.from("heart_notes").update({ summary: t }).eq("id", newId);
+      }
+    } catch {
+      // leave title null; fallback shown below
+    } finally {
+      setTitleLoading(false);
+    }
+  }
+
+  async function saveTitle() {
+    const t = titleDraft.trim();
+    if (!t) return;
+    setTitle(t);
+    setEditingTitle(false);
+    if (supabaseConfigured && user && rowId) {
+      await supabase.from("heart_notes").update({ summary: t }).eq("id", rowId);
+    }
+  }
+
+  async function doDelete() {
+    if (supabaseConfigured && user && rowId) {
+      await supabase.from("heart_notes").delete().eq("id", rowId);
+    }
+    setRowId(null);
+    setSubmitted(null);
+    setResponse(null);
+    setTitle(null);
+    setText("");
+    setConfirmDelete(false);
   }
 
   return (
@@ -103,6 +167,53 @@ function HeartNotes() {
         ) : (
           <div className="space-y-4">
             <div className="glass rounded-3xl p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs uppercase tracking-wider text-foreground/55 mb-1">Title</p>
+                  {editingTitle ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        autoFocus
+                        value={titleDraft}
+                        onChange={(e) => setTitleDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveTitle();
+                          if (e.key === "Escape") setEditingTitle(false);
+                        }}
+                        className="flex-1 px-3 py-1.5 rounded-lg bg-white/80 border border-border focus:outline-none focus:ring-2 focus:ring-grace text-foreground"
+                      />
+                      <button onClick={saveTitle} aria-label="Save title" className="p-2 rounded-full bg-grace text-white">
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setEditingTitle(false)} aria-label="Cancel" className="p-2 rounded-full bg-white/70 border border-border">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-display text-xl text-foreground truncate">
+                        {title ?? (titleLoading ? "Generating title…" : "Heart Note")}
+                      </h3>
+                      {!titleLoading && (
+                        <button
+                          onClick={() => { setTitleDraft(title ?? ""); setEditingTitle(true); }}
+                          aria-label="Edit title"
+                          className="p-1.5 rounded-full hover:bg-foreground/5 text-foreground/60"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  aria-label="Delete heart note"
+                  className="p-2 rounded-full hover:bg-destructive/10 text-foreground/60 hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
               <p className="text-xs uppercase tracking-wider text-foreground/55 mb-2">Your note</p>
               <p className="text-foreground/85 whitespace-pre-wrap">{submitted}</p>
             </div>
@@ -117,6 +228,21 @@ function HeartNotes() {
             </div>
           </div>
         )}
+
+        <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this Heart Note?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently remove today's entry. You can write a new one in its place.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={doDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </section>
     </>
   );
