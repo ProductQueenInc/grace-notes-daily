@@ -252,13 +252,13 @@ function Home() {
                         <Icon icon={Info} size="sm" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-black/85 text-white border border-white/10 max-w-[220px]">
-                      Tap a circle to go to its space. Complete the action to fill the circle.
+                    <TooltipContent className="bg-black/85 text-white border border-white/10 max-w-[240px]">
+                      Gold days update automatically; the rest update at midnight. Tap a circle to go to its space.
                     </TooltipContent>
                   </Tooltip>
                 </div>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-semibold">
-                  <Icon icon={Flame} size="sm" tone="inherit" /> {streak} day
+                  <Icon icon={Flame} size="sm" tone="inherit" /> {streak} {streak === 1 ? "day" : "days"}
                 </span>
               </div>
               <p className="text-sm text-white/75">
