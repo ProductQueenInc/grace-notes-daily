@@ -1,47 +1,36 @@
-## Part 1 — Replace the six home preview images
+## Goal
+Let users edit the auto-generated title and delete any Heart Note, on both the Heart Notes page (today's entry) and the Journey page (past entries). Confirm the midnight-local rollover behaviour is correct.
 
-Swap all six existing CDN assets used by the home page cards with the new 1200×800 (3:2) mockups. Same filenames, same import sites — only the pixels and the `.asset.json` pointers change. No layout or copy changes; `home-previews.tsx` keeps working as-is.
+## What already works (no changes needed)
+- `heart_notes.summary` column exists and stores an AI-generated title.
+- Journey loads only entries with `date < today (local)`, so yesterday's note automatically appears there after local midnight — today's stays on the Heart Notes page.
+- `summarizeHeartNote` already runs lazily on Journey for older notes missing a summary.
 
-Mapping (uploaded → existing pointer):
-- `Grace note.png` → `src/assets/home-previews/grace-notes-home.png`
-- `Listen.png` → `src/assets/home-previews/listen-home.png`
-- `Daily Rhythms.png` → `src/assets/home-previews/daily-rhythms-home.png`
-- `Heart Notes.png` → `src/assets/home-previews/heart-notes-home.png`
-- `Prayer.png` → `src/assets/home-previews/prayer-home.png`
-- `Journey.png` → `src/assets/home-previews/journey-home.png`
+## Changes
 
-For each: delete the old asset pointer, re-upload the new file via `lovable-assets create --file /mnt/user-uploads/<name> --filename <slug>-home.png`, overwrite the `.asset.json`. Card aspect ratio in `home-previews.tsx` is already auto (height = `h-auto`), so the new 3:2 ratio renders cleanly on both rows. No code edit required beyond the JSON pointers.
+### 1. Heart Notes page (`src/routes/heart-notes.tsx`)
+After a note is submitted (or loaded for today), show the auto-generated title above "Your note" with:
+- An inline edit affordance (pencil icon → small input + Save / Cancel).
+- A delete button (with a confirm dialog) that removes the row and resets the page to the empty composer so the user can write a new one for today.
+- On first submit, also kick off `summarizeHeartNote(text)` and persist it to `heart_notes.summary` so today's title is ready immediately (and matches what Journey will show tomorrow).
+- Load the existing `summary` alongside `body` / `ai_response` in the today-fetch query.
 
-## Part 2 — Listen page reorganisation
+### 2. Journey page (`src/routes/journey.tsx`)
+For Heart Note entries only (prayers are out of scope for this request):
+- When a row is expanded, show an inline "Edit title" action (pencil → input + Save / Cancel) that updates `heart_notes.summary` and patches local state.
+- Show a "Delete" action (with confirm) that removes the row from `heart_notes` and from local state. After delete, if the current page becomes empty, step back a page.
+- Keep prayers read-only here (the user only asked about Heart Notes).
 
-Goal: make Listen feel curated rather than a flat grid, and bring it visually in line with the rest of the app.
+### 3. Shared bits
+- Use the existing `AlertDialog` shadcn component for delete confirmation (no new deps).
+- Use existing `supabase` client; RLS policy `heart_notes_self` already allows owner update/delete.
+- No schema migration needed.
 
-Changes to `src/routes/listen.tsx`:
-1. **Group by category instead of a flat grid.** Render each category (Worship, Prayer, Teaching, etc.) as its own horizontal section with a heading and a snap-scrolling row on mobile / 3-up grid on desktop. The active "All" view shows all groups stacked; selecting a category chip jumps to that one group.
-2. **Featured rail at the top.** First section is "Featured today" — top 3 tracks (by `sort_order`). Larger cards (16:9 thumb, title overlay).
-3. **Type filter behaviour.** Keep Audio / Video / All as a secondary filter that narrows within whatever category view is active.
-4. **Tighter card.** Drop the second `Headphones/Play` icon next to the title (redundant with the thumbnail's centre play button). Keep the now-playing badge.
-5. **Empty-state per group**, not just global, so a category with no matches says so in place.
+## Out of scope
+- Auto-refresh at midnight without reload (date filtering already handles it on next load; full live rollover would need a timer — not requested).
+- Editing/deleting prayers on Journey.
+- Title editing on the Heart Notes page before the AI summary returns (we'll show a small "Generating title…" state, then reveal the editable title).
 
-No backend or audio-player changes; queue + auto-play continue to work because `play(track, filtered)` still receives the active visible list.
-
-## Part 3 — Notes & Letters index reorganisation
-
-Goal: make `/library` browsable rather than a single long tag-filtered grid. Currently shows hero → Foundations series → tag chips → flat grid.
-
-Changes to `src/routes/library.index.tsx`:
-1. **Latest essay — featured.** Top of grid pulls the most recent article out into a wide "Latest" card (cover left, title + lede + read time right on desktop; stacked on mobile).
-2. **Browse by theme.** Replace the single flat grid with 2–3 themed sections derived from `PRIMARY_TAGS`: e.g. "Faith & Doubt", "Seasons & Identity", "Family & Relationships". Each section shows up to 3 cards + a "See all in [tag] →" link that filters the grid below.
-3. **All essays grid stays at the bottom**, filtered by the active tag chip (existing behaviour). Reorders to newest-first.
-4. **Series strip stays where it is** (Foundations) — already works well.
-5. **Mobile**: themed sections become horizontal snap rows (same pattern as the home page's "Gentle reads"); desktop is 3-up grids.
-6. **Tag chips**: keep, but move directly above the "All essays" grid (not above the themed sections), so chips control only that bottom grid and don't confuse the themed sections above.
-
-No content/markdown changes; uses existing `LIBRARY`, `PRIMARY_TAGS`, `ArticleCard`.
-
-## Order of execution
-1. Image swaps (Part 1) — fastest, unblocks visual review.
-2. Listen page (Part 2).
-3. Notes & Letters index (Part 3).
-
-Each part is independently shippable.
+## Files touched
+- `src/routes/heart-notes.tsx`
+- `src/routes/journey.tsx`
