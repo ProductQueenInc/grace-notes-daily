@@ -207,7 +207,9 @@ function Home() {
                         </div>
                       );
                     })()}
-                    <p className="text-right text-sm text-white/75 italic mt-4">- {graceNote.signed}</p>
+                    {graceNote.signed && graceNote.signed.trim() && (
+                      <p className="text-right text-sm text-white/75 italic mt-4">{graceNote.signed}</p>
+                    )}
                   </>
                 )}
 
