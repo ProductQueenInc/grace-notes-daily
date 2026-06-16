@@ -168,7 +168,7 @@ export function AppSidebar() {
           {/* Streak — visible expanded AND collapsed */}
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={`${streak} day streak`}
+              tooltip={`${streak} ${streak === 1 ? "day" : "days"} streak`}
               className="h-11 rounded-lg text-white/85 hover:bg-transparent cursor-default group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:mx-auto"
             >
               {collapsed ? (
@@ -186,7 +186,7 @@ export function AppSidebar() {
                       {streakText}
                     </span>
                   </span>
-                  <span className="text-white/70 text-sm">day streak</span>
+                  <span className="text-white/70 text-sm">{streak === 1 ? "day" : "days"} streak</span>
                 </>
               )}
             </SidebarMenuButton>
