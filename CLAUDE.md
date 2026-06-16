@@ -241,6 +241,14 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-06-16 — Em-dash fix in chat, devotional prompt tightening, duplicate devotional guard, "Come on In" CTA fix
+
+- **Em-dash stripping in daily chat** (`src/hooks/use-daily-chat.ts`): added `stripEmDashes` helper. Now applied (a) when loading stored messages from DB and (b) before persisting new streaming assistant replies. Previously, the `chat-reply` edge function's "no em-dashes" prompt instruction wasn't enforced in code, so model non-compliance showed through.
+- **Devotional prompt — name rule** (`src/lib/ai.functions.ts`): added NAME RULE — the reader's name is never to appear in the devotional body. Removed `${p.name}` from the system prompt opening sentence (which was causing the AI to write in third-person about the user by name, e.g. "Tatiana stands at…"). The name no longer appears in the prompt at all.
+- **Devotional prompt — structure rule** (`src/lib/ai.functions.ts`): added STRUCTURE RULE banning three-part parallel structures, rhetorical triplets, and rule-of-threes, which were making the devotional feel AI-generated.
+- **Duplicate devotional call removed** (`src/routes/home.tsx`): removed redundant `useEffect` + `prefetchQuery` that ran 600ms after grace note settled — the `useQuery` above it already handles the fetch with the same key. Added `gcTime: 24h` to the home query to match the modal's gcTime. Also removed now-unused `useQueryClient` import and declaration.
+- **"Come on In" CTA for signed-in users** (`src/content/library/daily-devotional.tsx`, `christian-journaling.tsx`, `prayer-journaling.tsx`): all three Foundation article body links now point to `/home` instead of `/signup` or `/login`. Signed-in users land on their home screen; signed-out users are redirected to login via RequireAuth on `/home`.
+
 ### 2026-06-13 — Homepage preview card asset correction
 
 - **Homepage six-card preview assets corrected** (`src/components/home-previews.tsx`): the first three cards, Grace Notes, Listen, and Daily Rhythms, now import the uploaded SVG asset pointers instead of the older PNG pointers. Verified by source search and browser network requests showing `.svg.asset.json` imports with `content_type = "image/svg+xml"` for all six cards.

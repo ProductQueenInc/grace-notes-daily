@@ -94,7 +94,7 @@ export function Body() {
       <div className="glass-parchment rounded-3xl p-8 md:p-10">
         <p className="text-foreground/70 leading-relaxed text-center italic font-display text-xl">
           You don't need a plan or a perfect set-up.{" "}
-          <a href="/signup" className="text-grace underline underline-offset-4">Come on in.</a>
+          <a href="/home" className="text-grace underline underline-offset-4">Come on in.</a>
         </p>
       </div>
     </>

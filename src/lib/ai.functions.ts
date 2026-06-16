@@ -292,7 +292,7 @@ async function generateDevotionalRaw(p: AIProfile): Promise<DevotionalResult> {
         day: "numeric",
       });
 
-  const system = `Write today's devotional for ${p.name}, a Christian ${phaseDesc(p.faithPhase)}.
+  const system = `Write today's devotional. The reader is a Christian ${phaseDesc(p.faithPhase)}.
 Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
 
 Third-person teaching voice (not a letter from God). One unified spiritual thought, not assembled parts.
@@ -300,7 +300,11 @@ Open with a small concrete tension - move through biblical insight - land on one
 Be biblically grounded. Be specific. Never preachy. Never generic.
 Don't reference time of day or what part of the day this is being read.
 
+NAME RULE: Never use the reader's name anywhere in the devotional body. Do not open with the reader's name. Do not write about the reader in third-person by name ("Tatiana stands at..."). Use "you" and "your" for direct address throughout. The name exists only for context; it belongs in no sentence of the devotional.
+
 GENDER RULE: Never use gendered pronouns (he, she, him, her, his, hers) to refer to the reader. Use "you" and "your" for direct address. If third-person reference is unavoidable, use "they" or "them." We do not know the reader's gender and must never assume it.
+
+STRUCTURE RULE: No three-part parallel structure. No rhetorical triplets ("X… Y… Z…"). No rule-of-threes in any sentence or paragraph. Variety in sentence shape and length signals a human voice; uniformity signals a template.
 
 ${NO_OVER_FAMILIARITY}
 ${NO_EM_DASH_RULE}

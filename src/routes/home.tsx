@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useHabits, type HabitKey } from "@/hooks/use-habits";
 import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { generateDevotional } from "@/lib/ai-stubs";
 import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-note";
 import { useStreak } from "@/hooks/use-streak";
@@ -39,10 +39,10 @@ export const Route = createFileRoute("/home")({
 });
 
 function Home() {
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const name = profile?.name || "Friend";
-  const queryClient = useQueryClient();
+  const name = authLoading ? "" : (profile?.name || "Friend");
+
 
   const [showVerse, setShowVerse] = useState(false);
   const [devotionalOpen, setDevotionalOpen] = useState(false);
@@ -65,22 +65,8 @@ function Home() {
     queryFn: () => generateDevotional(profile!),
     enabled: !!profile && !graceFetching,
     staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
   });
-
-  // Warm the devotional cache in the background AFTER the grace note settles, so
-  // the two AI calls don't compete for the same mobile connection on first load.
-  useEffect(() => {
-    if (!profile) return;
-    if (graceFetching) return;
-    const t = setTimeout(() => {
-      queryClient.prefetchQuery({
-        queryKey: ["devotional", today],
-        queryFn: () => generateDevotional(profile),
-        staleTime: Infinity,
-      });
-    }, 600);
-    return () => clearTimeout(t);
-  }, [profile, today, queryClient, graceFetching]);
 
 
 
@@ -109,7 +95,7 @@ function Home() {
             <Icon icon={Sparkles} size="sm" className="text-gold" /> Today
           </p>
           <h1 className="font-display text-4xl md:text-6xl text-white leading-[1.05] tracking-tight">
-            {pickRhythmGreeting(profile)}.
+            {authLoading ? " " : `${pickRhythmGreeting(profile)}.`}
           </h1>
           <p className="text-white/80 mt-3 text-base md:text-lg max-w-xl">
             Your daily space for spiritual growth and reflection.

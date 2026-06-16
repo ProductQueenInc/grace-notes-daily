@@ -14,6 +14,10 @@ export interface ChatMessage {
 
 export type ChatCloseReason = "crisis" | "inappropriate" | null;
 
+function stripEmDashes(s: string): string {
+  return s.replace(/\s*[—–]\s*/g, " - ");
+}
+
 // ── DB helpers ────────────────────────────────────────────────────────────────
 
 async function fetchMessages(userId: string): Promise<ChatMessage[]> {
@@ -26,7 +30,7 @@ async function fetchMessages(userId: string): Promise<ChatMessage[]> {
   return (data ?? []).map((row) => ({
     id: row.id as string,
     role: row.role as ChatRole,
-    text: row.text as string,
+    text: stripEmDashes(row.text as string),
     ts: new Date(row.ts as string).getTime(),
   }));
 }
@@ -228,7 +232,8 @@ export function useDailyChat(graceContext?: DailyGraceNote | null) {
       }
 
       // 4. Persist the assistant reply and swap the streaming bubble for the
-      //    saved row.
+      //    saved row. Strip em-dashes the model may have produced despite the prompt rule.
+      finalText = stripEmDashes(finalText);
       const saved = finalText.trim()
         ? await insertMessage(userId, "assistant", finalText.trim())
         : null;
