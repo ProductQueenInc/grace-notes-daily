@@ -116,9 +116,9 @@ function Home() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-5">
+        <div className="grid xl:grid-cols-3 gap-5">
           {/* Left column */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="xl:col-span-2 space-y-5 min-w-0">
             {/* Today's Grace Note + Daily Message chat */}
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
