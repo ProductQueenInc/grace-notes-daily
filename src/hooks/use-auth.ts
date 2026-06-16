@@ -18,8 +18,7 @@ export type Profile = {
   onboarded: boolean;
 };
 
-// Kept for backwards-compat during settings page migration (Lovable is building settings UI).
-// Once settings writes directly to Supabase this becomes a no-op.
+// Kept for backwards-compat during settings page migration.
 export function writeProfileExtras(uid: string, extras: Partial<Profile>) {
   try {
     localStorage.setItem(`gn:profile-extras:${uid}`, JSON.stringify(extras));
@@ -28,70 +27,103 @@ export function writeProfileExtras(uid: string, extras: Partial<Profile>) {
   }
 }
 
-export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+// ---------------------------------------------------------------------------
+// Module-level singleton store. All useAuth() callers share this state, so
+// navigating between pages (which remounts components) does NOT reset auth
+// back to `loading=true` / `profile=null` — which previously caused a brief
+// "Friend" flash in the sidebar and a blank/placeholder greeting on /home.
+// ---------------------------------------------------------------------------
 
-  useEffect(() => {
-    if (!supabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-    // CRITICAL: register the listener BEFORE reading the initial session, so we
-    // never miss the very first SIGNED_IN event on mobile Safari (which would
-    // leave the app thinking the user is signed out and bounce them back to /login).
-    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        loadProfile(s.user.id);
-        if (event === "SIGNED_IN") markDeviceHasAccount();
-      } else {
-        setProfile(null);
-      }
-    });
-    // Await the profile fetch so `loading` only becomes false AFTER the
-    // profile is ready. This prevents the flash where the home screen
-    // renders briefly with `profile=null` (showing "Friend") before the
-    // DB row arrives and RequireAuth can enforce onboarding.
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      if (data.session?.user) {
-        await loadProfile(data.session.user.id);
-      }
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+type AuthState = {
+  session: Session | null;
+  user: User | null;
+  profile: Profile | null;
+  loading: boolean;
+};
 
+let state: AuthState = {
+  session: null,
+  user: null,
+  profile: null,
+  loading: true,
+};
 
-  async function loadProfile(uid: string) {
-    const cols = "id, name, faith_phase, onboarded, rhythms, seasons, voice, timezone, translation";
-    let { data } = await supabase.from("profiles").select(cols).eq("id", uid).maybeSingle();
+const listeners = new Set<() => void>();
+let initStarted = false;
 
-    // First OAuth signup race: the handle_new_user trigger may not have
-    // inserted the row yet. Give it one short retry before we fall back
-    // to a client-side insert (which would otherwise create a blank profile
-    // and trap the user in onboarding even if they're an existing user).
-    if (!data) {
-      await new Promise((r) => setTimeout(r, 500));
-      const retry = await supabase.from("profiles").select(cols).eq("id", uid).maybeSingle();
-      data = retry.data;
-    }
+function setState(patch: Partial<AuthState>) {
+  state = { ...state, ...patch };
+  listeners.forEach((l) => l());
+}
 
-    if (data) {
-      setProfile(data as Profile);
-    } else {
-      await supabase.from("profiles").insert({ id: uid }).select().maybeSingle();
-      setProfile({ id: uid, name: null, faith_phase: null, onboarded: false });
-    }
+const PROFILE_COLS =
+  "id, name, faith_phase, onboarded, rhythms, seasons, voice, timezone, translation";
 
-    // Persist country code from Cloudflare header — fire and forget
-    syncCountryCode({ data: {} }).catch(() => {});
+async function loadProfile(uid: string) {
+  let { data } = await supabase.from("profiles").select(PROFILE_COLS).eq("id", uid).maybeSingle();
+
+  // First OAuth signup race: handle_new_user trigger may not have inserted yet.
+  if (!data) {
+    await new Promise((r) => setTimeout(r, 500));
+    const retry = await supabase.from("profiles").select(PROFILE_COLS).eq("id", uid).maybeSingle();
+    data = retry.data;
   }
 
-  return { session, user, profile, loading, reloadProfile: () => user && loadProfile(user.id) };
+  if (data) {
+    setState({ profile: data as Profile });
+  } else {
+    await supabase.from("profiles").insert({ id: uid }).select().maybeSingle();
+    setState({ profile: { id: uid, name: null, faith_phase: null, onboarded: false } });
+  }
+
+  syncCountryCode({ data: {} }).catch(() => {});
+}
+
+function initOnce() {
+  if (initStarted) return;
+  initStarted = true;
+
+  if (!supabaseConfigured) {
+    setState({ loading: false });
+    return;
+  }
+
+  // Register listener BEFORE reading the initial session.
+  supabase.auth.onAuthStateChange((event, s) => {
+    setState({ session: s, user: s?.user ?? null });
+    if (s?.user) {
+      loadProfile(s.user.id);
+      if (event === "SIGNED_IN") markDeviceHasAccount();
+    } else {
+      setState({ profile: null });
+    }
+  });
+
+  supabase.auth.getSession().then(async ({ data }) => {
+    setState({ session: data.session, user: data.session?.user ?? null });
+    if (data.session?.user) {
+      await loadProfile(data.session.user.id);
+    }
+    setState({ loading: false });
+  });
+}
+
+export function useAuth() {
+  initOnce();
+  const [, force] = useState(0);
+  useEffect(() => {
+    const l = () => force((n) => n + 1);
+    listeners.add(l);
+    return () => {
+      listeners.delete(l);
+    };
+  }, []);
+
+  return {
+    session: state.session,
+    user: state.user,
+    profile: state.profile,
+    loading: state.loading,
+    reloadProfile: () => (state.user ? loadProfile(state.user.id) : Promise.resolve()),
+  };
 }
