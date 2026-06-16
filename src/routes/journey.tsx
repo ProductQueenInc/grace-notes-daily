@@ -253,22 +253,41 @@ function Journey() {
             <div className="space-y-3">
               {pageRows.map((e) => {
                 const isOpen = open === e.id;
-                const replyLabel = e.type === "heart-note" ? "A gentle reply" : "Your gratitude";
+                const isEditing = editingId === e.id;
+                const isHeart = e.type === "heart-note";
+                const replyLabel = isHeart ? "A gentle reply" : "Your gratitude";
                 return (
-                  <button
+                  <div
                     key={e.id}
-                    onClick={() => setOpen(isOpen ? null : e.id)}
-                    className="w-full text-left glass rounded-2xl p-5 hover:scale-[1.005] transition"
+                    className="glass rounded-2xl p-5"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
+                      <button
+                        onClick={() => !isEditing && setOpen(isOpen ? null : e.id)}
+                        className="flex-1 min-w-0 text-left"
+                      >
                         <div className="text-xs text-grace font-semibold uppercase tracking-wider">
-                          {e.type === "heart-note" ? "Heart Note" : "Answered Prayer"} · {e.date}
+                          {isHeart ? "Heart Note" : "Answered Prayer"} · {e.date}
                         </div>
-                        <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
-                        {isOpen && (
+                        {isEditing ? (
+                          <div className="flex items-center gap-2 mt-1" onClick={(ev) => ev.stopPropagation()}>
+                            <input
+                              autoFocus
+                              value={titleDraft}
+                              onChange={(ev) => setTitleDraft(ev.target.value)}
+                              onKeyDown={(ev) => {
+                                if (ev.key === "Enter") saveTitle(e);
+                                if (ev.key === "Escape") setEditingId(null);
+                              }}
+                              className="flex-1 px-3 py-1.5 rounded-lg bg-white/85 border border-border focus:outline-none focus:ring-2 focus:ring-grace text-foreground"
+                            />
+                          </div>
+                        ) : (
+                          <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
+                        )}
+                        {isOpen && !isEditing && (
                           <>
-                            {e.type === "heart-note" && (
+                            {isHeart && (
                               <p className="text-sm text-foreground/80 mt-2 whitespace-pre-wrap">{e.body}</p>
                             )}
                             {e.extra && (
@@ -279,10 +298,40 @@ function Journey() {
                             )}
                           </>
                         )}
+                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {isEditing ? (
+                          <>
+                            <button onClick={() => saveTitle(e)} aria-label="Save title" className="p-2 rounded-full bg-grace text-white">
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setEditingId(null)} aria-label="Cancel" className="p-2 rounded-full bg-white/70 border border-border">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : isOpen && isHeart ? (
+                          <>
+                            <button
+                              onClick={() => { setTitleDraft(e.title); setEditingId(e.id); }}
+                              aria-label="Edit title"
+                              className="p-2 rounded-full hover:bg-foreground/5 text-foreground/60"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(e.id)}
+                              aria-label="Delete heart note"
+                              className="p-2 rounded-full hover:bg-destructive/10 text-foreground/60 hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          isOpen ? <ChevronUp className="w-4 h-4 mt-1 text-foreground/60" /> : <ChevronDown className="w-4 h-4 mt-1 text-foreground/60" />
+                        )}
                       </div>
-                      {isOpen ? <ChevronUp className="w-4 h-4 mt-1 text-foreground/60" /> : <ChevronDown className="w-4 h-4 mt-1 text-foreground/60" />}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
               {!pageRows.length && (
