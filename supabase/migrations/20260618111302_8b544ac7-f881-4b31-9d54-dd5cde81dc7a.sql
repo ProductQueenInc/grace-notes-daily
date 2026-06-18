@@ -1,0 +1,1 @@
+CREATE POLICY "email_assets_public_read" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'email-assets');
