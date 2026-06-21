@@ -229,12 +229,23 @@ Reply with one word only.`,
   // ── NORMAL RESPONSE (streaming SSE) ──────────────────────────────────────
   const isMild = safetyLevel === 'MILD'
 
-  // Count how many user turns have happened so the prompt can calibrate
-  // whether to keep things open (early) or allow a natural close (later).
-  const userTurnCount =
-    (Array.isArray(conversation_history)
-      ? conversation_history.filter((m) => m.role === 'user').length
-      : 0) + 1 // +1 for the current message
+  // Sanitize client-supplied conversation history to prevent prompt injection
+  // via forged assistant/system messages. Only allow user/assistant roles, and
+  // sanitize content the same way we sanitize interpolated prompt fields.
+  const safeHistory = (Array.isArray(conversation_history) ? conversation_history : [])
+    .filter((m): m is { role: string; content: string } =>
+      !!m && typeof m === 'object' &&
+      (m.role === 'user' || m.role === 'assistant') &&
+      typeof m.content === 'string'
+    )
+    .slice(-20)
+    .map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: sanitizeForPrompt(m.content, 4000),
+    }))
+    .filter((m) => m.content.length > 0)
+
+  const userTurnCount = safeHistory.filter((m) => m.role === 'user').length + 1
 
   // Increment message count atomically
   await supabase.rpc('increment_session_message_count', { p_session_id: session_id })
