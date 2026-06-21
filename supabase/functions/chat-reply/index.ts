@@ -269,7 +269,7 @@ Reply with one word only.`,
           ),
 
           messages: [
-            ...conversation_history,
+            ...safeHistory,
             { role: 'user', content: safeMessage },
           ],
         })
