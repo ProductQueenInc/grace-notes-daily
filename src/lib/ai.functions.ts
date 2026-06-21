@@ -48,6 +48,9 @@ const AIProfileSchema = z.object({
   // Client-supplied local date (YYYY-MM-DD). Used as the cache key so the
   // grace note / devotional roll over at the user's LOCAL midnight, not UTC.
   clientDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  // Recent verse references used in previous grace notes — injected at generation
+  // time to prevent the same verse / theme repeating on consecutive days.
+  recentVerses: z.array(z.string().max(200)).max(14).optional(),
 });
 
 
@@ -76,6 +79,7 @@ export type AIProfile = {
   voice: string;
   seasons: string[];
   clientDate?: string;
+  recentVerses?: string[];
 };
 
 export type GraceNoteResult = { message: string; verse: string; signed: string; chatPrompt: string };
@@ -189,11 +193,16 @@ function todayISO() {
 
 // ── Core generators (no auth, no cache) ───────────────────────────────────────
 
+function recentVersesBlock(verses: string[] | undefined): string {
+  if (!verses?.length) return "";
+  return `\nANTI-REPETITION — HARD RULE: The following verses were used in this user's recent grace notes. Do NOT use them again, and do NOT write a note whose central theme is the same as any of these verses. Choose a completely different verse and a different angle of God's character today:\n${verses.map((v, i) => `  ${i + 1}. ${v}`).join("\n")}\n`;
+}
+
 async function generateGraceNoteRaw(p: AIProfile): Promise<GraceNoteResult> {
   const client = anthropic();
 
   const system = `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
-Faith phase: ${phaseDesc(p.faithPhase)}.${seasonLine(p.seasons)}
+Faith phase: ${phaseDesc(p.faithPhase)}.${seasonLine(p.seasons)}${recentVersesBlock(p.recentVerses)}
 
 First, choose a Bible verse. Then write a grace note that earns it — the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there.
 
@@ -258,7 +267,7 @@ Respond with valid JSON only - no markdown, no code fences:
   const msg = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 400,
-    temperature: 0.5,
+    temperature: 0.9,
     system,
     messages: [{ role: "user", content: "Write today's note." }],
   } as Parameters<typeof client.messages.create>[0]);
@@ -373,8 +382,25 @@ export const getOrCreateGraceNote = createServerFn({ method: "POST" })
       return sanitizeGraceNote(cached.grace_note as GraceNoteResult)
     }
 
+    // Fetch the last 14 days of grace notes so the generator can avoid
+    // repeating a verse or theme the user has seen recently.
+    const { data: recentRows } = await supabase
+      .from("daily_content")
+      .select("grace_note")
+      .eq("user_id", userId)
+      .lt("date", date)
+      .order("date", { ascending: false })
+      .limit(14);
+
+    const recentVerses: string[] = (recentRows ?? [])
+      .map((r) => {
+        const gn = r.grace_note as GraceNoteResult | null;
+        return gn?.verse ?? "";
+      })
+      .filter(Boolean);
+
     try {
-      const result = await generateGraceNoteRaw(data);
+      const result = await generateGraceNoteRaw({ ...data, recentVerses });
       await supabase.from("daily_content").upsert({ user_id: userId, date, grace_note: result });
       logAudit(userId, "getOrCreateGraceNote", "success")
       return result;

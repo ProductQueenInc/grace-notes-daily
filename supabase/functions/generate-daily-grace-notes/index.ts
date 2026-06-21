@@ -36,6 +36,11 @@ function seasonLine(seasons: string[]): string {
   return `\nBackground context (may be old, may no longer apply today): ${seasons.join(', ')}. Let this gently shape what you notice. Never name the season back. Never assume it's still true today.`
 }
 
+function recentVersesBlock(verses: string[]): string {
+  if (!verses?.length) return ''
+  return `\nANTI-REPETITION — HARD RULE: The following verses were used in this user's recent grace notes. Do NOT use them again, and do NOT write a note whose central theme is the same as any of these verses. Choose a completely different verse and a different angle of God's character today:\n${verses.map((v, i) => `  ${i + 1}. ${v}`).join('\n')}\n`
+}
+
 function stripEmDashes(s: string | null | undefined): string {
   if (!s) return ''
   return s.replace(/\s*[—–]\s*/g, ' - ')
@@ -56,9 +61,9 @@ const NO_EM_DASH_RULE =
   'STYLE RULE: Never use em-dashes (—) or en-dashes (–). Use a hyphen (-), comma, semicolon, or colon instead.'
 
 // ─── Canonical grace-note prompt — must match src/lib/ai.functions.ts ───────
-function GRACE_NOTE_SYSTEM(faithPhase: string, seasons: string[]): string {
+function GRACE_NOTE_SYSTEM(faithPhase: string, seasons: string[], recentVerses: string[]): string {
   return `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
-Faith phase: ${phaseDesc(faithPhase)}.${seasonLine(seasons)}
+Faith phase: ${phaseDesc(faithPhase)}.${seasonLine(seasons)}${recentVersesBlock(recentVerses)}
 
 First, choose a Bible verse. Then write a grace note that earns it - the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there.
 
@@ -121,12 +126,12 @@ Respond with valid JSON only - no markdown, no code fences:
 { "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "" }`
 }
 
-async function generateGraceNote(faithPhase: string, seasons: string[]): Promise<GraceNote> {
+async function generateGraceNote(faithPhase: string, seasons: string[], recentVerses: string[]): Promise<GraceNote> {
   const msg = await anthropic.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 400,
-    temperature: 0.5,
-    system: GRACE_NOTE_SYSTEM(faithPhase, seasons),
+    temperature: 0.9,
+    system: GRACE_NOTE_SYSTEM(faithPhase, seasons, recentVerses),
     messages: [{ role: 'user', content: "Write today's note." }],
   })
   const block = msg.content[0] as { type: string; text?: string }
@@ -205,7 +210,20 @@ Deno.serve(async (req) => {
             .filter(Boolean)
         : []
 
-      const note = await generateGraceNote(user.faith_phase ?? 'newbie', seasonsTags)
+      // Fetch recent verses from daily_content to prevent repetition.
+      const { data: recentRows } = await supabase
+        .from('daily_content')
+        .select('grace_note')
+        .eq('user_id', user.id)
+        .lt('date', dateStr)
+        .order('date', { ascending: false })
+        .limit(14)
+
+      const recentVerses: string[] = (recentRows ?? [])
+        .map((r: { grace_note?: { verse?: string } | null }) => r.grace_note?.verse ?? '')
+        .filter(Boolean)
+
+      const note = await generateGraceNote(user.faith_phase ?? 'newbie', seasonsTags, recentVerses)
       const { text: verseText, reference: verseRef } = splitVerse(note.verse)
 
       await supabase.from('daily_grace_notes').upsert(

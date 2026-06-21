@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-06-12**.
+Last updated: **2026-06-21**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -240,6 +240,13 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-06-21 — Grace note anti-repetition system
+
+- **Anti-repetition context injected at generation time** (`src/lib/ai.functions.ts`, `supabase/functions/generate-daily-grace-notes/index.ts`): before generating a grace note, the last 14 days of `daily_content.grace_note` rows are fetched for that user. The verse references are extracted and passed into the prompt as a hard `ANTI-REPETITION` ban block, instructing the model not to reuse any of those verses or their central themes. This stops the same verse (e.g. Lamentations 3:22) from appearing on consecutive days.
+- **Temperature raised from 0.5 → 0.9** in `generateGraceNoteRaw` (on-demand) and `generateGraceNote` (cron): higher temperature increases variety in verse and angle selection, complementing the explicit ban list.
+- **`AIProfile` type extended** with optional `recentVerses?: string[]` field. `AIProfileSchema` updated to accept it (max 14 items, each max 200 chars). The field is populated server-side in `getOrCreateGraceNote` — the client never needs to send it.
+- Both generation paths (on-demand fallback in `ai.functions.ts` and overnight cron in the edge function) are updated — per CLAUDE.md §5 policy.
 
 ### 2026-06-16 — Em-dash fix in chat, devotional prompt tightening, duplicate devotional guard, "Come on In" CTA fix
 
