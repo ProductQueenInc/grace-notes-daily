@@ -1,36 +1,44 @@
-## Goal
-Let users edit the auto-generated title and delete any Heart Note, on both the Heart Notes page (today's entry) and the Journey page (past entries). Confirm the midnight-local rollover behaviour is correct.
+## Why both cards spin forever
 
-## What already works (no changes needed)
-- `heart_notes.summary` column exists and stores an AI-generated title.
-- Journey loads only entries with `date < today (local)`, so yesterday's note automatically appears there after local midnight — today's stays on the Heart Notes page.
-- `summarizeHeartNote` already runs lazily on Journey for older notes missing a summary.
+`getOrCreateGraceNote` and `getOrCreateDevotional` now require a row from the `verses` table before they'll call the AI, and throw `"no active verse available to ground from the verses table"` if the table is empty. Live DB confirms `verses` is empty (0 rows, 0 active). Result: every call fails.
 
-## Changes
+- Grace note card eventually flips to its error state after retries, but…
+- Devotional card on `/home` never renders an error branch — `{devotionalPreview ? … : "Loading..."}` — so it sits on "Loading…" indefinitely once the query errors out.
+- The cron edge function (`generate-daily-grace-notes`) has the same dependency, so the overnight populate of `daily_grace_notes` is also failing silently.
 
-### 1. Heart Notes page (`src/routes/heart-notes.tsx`)
-After a note is submitted (or loaded for today), show the auto-generated title above "Your note" with:
-- An inline edit affordance (pencil icon → small input + Save / Cancel).
-- A delete button (with a confirm dialog) that removes the row and resets the page to the empty composer so the user can write a new one for today.
-- On first submit, also kick off `summarizeHeartNote(text)` and persist it to `heart_notes.summary` so today's title is ready immediately (and matches what Journey will show tomorrow).
-- Load the existing `summary` alongside `body` / `ai_response` in the today-fetch query.
+## Fix plan
 
-### 2. Journey page (`src/routes/journey.tsx`)
-For Heart Note entries only (prayers are out of scope for this request):
-- When a row is expanded, show an inline "Edit title" action (pencil → input + Save / Cancel) that updates `heart_notes.summary` and patches local state.
-- Show a "Delete" action (with confirm) that removes the row from `heart_notes` and from local state. After delete, if the current page becomes empty, step back a page.
-- Keep prayers read-only here (the user only asked about Heart Notes).
+### 1. Seed the `verses` table (root cause, one-time data fix)
 
-### 3. Shared bits
-- Use the existing `AlertDialog` shadcn component for delete confirmation (no new deps).
-- Use existing `supabase` client; RLS policy `heart_notes_self` already allows owner update/delete.
-- No schema migration needed.
+- Run a one-shot SQL migration that inserts the curated NIV verse library from `gracenotes_verse_library.json` (the same data the unused `scripts/seed_verses.js` would have inserted) into `public.verses`, marked `is_active = true`, with the existing `theme` / `posture_tag` / `segment_tag` columns populated so `select_verse_for_user` returns rows for every (posture, segment).
+- Idempotent: `ON CONFLICT (reference) DO NOTHING` (or equivalent unique key) so re-runs are safe.
+- Verify after apply: `select count(*) from verses where is_active` > 0, and `select * from select_verse_for_user(<test_uid>, 'hope', 'newbie')` returns a row.
+- Honours the NIV-licensing notes already in CLAUDE.md — we're not adding new wording, just loading the existing curated set.
 
-## Out of scope
-- Auto-refresh at midnight without reload (date filtering already handles it on next load; full live rollover would need a timer — not requested).
-- Editing/deleting prayers on Journey.
-- Title editing on the Heart Notes page before the AI summary returns (we'll show a small "Generating title…" state, then reveal the editable title).
+### 2. Surface server-fn errors instead of "Loading…" forever (defensive UI fix)
 
-## Files touched
-- `src/routes/heart-notes.tsx`
-- `src/routes/journey.tsx`
+- In `src/routes/home.tsx`, change the devotional `useQuery` to expose `isError` / `refetch` and render a small "couldn't load today's devotional — try again" branch with a retry button, mirroring the grace-note card's existing pattern.
+- Keep the existing happy path untouched.
+- This prevents future regressions of the same shape (any AI-side or DB-side failure) from looking like a perpetual loader.
+
+### 3. Verify the fix end-to-end
+
+- After seeding, reload `/home` in the preview and confirm both cards populate.
+- Tail server-fn logs and `audit_log` for one `success` row each from `getOrCreateGraceNote` and `getOrCreateDevotional`. (Note: `audit_log` table is currently missing — `logAudit` writes are fire-and-forget so this doesn't block anything, but worth flagging as a follow-up.)
+- Confirm `select_verse_for_user` doesn't return the same verse twice in a row for the same user (rotation works).
+
+### 4. Update CLAUDE.md
+
+- Move "verses library… unseeded" out of "Not started" and into §11 with today's date.
+- Add a sentence to §5 making the verse-table dependency explicit: "Both generators will throw if `verses` has no active rows — keep the table seeded."
+
+### Out of scope (do not touch in this fix)
+
+- AI prompt wording, the `select_verse_for_user` RPC, the cron schedule, RLS, or any other table. The bug is purely a missing data load + an unhandled error state.
+- The earlier name-capitalization plan — that's a separate UI improvement and will be re-proposed on its own.
+
+### Technical notes
+
+- The seed will run as a Supabase migration (preferred over the standalone Node script, which isn't wired to anything). Generates one INSERT statement chunked across the ~123 verses already documented in CLAUDE.md.
+- No code changes to `ai.functions.ts` or the cron edge function are required — the fallback path (`any active verse`) will start working the moment the table has rows, and the primary `select_verse_for_user` path will too.
+- Devotional UI change is ~10 lines in `home.tsx`, no new components.
