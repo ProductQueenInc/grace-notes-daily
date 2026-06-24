@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-06-21**.
+Last updated: **2026-06-22**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -42,7 +42,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Area | Where |
 |------|-------|
 | Auth — email/password + Google OAuth + `auth/callback.tsx` | `src/routes/login.tsx`, `signup.tsx`, `auth/callback.tsx`, `src/hooks/use-auth.ts` |
-| Onboarding (5 steps → writes to `profiles`) | `src/routes/onboarding.tsx` |
+| Onboarding (**2 steps** as of 2026-06-22: name + faith phase → writes to `profiles`; rhythms/seasons/voice defaulted) | `src/routes/onboarding.tsx` |
 | Profile shape (name, faith_phase, rhythms, seasons, voice, timezone, translation, country_code) | `profiles` table |
 | AI server functions (grace note, devotional, heart note) | `src/lib/ai.functions.ts` |
 | God-voice prompts, em-dash sanitizer | `src/lib/ai.functions.ts` |
@@ -128,7 +128,7 @@ type Profile = {
 }
 ```
 
-Onboarding is **5 steps** (`src/routes/onboarding.tsx`); values map 1:1. Personalization helpers (`pickRhythmGreeting`, `pickListenRailTitle`, `toneFromVoice`, `topSeason`) live in `src/lib/personalization.ts`.
+Onboarding is **2 steps** as of 2026-06-22 (`src/routes/onboarding.tsx`): name + faith phase. Rhythms, seasons, and voice are defaulted (`[]`, `[]`, `"gentle"`) and editable in Settings; the `seasons` signal is being replaced by `profiles.inferred_themes` learned from chat. Personalization helpers (`pickRhythmGreeting`, `pickListenRailTitle`, `toneFromVoice`, `topSeason`) live in `src/lib/personalization.ts`.
 
 ### Habit auto-mark rule (locked)
 
@@ -218,7 +218,7 @@ This keeps CLAUDE.md as a live, accurate handover document rather than a snapsho
 - `src/styles.css` (design tokens are locked)
 - `src/components/app-sidebar.tsx`, `app-shell.tsx`, `nature-background.tsx`, `page-header.tsx`, `player-dock.tsx`, `icon.tsx`
 - `src/components/ui/*` (shadcn)
-- Onboarding step structure
+- Onboarding step structure (note: deliberately reduced to 2 steps on 2026-06-22 with the owner's sign-off; that change was intentional, not a regression)
 - Habit auto-mark rule (§4)
 - Translation/voice/season options — these are the personalization contract
 - `src/integrations/supabase/client.ts` (auto-generated)
@@ -240,6 +240,30 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-06-22 — Onboarding cut to 2 steps; shared-devotional + personalization foundation laid
+
+Product direction set with Cindy after a full code-grounded QA. This entry logs decisions and the first build increment. A standalone design spec (personalization, shared devotional, sharing flows, Journey archives, onboarding) accompanies this.
+
+**Shipped this increment:**
+- **Onboarding reduced from 5 steps to 2** (`src/routes/onboarding.tsx`): now only **name** + **faith phase**. Rhythms, seasons, and voice are no longer asked; `finish()` writes `rhythms: []`, `seasons: []`, `voice: "gentle"` and they remain editable in Settings. **No gender, no birthday** (deliberately declined: gender has no current use given the gender-neutral voice rules; birthday is intrusive and, if ever wanted, should be month/day only and opt-in in Settings).
+- **Migration `20260622120000_shared_devotional_and_inferred_themes.sql`** (applied to live DB, additive/idempotent):
+  - `daily_devotionals` table — the **shared** daily devotional, keyed by `date` (one row/day for everyone, not per-user). RLS: public `select` for `anon` + `authenticated` (supports the in-app read and the planned public `/devotional/<date>` share + SEO page). Service role writes it.
+  - `profiles.inferred_themes jsonb` — populated nightly from the user's recent daily chat; will be injected into the grace-note prompt the same way the old onboarding `seasons` value was.
+  - Seeded a **Grief & Comfort** verse pool (8 verses, **NIV 2011**) into `verses` — the only missing theme for the weekly devotional rotation.
+- **Bible translation standardised on NIV** (owner decision 2026-06-22):
+  - Replaced the Settings translation *picker* (ESV/NIV/NKJV/KJV/MSG — it was decorative; generation never used it) with a fixed **NIV attribution notice** in `src/routes/settings.tsx`. `profiles.translation` stays (defaults `"NIV"`).
+  - Audited the `verses` library: 124 rows, **0** KJV/archaic outliers, 0 bad references. Consistent with NIV. A one-time human verbatim check is still recommended for 100% confidence.
+  - ⚠️ **Open risk:** the grace-note and devotional generators currently let the model *write* the verse text, so NIV accuracy is **not** guaranteed there. To truly guarantee "verified NIV everywhere," the generators must be switched to **ground the verse from the `verses` table** (already the planned Phase 1/3 work) rather than letting the model produce scripture.
+  - ⚠️ **Licensing:** NIV is copyright Biblica. The Settings notice carries the required attribution. App-scale daily distribution may exceed the gratis use limit (≈500 verses, under 25% of the work, not a whole book); confirm NIV terms / secure Biblica permission before public launch. (Not legal advice.)
+
+**Decisions / plan still to build (sequenced):**
+1. Shared devotional generator: 7 themes, one fixed per weekday (Mon Hope, Tue Peace/Anxiety, Wed Grief & Comfort, Thu Gratitude, Fri Courage, Sat Rest, Sun Purpose), verse rotated weekly from the theme pool (8 verses ⇒ ~8-week no-repeat). Verse is **grounded from `verses`** (model no longer writes scripture — fixes the hallucination + licensing risk). Generalized but deep, written to be shareable to someone in the reader's life going through that theme.
+2. Public devotional page `/devotional/<date>` + share card + Article/FAQ schema (sharing + SEO flywheel in one). Recipient sees the full devotional, no login, soft CTA.
+3. Grace note becomes **personalized per user** from `inferred_themes` (nightly inference job over `daily_messages`), expressed indirectly via the existing "never name the season back" rule. Personal note shares to a private, `noindex` token URL.
+4. **Journey archives:** add a "Daily Chats" category — a **Restart chat** action summarizes + archives the current conversation (needs `daily_messages.archived_at`); and allow **multiple HeartNotes/day** (drop the `heart_notes (user_id,date)` unique, add `superseded_at`) so adding a new note pushes the prior one to Journey immediately.
+
+**Note on the canonical-prompt rule (§5/§9):** when the grace-note prompt starts consuming `inferred_themes`, update **both** `src/lib/ai.functions.ts` and `supabase/functions/generate-daily-grace-notes/index.ts`.
 
 ### 2026-06-21 — Grace note anti-repetition system
 

@@ -42,8 +42,6 @@ const SEASONS = [
   "doubt", "burnout", "new beginnings", "loneliness", "gratitude",
 ] as const;
 
-const TRANSLATIONS = ["ESV", "NIV", "NKJV", "KJV", "MSG"] as const;
-
 function todayISO() {
   return new Date().toISOString().split("T")[0];
 }
@@ -218,16 +216,14 @@ function Settings() {
 
           <div>
             <label className="text-sm font-medium block mb-2">Bible translation</label>
-            <div className="flex flex-wrap gap-2">
-              {TRANSLATIONS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTranslation(t)}
-                  className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${translation === t ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
-                >
-                  {t}
-                </button>
-              ))}
+            <div className="rounded-2xl bg-white/70 border border-border px-4 py-3">
+              <p className="text-sm text-foreground/85">
+                Scripture quotations throughout GraceNotes are from the Holy Bible,
+                New International Version&#174; (NIV&#174;).
+              </p>
+              <p className="text-xs text-foreground/55 mt-1">
+                Copyright &#169; 1973, 1978, 1984, 2011 by Biblica, Inc.&#8482; Used by permission. All rights reserved worldwide.
+              </p>
             </div>
           </div>
 
