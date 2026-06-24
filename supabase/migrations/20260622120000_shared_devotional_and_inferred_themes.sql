@@ -46,7 +46,7 @@ insert into public.verses (id, reference, text, theme, posture_tags, is_active)
 select base.m + v.rn, v.reference, v.text, 'Grief & Comfort', array['grief','comfort']::text[], true
 from base,
 (values
-  (1, 'Psalm 34:18', 'The LORD is close to the brokenhearted and saves those who are crushed in spirit.'),
+  (1, 'Psalm 34:18', 'The Lord is close to the brokenhearted and saves those who are crushed in spirit.'),
   (2, 'Matthew 5:4', 'Blessed are those who mourn, for they will be comforted.'),
   (3, 'Psalm 147:3', 'He heals the brokenhearted and binds up their wounds.'),
   (4, 'Revelation 21:4', 'He will wipe every tear from their eyes. There will be no more death or mourning or crying or pain, for the old order of things has passed away.'),
