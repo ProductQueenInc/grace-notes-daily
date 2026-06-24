@@ -36,9 +36,16 @@ function seasonLine(seasons: string[]): string {
   return `\nBackground context (may be old, may no longer apply today): ${seasons.join(', ')}. Let this gently shape what you notice. Never name the season back. Never assume it's still true today.`
 }
 
-function recentVersesBlock(verses: string[]): string {
-  if (!verses?.length) return ''
-  return `\nANTI-REPETITION — HARD RULE: The following verses were used in this user's recent grace notes. Do NOT use them again, and do NOT write a note whose central theme is the same as any of these verses. Choose a completely different verse and a different angle of God's character today:\n${verses.map((v, i) => `  ${i + 1}. ${v}`).join('\n')}\n`
+// Maps faith phase to a posture_tag used by select_verse_for_user. Mirrors the
+// on-demand path in src/lib/ai.functions.ts.
+function postureFromPhase(phase: string): string {
+  const map: Record<string, string> = {
+    newbie: 'hope',
+    returnee: 'hope',
+    growth: 'purpose',
+    elder: 'faith',
+  }
+  return map[phase] ?? 'hope'
 }
 
 function stripEmDashes(s: string | null | undefined): string {
@@ -61,11 +68,14 @@ const NO_EM_DASH_RULE =
   'STYLE RULE: Never use em-dashes (—) or en-dashes (–). Use a hyphen (-), comma, semicolon, or colon instead.'
 
 // ─── Canonical grace-note prompt — must match src/lib/ai.functions.ts ───────
-function GRACE_NOTE_SYSTEM(faithPhase: string, seasons: string[], recentVerses: string[]): string {
+function GRACE_NOTE_SYSTEM(faithPhase: string, seasons: string[], verse: { text: string; reference: string }): string {
   return `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
-Faith phase: ${phaseDesc(faithPhase)}.${seasonLine(seasons)}${recentVersesBlock(recentVerses)}
+Faith phase: ${phaseDesc(faithPhase)}.${seasonLine(seasons)}
 
-First, choose a Bible verse. Then write a grace note that earns it - the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there.
+Today's verse has already been chosen and is shown to the reader separately:
+"${verse.text}" - ${verse.reference}
+
+Write a grace note that earns this verse - the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there. Do NOT quote, paraphrase, or restate the verse or its reference anywhere in your note; it is shown on its own. Arrive at the same truth from a different angle.
 
 Write 2 to 4 sentences. Speak as God, from His revealed character in Scripture. Every I-statement must reflect what God has already said about Himself in the Bible - His presence, His faithfulness, His love, His steadiness, His knowledge of this person. Do not make predictions about the reader's specific situation. Do not speculate about what they are going through.
 
@@ -93,27 +103,22 @@ Rules (in priority order - the first two are the most important):
 CRITICAL - THE message FIELD MUST NEVER CONTAIN VERSE TEXT:
 The message and verse are two completely separate fields. The message field must end before any scripture is quoted. Never place a verse quotation, a verse reference, or any fragment of the verse inside the message field. If the message contains quotation marks around scripture or a book/chapter reference (e.g. "Isaiah 60:1"), it is wrong. The verse belongs exclusively in the verse field.
 
-EXAMPLES - study these for voice, shape, and restraint. Do not copy phrasing.
+EXAMPLES - study these for voice, shape, and restraint. Do not copy phrasing. (The verse is provided to you separately; you only write the message.)
 
 (Blessing)
 My blessing is on you right now. Not because of what you have done or have not done; it is just on you. That is not going anywhere.
-Verse: Blessed be the God and Father of our Lord Jesus Christ, who has blessed us in Christ with every spiritual blessing in the heavenly places. - Ephesians 1:3
 
 (Rest)
 Be still for a moment. Not because nothing matters, but because I am here and that changes everything. You do not have to figure it out right now.
-Verse: Be still, and know that I am God. - Psalm 46:10
 
 (Courage)
 Fear is loud, but it is not in charge. I am in charge, and I am for you. Walk forward.
-Verse: For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline. - 2 Timothy 1:7
 
 (Presence)
 I am with you, not in a distant way, not in a spiritual-but-not-real way; actually with you. Right here. That is not going to change.
-Verse: And surely I am with you always, to the very end of the age. - Matthew 28:20
 
 (Hope)
 The thing you are waiting for has not been forgotten. I am not slow; I am building something you cannot see the whole of yet. Stay with Me.
-Verse: May the God of hope fill you with all joy and peace as you trust in him. - Romans 15:13
 
 NEGATIVE EXAMPLES - these violate the HARD BAN above. Do not write anything like these:
 - "You have been faithful in small things, and that faithfulness is not invisible to Me. I see the daily choices you make to show up..." (Observes the reader. Banned.)
@@ -123,36 +128,30 @@ NEGATIVE EXAMPLES - these violate the HARD BAN above. Do not write anything like
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "" }`
+{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "signed": "" }`
 }
 
-async function generateGraceNote(faithPhase: string, seasons: string[], recentVerses: string[]): Promise<GraceNote> {
+async function generateGraceNote(faithPhase: string, seasons: string[], verse: { text: string; reference: string }): Promise<GraceNote> {
   const msg = await anthropic.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 400,
     temperature: 0.9,
-    system: GRACE_NOTE_SYSTEM(faithPhase, seasons, recentVerses),
+    system: GRACE_NOTE_SYSTEM(faithPhase, seasons, verse),
     messages: [{ role: 'user', content: "Write today's note." }],
   })
   const block = msg.content[0] as { type: string; text?: string }
   const raw = block.type === 'text' ? block.text ?? '' : ''
-  const parsed = parseJSON<GraceNote>(raw, {
+  const parsed = parseJSON<{ message?: string }>(raw, {
     message:
       "You are seen today. Not for what you did or didn't do - just seen.\n\nWalk gently. The work in front of you is held, even the small parts.",
-    verse: 'The LORD your God is with you, the Mighty Warrior who saves. - Zephaniah 3:17',
-    signed: 'Held, today.',
   })
+  // Verse text is grounded from the curated NIV `verses` table, never written
+  // by the model.
   return {
-    message: stripEmDashes(parsed.message),
-    verse: stripEmDashes(parsed.verse),
-    signed: stripEmDashes(parsed.signed),
+    message: stripEmDashes(parsed.message ?? ''),
+    verse: `${verse.text} - ${verse.reference}`,
+    signed: '',
   }
-}
-
-function splitVerse(combined: string): { text: string; reference: string } {
-  const idx = combined.lastIndexOf(' - ')
-  if (idx <= 0) return { text: '', reference: combined.trim() }
-  return { text: combined.slice(0, idx).trim(), reference: combined.slice(idx + 3).trim() }
 }
 
 Deno.serve(async (req) => {
@@ -210,36 +209,42 @@ Deno.serve(async (req) => {
             .filter(Boolean)
         : []
 
-      // Fetch recent verses from daily_content to prevent repetition.
-      const { data: recentRows } = await supabase
-        .from('daily_content')
-        .select('grace_note')
-        .eq('user_id', user.id)
-        .lt('date', dateStr)
-        .order('date', { ascending: false })
-        .limit(14)
+      // Ground the verse from the curated NIV `verses` table (verified
+      // scripture). select_verse_for_user enforces a 60-day no-repeat rotation.
+      const posture = postureFromPhase(user.faith_phase ?? 'newbie')
+      let chosen: { verse_id: number; text: string; reference: string; theme: string } | null = null
+      const { data: vrows } = await supabase.rpc('select_verse_for_user', {
+        p_user_id: user.id,
+        p_posture: posture,
+        p_segment: user.faith_phase ?? 'newbie',
+      })
+      const vrow = Array.isArray(vrows) ? vrows[0] : null
+      if (vrow) chosen = { verse_id: vrow.verse_id, text: vrow.verse_text, reference: vrow.reference, theme: vrow.theme }
+      if (!chosen) {
+        const { data: anyV } = await supabase
+          .from('verses').select('id, reference, text, theme').eq('is_active', true).limit(1)
+        const r = anyV?.[0]
+        if (r) chosen = { verse_id: r.id, text: r.text, reference: r.reference, theme: r.theme }
+      }
+      if (!chosen) { failed++; continue }
 
-      const recentVerses: string[] = (recentRows ?? [])
-        .map((r: { grace_note?: { verse?: string } | null }) => r.grace_note?.verse ?? '')
-        .filter(Boolean)
-
-      const note = await generateGraceNote(user.faith_phase ?? 'newbie', seasonsTags, recentVerses)
-      const { text: verseText, reference: verseRef } = splitVerse(note.verse)
+      const note = await generateGraceNote(user.faith_phase ?? 'newbie', seasonsTags, { text: chosen.text, reference: chosen.reference })
 
       await supabase.from('daily_grace_notes').upsert(
         {
           user_id: user.id,
           date: dateStr,
           grace_note: note.message,
-          // verse_id is nullable; the model picks its own verse rather than
-          // selecting from the curated `verses` library.
-          verse_id: null,
-          verse_text: verseText,
-          verse_reference: verseRef,
-          theme: 'model-picked',
+          verse_id: chosen.verse_id,
+          verse_text: chosen.text,
+          verse_reference: chosen.reference,
+          theme: chosen.theme,
         },
         { onConflict: 'user_id,date' }
       )
+
+      // Log for the 60-day rotation.
+      await supabase.from('user_verse_log').insert({ user_id: user.id, verse_id: chosen.verse_id })
 
       generated++
     } catch (err) {

@@ -4,6 +4,12 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { requireTkoebo as requireSupabaseAuth } from "@/lib/auth-tkoebo.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+// Generated Database types can lag behind migrations (this is why logAudit casts
+// supabaseAdmin), so use a schema-agnostic view of the admin client for the
+// verse-grounding queries below (RPC + verses + user_verse_log).
+const admin = supabaseAdmin as unknown as SupabaseClient;
 
 // ── Audit logging ─────────────────────────────────────────────────────────────
 // Fire-and-forget: never awaited, never throws, never slows down the response.
@@ -193,18 +199,33 @@ function todayISO() {
 
 // ── Core generators (no auth, no cache) ───────────────────────────────────────
 
-function recentVersesBlock(verses: string[] | undefined): string {
-  if (!verses?.length) return "";
-  return `\nANTI-REPETITION — HARD RULE: The following verses were used in this user's recent grace notes. Do NOT use them again, and do NOT write a note whose central theme is the same as any of these verses. Choose a completely different verse and a different angle of God's character today:\n${verses.map((v, i) => `  ${i + 1}. ${v}`).join("\n")}\n`;
+// Grace notes and devotionals ground their verse from the curated NIV `verses`
+// table (verified scripture). The select_verse_for_user RPC picks a verse and
+// already enforces a 60-day no-repeat rotation via user_verse_log. The model
+// never writes scripture, which guarantees accurate, non-hallucinated verses.
+function postureFromPhase(phase: string): string {
+  const map: Record<string, string> = {
+    newbie: "hope",
+    returnee: "hope",
+    growth: "purpose",
+    elder: "faith",
+  };
+  return map[phase] ?? "hope";
 }
 
-async function generateGraceNoteRaw(p: AIProfile): Promise<GraceNoteResult> {
+async function generateGraceNoteRaw(
+  p: AIProfile,
+  verse: { text: string; reference: string },
+): Promise<GraceNoteResult> {
   const client = anthropic();
 
   const system = `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
-Faith phase: ${phaseDesc(p.faithPhase)}.${seasonLine(p.seasons)}${recentVersesBlock(p.recentVerses)}
+Faith phase: ${phaseDesc(p.faithPhase)}.${seasonLine(p.seasons)}
 
-First, choose a Bible verse. Then write a grace note that earns it — the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there.
+Today's verse has already been chosen and is shown to the reader separately:
+"${verse.text}" - ${verse.reference}
+
+Write a grace note that earns this verse - the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there. Do NOT quote, paraphrase, or restate the verse or its reference anywhere in your note; it is shown on its own. Arrive at the same truth from a different angle.
 
 Write 2 to 4 sentences. Speak as God, from His revealed character in Scripture. Every I-statement must reflect what God has already said about Himself in the Bible — His presence, His faithfulness, His love, His steadiness, His knowledge of this person. Do not make predictions about the reader's specific situation. Do not speculate about what they are going through.
 
@@ -262,7 +283,7 @@ NEGATIVE EXAMPLES — these violate the HARD BAN above. Do not write anything li
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "verse": "Full verse text followed by ' - ' and then Book Chapter:Verse. Both parts required.", "signed": "", "chatPrompt": "a single question or gentle invitation that flows naturally from this specific grace note. Specific — could only follow this note, not any other. Example style: 'What is one thing you have been waiting for?' or 'Where does it feel hardest to be still right now?'" }`;
+{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "chatPrompt": "a single question or gentle invitation that flows naturally from this specific grace note. Specific - could only follow this note, not any other. Example style: 'What is one thing you have been waiting for?' or 'Where does it feel hardest to be still right now?'" }`;
 
   const msg = await client.messages.create({
     model: "claude-sonnet-4-5",
@@ -278,14 +299,25 @@ Respond with valid JSON only - no markdown, no code fences:
   // Throw on empty or unparseable response so the caller does NOT cache the
   // fallback as real content. The next request will try again fresh.
   if (!raw.trim()) throw new Error("Grace note: AI returned empty response");
-  const parsed = parseJSON<GraceNoteResult | null>(raw, null);
-  if (!parsed?.message || !parsed?.verse) {
+  const parsed = parseJSON<{ message?: string; chatPrompt?: string } | null>(raw, null);
+  if (!parsed?.message) {
     throw new Error("Grace note: AI returned invalid JSON — will retry on next request");
   }
-  return sanitizeGraceNote(parsed);
+  // Verse text is grounded from the curated NIV `verses` table, never written by
+  // the model. This guarantees accurate, verified scripture every day.
+  return {
+    message: stripEmDashes(parsed.message),
+    verse: `${verse.text} - ${verse.reference}`,
+    signed: "",
+    chatPrompt: parsed.chatPrompt ?? "",
+  };
 }
 
-async function generateDevotionalRaw(p: AIProfile): Promise<DevotionalResult> {
+async function generateDevotionalRaw(
+  p: AIProfile,
+  verse: { text: string; reference: string },
+  related: { ref: string; text: string }[],
+): Promise<DevotionalResult> {
   const client = anthropic();
   // Use the client's local date if supplied so the date in the devotional
   // matches the user's actual calendar day, not the server's UTC clock.
@@ -301,8 +333,15 @@ async function generateDevotionalRaw(p: AIProfile): Promise<DevotionalResult> {
         day: "numeric",
       });
 
+  const relatedBlock = related.length
+    ? `\nRelated passages (already shown to the reader; do not restate their full text in the body):\n${related.map((r) => `- ${r.ref}: ${r.text}`).join("\n")}\n`
+    : "";
+
   const system = `Write today's devotional. The reader is a Christian ${phaseDesc(p.faithPhase)}.
 Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
+
+The verse for today has already been chosen and will be shown to the reader. Build the devotional around it. Do NOT introduce, quote, or invent any other scripture beyond this verse and the related passages listed below.
+Verse of the day: "${verse.text}" - ${verse.reference}${relatedBlock}
 
 Third-person teaching voice (not a letter from God). One unified spiritual thought, not assembled parts.
 Open with a small concrete tension - move through biblical insight - land on one practical thing to do or hold today.
@@ -321,15 +360,7 @@ ${NO_EM_DASH_RULE}
 Respond with valid JSON only - no markdown, no code fences:
 {
   "title": "short evocative title - not generic",
-  "verseOfDay": "full verse text",
-  "verseRef": "Book Chapter:Verse",
-  "date": "${today}",
   "body": ["paragraph 1", "paragraph 2", "paragraph 3"],
-  "related": [
-    { "ref": "Book Chapter:Verse", "text": "full verse text" },
-    { "ref": "Book Chapter:Verse", "text": "full verse text" },
-    { "ref": "Book Chapter:Verse", "text": "full verse text" }
-  ],
   "takeaway": "2 sentences, concrete and specific. Something to actually do or hold today."
 }`;
 
@@ -348,14 +379,22 @@ Respond with valid JSON only - no markdown, no code fences:
   // Throw on empty or unparseable response so the caller does NOT cache the
   // fallback as real content. The next request will try again fresh.
   if (!raw.trim()) throw new Error("Devotional: AI returned empty response");
-  const parsed = parseJSON<DevotionalResult | null>(raw, null);
+  const parsed = parseJSON<{ title?: string; body?: string[]; takeaway?: string } | null>(raw, null);
   if (!parsed?.title || !parsed?.body?.length) {
     throw new Error("Devotional: AI returned invalid JSON — will retry on next request");
   }
-  // Force the date to the server-computed value — the AI occasionally hallucinates
-  // old dates from its training data regardless of what the prompt specifies.
-  parsed.date = today;
-  return sanitizeDevotional(parsed);
+  // Verse + related passages are grounded from the curated NIV `verses` table,
+  // never written by the model. The date is server-computed.
+  const result: DevotionalResult = {
+    title: parsed.title,
+    verseOfDay: verse.text,
+    verseRef: verse.reference,
+    date: today,
+    body: parsed.body,
+    related,
+    takeaway: parsed.takeaway ?? "",
+  };
+  return sanitizeDevotional(result);
 }
 
 // ── Server Function: Get or Create Grace Note (cached per user per day) ───────
@@ -382,26 +421,43 @@ export const getOrCreateGraceNote = createServerFn({ method: "POST" })
       return sanitizeGraceNote(cached.grace_note as GraceNoteResult)
     }
 
-    // Fetch the last 14 days of grace notes so the generator can avoid
-    // repeating a verse or theme the user has seen recently.
-    const { data: recentRows } = await supabase
-      .from("daily_content")
-      .select("grace_note")
-      .eq("user_id", userId)
-      .lt("date", date)
-      .order("date", { ascending: false })
-      .limit(14);
+    // Ground the verse from the curated NIV `verses` table so the displayed
+    // scripture is always verified and never written by the model. The
+    // select_verse_for_user RPC enforces a 60-day no-repeat rotation.
+    const posture = postureFromPhase(data.faithPhase);
+    let chosen: { verse_id: number; text: string; reference: string } | null = null;
+    try {
+      const { data: vrows } = await admin.rpc("select_verse_for_user", {
+        p_user_id: userId,
+        p_posture: posture,
+        p_segment: data.faithPhase,
+      });
+      const row = (Array.isArray(vrows) ? vrows[0] : null) as
+        { verse_id: number; reference: string; verse_text: string } | null;
+      if (row) chosen = { verse_id: row.verse_id, text: row.verse_text, reference: row.reference };
+    } catch {
+      /* fall through to the any-active fallback below */
+    }
 
-    const recentVerses: string[] = (recentRows ?? [])
-      .map((r) => {
-        const gn = r.grace_note as GraceNoteResult | null;
-        return gn?.verse ?? "";
-      })
-      .filter(Boolean);
+    if (!chosen) {
+      const { data: anyV } = await admin
+        .from("verses")
+        .select("id, reference, text")
+        .eq("is_active", true)
+        .limit(1);
+      const row = (anyV as { id: number; reference: string; text: string }[] | null)?.[0];
+      if (row) chosen = { verse_id: row.id, text: row.text, reference: row.reference };
+    }
+    if (!chosen) throw new Error("Grace note: no active verse available to ground from the verses table");
 
     try {
-      const result = await generateGraceNoteRaw({ ...data, recentVerses });
+      const result = await generateGraceNoteRaw(data, { text: chosen.text, reference: chosen.reference });
       await supabase.from("daily_content").upsert({ user_id: userId, date, grace_note: result });
+      // Log the verse so the 60-day rotation can avoid repeats (fire-and-forget).
+      void admin
+        .from("user_verse_log")
+        .insert({ user_id: userId, verse_id: chosen.verse_id })
+        .then(() => {}, () => {});
       logAudit(userId, "getOrCreateGraceNote", "success")
       return result;
     } catch (err) {
@@ -445,9 +501,49 @@ export const getOrCreateDevotional = createServerFn({ method: "POST" })
       return { ...devotional, date: displayDate };
     }
 
+    // Ground the verse + related passages from the curated NIV `verses` table.
+    const posture = postureFromPhase(data.faithPhase);
+    let main: { verse_id: number; text: string; reference: string; theme: string } | null = null;
     try {
-      const result = await generateDevotionalRaw(data);
+      const { data: vrows } = await admin.rpc("select_verse_for_user", {
+        p_user_id: userId,
+        p_posture: posture,
+        p_segment: data.faithPhase,
+      });
+      const row = (Array.isArray(vrows) ? vrows[0] : null) as
+        { verse_id: number; reference: string; verse_text: string; theme: string } | null;
+      if (row) main = { verse_id: row.verse_id, text: row.verse_text, reference: row.reference, theme: row.theme };
+    } catch {
+      /* fall through to the any-active fallback below */
+    }
+    if (!main) {
+      const { data: anyV } = await admin
+        .from("verses")
+        .select("id, reference, text, theme")
+        .eq("is_active", true)
+        .limit(1);
+      const row = (anyV as { id: number; reference: string; text: string; theme: string }[] | null)?.[0];
+      if (row) main = { verse_id: row.id, text: row.text, reference: row.reference, theme: row.theme };
+    }
+    if (!main) throw new Error("Devotional: no active verse available to ground from the verses table");
+
+    const { data: relRows } = await admin
+      .from("verses")
+      .select("reference, text")
+      .eq("is_active", true)
+      .eq("theme", main.theme)
+      .neq("id", main.verse_id)
+      .limit(3);
+    const related = ((relRows as { reference: string; text: string }[] | null) ?? [])
+      .map((r) => ({ ref: r.reference, text: r.text }));
+
+    try {
+      const result = await generateDevotionalRaw(data, { text: main.text, reference: main.reference }, related);
       await supabase.from("daily_content").upsert({ user_id: userId, date, devotional: result });
+      void admin
+        .from("user_verse_log")
+        .insert({ user_id: userId, verse_id: main.verse_id })
+        .then(() => {}, () => {});
       logAudit(userId, "getOrCreateDevotional", "success")
       return result;
     } catch (err) {

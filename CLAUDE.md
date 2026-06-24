@@ -151,7 +151,7 @@ This prompt is used by:
 
 **If you change the prompt, change it in both files.** The cron file has a header comment reminding you of this.
 
-The prompt tells the model to (a) pick its own Bible verse, (b) write a 2-4 sentence note in God's first-person voice that *earns* the verse without quoting it, (c) follow the anti-saccharine guardrails and the no-em-dash rule. Five worked examples are included in the prompt body.
+As of 2026-06-22 the verse is **grounded from the curated NIV `verses` table** (via the `select_verse_for_user` RPC), not written by the model. The prompt receives the chosen verse as fixed text and tells the model to (a) write a 2-4 sentence note in God's first-person voice that *earns* the given verse without quoting it, (b) follow the anti-saccharine guardrails and the no-em-dash rule. The model returns `{ message, chatPrompt }`; the `verse` field is set server-side from the DB. Worked examples are included in the prompt body.
 
 ---
 
@@ -240,6 +240,16 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-06-22 (PM) — Verse grounding: grace note + devotional now use verified NIV from the `verses` table
+
+The model no longer writes Scripture. Both generators now select a verse from the curated NIV `verses` library and pass it into the prompt as fixed text; the model writes only the reflection around it. This removes verse hallucination and bounds NIV usage to a countable, attributed set.
+
+- **Grace note** (`src/lib/ai.functions.ts`, `getOrCreateGraceNote` + `generateGraceNoteRaw`): verse chosen via the `select_verse_for_user` RPC (60-day no-repeat rotation through `user_verse_log`), with an any-active-verse fallback. Model returns `{ message, chatPrompt }` only; `verse` is built server-side from the DB row. The chosen verse is logged to `user_verse_log`. The old 14-day `recentVerses` prompt-ban was removed (rotation now handled structurally).
+- **Devotional** (`generateDevotionalRaw` + `getOrCreateDevotional`): main verse via the same RPC; up to 3 `related` passages pulled from the same `theme` in `verses`. Model returns `{ title, body, takeaway }` only and is told not to introduce any other scripture. `verseOfDay`/`verseRef`/`related` come from the DB.
+- **Cron edge function** (`supabase/functions/generate-daily-grace-notes/index.ts`): same grounding; now stores the real `verse_id` (no longer null), `theme`, and logs `user_verse_log`. **Deployed to Supabase (version 5, `verify_jwt=false`).**
+- A schema-agnostic `admin` alias (`supabaseAdmin as unknown as SupabaseClient`) is used for the RPC/`verses`/`user_verse_log` calls because generated Database types lag migrations (same reason `logAudit` casts).
+- Type-checked: `tsc --noEmit` clean for the changed files (pre-existing missing-dep errors for `marked`/`@react-email/*`/`@lovable.dev/*` are unrelated and resolve in the Lovable build).
 
 ### 2026-06-22 — Onboarding cut to 2 steps; shared-devotional + personalization foundation laid
 
