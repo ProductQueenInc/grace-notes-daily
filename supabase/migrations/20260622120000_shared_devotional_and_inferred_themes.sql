@@ -50,10 +50,10 @@ from base,
   (2, 'Matthew 5:4', 'Blessed are those who mourn, for they will be comforted.'),
   (3, 'Psalm 147:3', 'He heals the brokenhearted and binds up their wounds.'),
   (4, 'Revelation 21:4', 'He will wipe every tear from their eyes. There will be no more death or mourning or crying or pain, for the old order of things has passed away.'),
-  (5, 'Psalm 23:4', 'Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.'),
-  (6, 'Isaiah 41:10', 'So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you; I will uphold you with my righteous right hand.'),
-  (7, 'John 14:27', 'Peace I leave with you; my peace I give you. I do not give to you as the world gives. Do not let your hearts be troubled and do not be afraid.'),
-  (8, 'Psalm 30:5', 'Weeping may stay for the night, but rejoicing comes in the morning.')
+  (5, 'Psalm 46:1', 'God is our refuge and strength, an ever-present help in trouble.'),
+  (6, '2 Corinthians 1:3-4', 'Praise be to the God and Father of our Lord Jesus Christ, the Father of compassion and the God of all comfort, who comforts us in all our troubles, so that we can comfort those in any trouble with the comfort we ourselves receive from God.'),
+  (7, 'Psalm 73:26', 'My flesh and my heart may fail, but God is the strength of my heart and my portion forever.'),
+  (8, 'Isaiah 49:13', 'For the Lord comforts his people and will have compassion on his afflicted ones.')
 ) as v(rn, reference, text)
 where not exists (
   select 1 from public.verses x where x.theme = 'Grief & Comfort'
