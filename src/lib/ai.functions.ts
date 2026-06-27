@@ -760,3 +760,179 @@ ${NO_EM_DASH_RULE}`;
     }
   });
 
+// ── Shared daily devotional (same for everyone, one per date) ─────────────────
+// Public (no auth middleware): used by the in-app modal AND the public
+// /devotional/<date> page. Get-or-create: reads daily_devotionals by date;
+// generates on a miss. Verse is grounded from the curated NIV `verses` table,
+// rotated by weekday theme with an 8-occurrence no-repeat per theme.
+
+const SharedDevotionalInputSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+// One theme per weekday. Names must match `verses.theme` values exactly.
+const WEEKDAY_THEME: Record<number, string> = {
+  0: "Purpose",         // Sunday
+  1: "Hope",            // Monday
+  2: "Peace",           // Tuesday
+  3: "Grief & Comfort", // Wednesday
+  4: "Gratitude",       // Thursday
+  5: "Courage",         // Friday
+  6: "Rest",            // Saturday
+};
+
+function themeForDate(dateISO: string): string {
+  const d = new Date(dateISO + "T12:00:00Z");
+  return WEEKDAY_THEME[d.getUTCDay()] ?? "Hope";
+}
+
+function devotionalDisplayDate(dateISO: string): string {
+  return new Date(dateISO + "T12:00:00Z").toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+async function generateSharedDevotionalRaw(
+  themeName: string,
+  verse: { text: string; reference: string },
+  related: { ref: string; text: string }[],
+): Promise<{ title: string; body: string[]; takeaway: string }> {
+  const client = anthropic();
+  const relatedBlock = related.length
+    ? `\nRelated passages (already shown to the reader; do not restate their full text in the body):\n${related.map((r) => `- ${r.ref}: ${r.text}`).join("\n")}\n`
+    : "";
+
+  const system = `Write today's GraceNotes Daily devotional. This devotional is shared - the same one goes to everyone today - so write it generalized, not personalized. Today's theme is ${themeName}.
+
+The verse for today has already been chosen and will be shown to the reader. Build the devotional around it. Do NOT introduce, quote, or invent any other scripture beyond this verse and the related passages listed below.
+Verse of the day: "${verse.text}" - ${verse.reference}${relatedBlock}
+
+Third-person teaching voice (not a letter from God). One unified spiritual thought, not assembled parts.
+Open with a small concrete tension, move through biblical insight, land on one practical thing to hold today.
+Be biblically grounded. Be specific. Never preachy. Never generic.
+Write it deep enough to matter, but general enough that a reader who is not personally in this theme today could send it to someone in their life who is walking through it. Do not assume the reader's circumstances.
+Don't reference time of day or what part of the day this is being read.
+
+GENDER RULE: Never use gendered pronouns for the reader. Use "you" and "your". If third-person is unavoidable, use "they" or "them".
+STRUCTURE RULE: No three-part parallel structure, no rhetorical triplets, no rule-of-threes. Vary sentence shape and length.
+
+${NO_OVER_FAMILIARITY}
+${NO_EM_DASH_RULE}
+
+Respond with valid JSON only - no markdown, no code fences:
+{
+  "title": "short evocative title - not generic",
+  "body": ["paragraph 1", "paragraph 2", "paragraph 3"],
+  "takeaway": "2 sentences, concrete and specific. Something to actually do or hold today."
+}`;
+
+  const msg = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 900,
+    temperature: 0.7,
+    system,
+    messages: [{ role: "user", content: "Write today's shared devotional." }],
+  } as Parameters<typeof client.messages.create>[0]);
+
+  const block = (msg as Anthropic.Message).content[0];
+  const raw = block.type === "text" ? block.text : "";
+  if (!raw.trim()) throw new Error("Shared devotional: AI returned empty response");
+  const parsed = parseJSON<{ title?: string; body?: string[]; takeaway?: string } | null>(raw, null);
+  if (!parsed?.title || !parsed?.body?.length) {
+    throw new Error("Shared devotional: AI returned invalid JSON - will retry on next request");
+  }
+  return { title: parsed.title, body: parsed.body, takeaway: parsed.takeaway ?? "" };
+}
+
+export const getOrCreateSharedDevotional = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => SharedDevotionalInputSchema.parse(data))
+  .handler(async ({ data }): Promise<DevotionalResult> => {
+    const date = data.date;
+    const dateDisplay = devotionalDisplayDate(date);
+
+    // 1. Return the cached shared devotional if today's row already exists.
+    const { data: existing } = await admin
+      .from("daily_devotionals")
+      .select("theme, verse_text, verse_reference, title, body, related, takeaway")
+      .eq("date", date)
+      .maybeSingle();
+    if (existing) {
+      const row = existing as {
+        verse_text: string; verse_reference: string; title: string;
+        body: string[] | null; related: { ref: string; text: string }[] | null; takeaway: string | null;
+      };
+      return sanitizeDevotional({
+        title: row.title,
+        verseOfDay: row.verse_text,
+        verseRef: row.verse_reference,
+        date: dateDisplay,
+        body: row.body ?? [],
+        related: row.related ?? [],
+        takeaway: row.takeaway ?? "",
+      });
+    }
+
+    // 2. Otherwise generate it. Weekday theme + grounded verse (8-occurrence
+    //    no-repeat per theme) + up to 3 related passages from the same theme.
+    const themeName = themeForDate(date);
+    const { data: poolRows } = await admin
+      .from("verses")
+      .select("id, reference, text")
+      .eq("is_active", true)
+      .eq("theme", themeName);
+    const pool = (poolRows as { id: number; reference: string; text: string }[] | null) ?? [];
+    if (!pool.length) throw new Error(`Shared devotional: no active verses for theme ${themeName}`);
+
+    const { data: recentRows } = await admin
+      .from("daily_devotionals")
+      .select("verse_id")
+      .eq("theme", themeName)
+      .order("date", { ascending: false })
+      .limit(8);
+    const recent = new Set(
+      ((recentRows as { verse_id: number | null }[] | null) ?? []).map((r) => r.verse_id),
+    );
+    const fresh = pool.filter((v) => !recent.has(v.id));
+    const candidates = fresh.length ? fresh : pool;
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    const related = pool
+      .filter((v) => v.id !== chosen.id)
+      .slice(0, 3)
+      .map((v) => ({ ref: v.reference, text: v.text }));
+
+    const gen = await generateSharedDevotionalRaw(
+      themeName,
+      { text: chosen.text, reference: chosen.reference },
+      related,
+    );
+
+    const result = sanitizeDevotional({
+      title: gen.title,
+      verseOfDay: chosen.text,
+      verseRef: chosen.reference,
+      date: dateDisplay,
+      body: gen.body,
+      related,
+      takeaway: gen.takeaway,
+    });
+
+    await admin.from("daily_devotionals").upsert(
+      {
+        date,
+        theme: themeName,
+        verse_id: chosen.id,
+        verse_text: chosen.text,
+        verse_reference: chosen.reference,
+        title: result.title,
+        body: result.body,
+        related: result.related,
+        takeaway: result.takeaway,
+      },
+      { onConflict: "date" },
+    );
+
+    return result;
+  });
+

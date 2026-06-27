@@ -2,6 +2,7 @@ import type { Profile } from "@/hooks/use-auth";
 import {
   getOrCreateGraceNote,
   getOrCreateDevotional,
+  getOrCreateSharedDevotional,
   callRespondToHeartNote,
   callRespondToDailyMessage,
   callSummarizeHeartNote,
@@ -30,6 +31,12 @@ export async function generateDevotional(
   return getOrCreateDevotional({
     data: { ...buildAIProfile(profile ?? null), clientDate: localTodayISO() },
   });
+}
+
+// Shared daily devotional: the same one for everyone, keyed by date.
+// Used by the in-app modal and the public /devotional/<date> page.
+export async function getSharedDevotional(date?: string): Promise<DevotionalResult> {
+  return getOrCreateSharedDevotional({ data: { date: date ?? localTodayISO() } });
 }
 
 export async function respondToHeartNote(

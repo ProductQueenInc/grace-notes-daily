@@ -1,12 +1,11 @@
 import { createPortal } from "react-dom";
-import { X, BookOpen, Heart, Check } from "lucide-react";
+import { X, BookOpen, Heart, Check, RefreshCw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { generateDevotional } from "@/lib/ai-stubs";
+import { getSharedDevotional } from "@/lib/ai-stubs";
 import { softGoldConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
-import { useAuth } from "@/hooks/use-auth";
 import { useHabits } from "@/hooks/use-habits";
 import { isoForDate } from "@/lib/today";
 
@@ -19,7 +18,6 @@ function formatDisplayDate(iso: string): string {
 }
 
 export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
-  const { profile } = useAuth();
   const { habits } = useHabits();
   const received = habits.devotional;
   const today = isoForDate(new Date());
@@ -27,13 +25,16 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
   // the date field, which can be stale from cache or hallucinated by the model.
   const todayDisplay = formatDisplayDate(today);
 
-  // Shares cache key with home.tsx prefetch - opens instantly if warmed.
-  const { data } = useQuery({
+  // The devotional is now SHARED (same for everyone, keyed by date). Shares the
+  // cache key with home.tsx prefetch - opens instantly if warmed.
+  const { data, isError, refetch, isFetching } = useQuery({
     queryKey: ["devotional", today],
-    queryFn: () => generateDevotional(profile),
-    enabled: open && !!profile,
+    queryFn: () => getSharedDevotional(today),
+    enabled: open,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   if (!open || typeof document === "undefined") return null;
@@ -58,7 +59,21 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
           </button>
         </div>
 
-        {!data ? (
+        {isError ? (
+          <div className="p-12 text-center">
+            <p className="text-sm text-foreground/70 mb-4">
+              Today's devotional couldn't load. Let's try again.
+            </p>
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-grace text-white font-semibold disabled:opacity-60"
+            >
+              <Icon icon={RefreshCw} size="sm" tone="inherit" />
+              {isFetching ? "Trying again…" : "Try again"}
+            </button>
+          </div>
+        ) : !data ? (
           <div className="p-12 text-center">
             <div className="inline-block w-8 h-8 border-2 border-grace border-t-transparent rounded-full animate-spin" />
             <p className="text-sm text-foreground/60 mt-3">Loading today's devotional…</p>

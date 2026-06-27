@@ -7,7 +7,7 @@ import { useHabits, type HabitKey } from "@/hooks/use-habits";
 import { useDailyChat } from "@/hooks/use-daily-chat";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { generateDevotional } from "@/lib/ai-stubs";
+import { getSharedDevotional } from "@/lib/ai-stubs";
 import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-note";
 import { useStreak } from "@/hooks/use-streak";
 import { supabase } from "@/lib/supabase";
@@ -60,18 +60,12 @@ function Home() {
     isFetching: graceFetching,
   } = useDailyGraceNote();
 
-  const {
-    data: devotionalPreview,
-    isError: devotionalError,
-    isFetching: devotionalFetching,
-    refetch: refetchDevotional,
-  } = useQuery({
+  const { data: devotionalPreview } = useQuery({
     queryKey: ["devotional", today],
-    queryFn: () => generateDevotional(profile!),
-    enabled: !!profile && !graceFetching,
+    queryFn: () => getSharedDevotional(today),
+    enabled: !graceFetching,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
-    retry: 2,
   });
 
 
@@ -225,28 +219,10 @@ function Home() {
                 )}
               </div>
               <h3 className="font-display text-2xl sm:text-3xl text-white">{devotionalPreview?.title ?? "Today's Devotional"}</h3>
-              <p className="text-sm text-white/70 mt-1">
-                {devotionalPreview
-                  ? `${devotionalPreview.verseRef} · ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
-                  : devotionalError && !devotionalFetching
-                    ? "Couldn't load today's devotional."
-                    : "Loading…"}
-              </p>
-              {devotionalError && !devotionalFetching && !devotionalPreview ? (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => { e.stopPropagation(); refetchDevotional(); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); refetchDevotional(); } }}
-                  className="inline-block mt-3 text-sm font-semibold text-gold cursor-pointer"
-                >
-                  Try again →
-                </span>
-              ) : (
-                <span className={`inline-block mt-3 text-sm font-semibold ${habits.devotional ? "text-white/75" : "text-gold"}`}>
-                  {habits.devotional ? "Read again →" : "Read Today's Devotional →"}
-                </span>
-              )}
+              <p className="text-sm text-white/70 mt-1">{devotionalPreview ? `${devotionalPreview.verseRef} · ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}` : "Loading…"}</p>
+              <span className={`inline-block mt-3 text-sm font-semibold ${habits.devotional ? "text-white/75" : "text-gold"}`}>
+                {habits.devotional ? "Read again →" : "Read Today's Devotional →"}
+              </span>
             </button>
           </div>
 

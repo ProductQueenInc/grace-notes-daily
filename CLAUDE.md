@@ -241,6 +241,17 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-06-22 (PM2) — Shared daily devotional + public `/devotional/<date>` page
+
+The devotional is now **shared** (one per day for everyone), grounded, and publicly shareable.
+
+- **Generator** (`src/lib/ai.functions.ts`, `getOrCreateSharedDevotional` + `generateSharedDevotionalRaw`): public server fn (no auth middleware), get-or-create keyed by `date` in `daily_devotionals`. Weekday theme rotation (Mon Hope, Tue Peace, Wed Grief & Comfort, Thu Gratitude, Fri Courage, Sat Rest, Sun Purpose); verse grounded from `verses` for that theme with an 8-occurrence no-repeat (reads recent `daily_devotionals` rows of the same theme); up to 3 related passages from the same theme. Generalized + shareable prompt (no personalization). Uses the schema-agnostic `admin` client. Stub: `getSharedDevotional(date?)` in `ai-stubs.ts`.
+- **In-app read switched to shared:** `devotional-modal.tsx` and `home.tsx` now call `getSharedDevotional(today)` instead of the per-user `generateDevotional`. (Per-user `getOrCreateDevotional` remains in code but is no longer wired.)
+- **Public page:** `src/routes/devotional.index.tsx` (today) + `src/routes/devotional.$date.tsx` (dated archive), rendering `src/components/devotional-view.tsx`. No auth. Full SEO: dynamic meta + OG (`/og/daily-devotional.png`) + Article and Breadcrumb JSON-LD (`devotionalHead`). Reverent reading layout, Web Share / copy-link, NIV notice, soft signup CTA. Every day becomes one indexed, shareable page (the SEO flywheel).
+- `routeTree.gen.ts` regenerated to include the two new routes.
+- Type-checked clean (only the pre-existing missing-dep errors remain).
+- **Follow-ups (kept on the list):** (1) a-day-ahead cron generation + lightweight human review (currently the first view of a date generates it on demand); (2) graceful error state if generation fails on a public hit; (3) add the devotional archive to `sitemap.xml`; (4) the Listen fixes (Media Session lock-screen controls + pause/resume restart bug).
+
 ### 2026-06-22 (PM) — Verse grounding: grace note + devotional now use verified NIV from the `verses` table
 
 The model no longer writes Scripture. Both generators now select a verse from the curated NIV `verses` library and pass it into the prompt as fixed text; the model writes only the reflection around it. This removes verse hallucination and bounds NIV usage to a countable, attributed set.

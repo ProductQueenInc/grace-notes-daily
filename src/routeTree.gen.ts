@@ -35,7 +35,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as R7DayPrayerJournalRouteImport } from './routes/7-day-prayer-journal'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
+import { Route as DevotionalIndexRouteImport } from './routes/devotional.index'
 import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
+import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -171,9 +173,19 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   path: '/library/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevotionalIndexRoute = DevotionalIndexRouteImport.update({
+  id: '/devotional/',
+  path: '/devotional/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibrarySlugRoute = LibrarySlugRouteImport.update({
   id: '/library/$slug',
   path: '/library/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevotionalDateRoute = DevotionalDateRouteImport.update({
+  id: '/devotional/$date',
+  path: '/devotional/$date',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -225,7 +237,9 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -258,7 +272,9 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/devotional': typeof DevotionalIndexRoute
   '/library': typeof LibraryIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -292,7 +308,9 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -327,7 +345,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/auth/callback'
+    | '/devotional/$date'
     | '/library/$slug'
+    | '/devotional/'
     | '/library/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -360,7 +380,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/auth/callback'
+    | '/devotional/$date'
     | '/library/$slug'
+    | '/devotional'
     | '/library'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -393,7 +415,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/auth/callback'
+    | '/devotional/$date'
     | '/library/$slug'
+    | '/devotional/'
     | '/library/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -427,7 +451,9 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  DevotionalDateRoute: typeof DevotionalDateRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
+  DevotionalIndexRoute: typeof DevotionalIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -618,11 +644,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/devotional/': {
+      id: '/devotional/'
+      path: '/devotional'
+      fullPath: '/devotional/'
+      preLoaderRoute: typeof DevotionalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/$slug': {
       id: '/library/$slug'
       path: '/library/$slug'
       fullPath: '/library/$slug'
       preLoaderRoute: typeof LibrarySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devotional/$date': {
+      id: '/devotional/$date'
+      path: '/devotional/$date'
+      fullPath: '/devotional/$date'
+      preLoaderRoute: typeof DevotionalDateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -683,7 +723,9 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  DevotionalDateRoute: DevotionalDateRoute,
   LibrarySlugRoute: LibrarySlugRoute,
+  DevotionalIndexRoute: DevotionalIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
