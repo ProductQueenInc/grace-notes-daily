@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Share2, ArrowRight, Sparkles } from "lucide-react";
+import { BookOpen, Share2, ArrowRight, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
 import { BASE_URL } from "@/lib/library";
@@ -74,15 +74,57 @@ export function DevotionalView({
   devotional,
   date,
 }: {
-  devotional: DevotionalResult;
+  devotional: DevotionalResult | null;
   date: string;
 }) {
+  if (!devotional) {
+    return (
+      <div
+        className="min-h-screen w-full flex items-center justify-center"
+        style={{
+          background:
+            "radial-gradient(1100px 560px at 50% -8%, var(--grace-haze, #e7efe9), transparent), #f7f4ee",
+        }}
+      >
+        <div className="max-w-md mx-auto px-5 py-16 text-center">
+          <Link to="/" className="font-display text-xl text-grace block mb-12">
+            GraceNotes Daily
+          </Link>
+          <div className="glass-parchment rounded-3xl p-8 shadow-sm">
+            <Icon icon={BookOpen} size="md" tone="hue" className="mx-auto mb-4 opacity-50" />
+            <h1 className="font-display text-2xl text-grace mb-3">
+              Today's devotional is being prepared
+            </h1>
+            <p className="text-foreground/70 text-sm leading-relaxed mb-6">
+              Something interrupted the preparation of today's reading. Try refreshing in a
+              moment - it should be ready shortly.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-grace/30 text-grace text-sm font-semibold hover:bg-grace/5 transition"
+            >
+              <Icon icon={RefreshCw} size="sm" tone="inherit" /> Try again
+            </button>
+          </div>
+          <p className="text-xs text-foreground/45 mt-8">
+            <Link to="/" className="hover:text-grace">
+              GraceNotes Daily
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // narrowed: null case is handled by early return above
+  const d = devotional as DevotionalResult;
+
   function onShare() {
     if (typeof navigator === "undefined") return;
     const url = devotionalUrl(date);
-    const title = `${devotional.title} - GraceNotes Daily`;
+    const title = `${d.title} - GraceNotes Daily`;
     if (typeof navigator.share === "function") {
-      navigator.share({ title, text: devotional.verseRef, url }).catch(() => {});
+      navigator.share({ title, text: d.verseRef, url }).catch(() => {});
       return;
     }
     if (navigator.clipboard) {
@@ -121,33 +163,33 @@ export function DevotionalView({
           <div className="flex items-center gap-2 text-grace/70 text-[11px] uppercase tracking-[0.2em] mb-5">
             <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily Devotional
             <span aria-hidden>·</span>
-            <span>{devotional.date}</span>
+            <span>{d.date}</span>
           </div>
 
           <div className="border-l-4 border-gold rounded-r-2xl pl-5 py-3 mb-6">
             <p className="font-display italic text-xl md:text-2xl text-grace leading-snug mb-2">
-              {devotional.verseOfDay}
+              {d.verseOfDay}
             </p>
-            <p className="text-grace/80 text-sm font-semibold tracking-wide">{devotional.verseRef}</p>
+            <p className="text-grace/80 text-sm font-semibold tracking-wide">{d.verseRef}</p>
           </div>
 
           <h1 className="font-display text-3xl md:text-4xl text-grace mb-6 leading-tight">
-            {devotional.title}
+            {d.title}
           </h1>
 
           <div className="space-y-4 text-foreground/85 leading-relaxed max-w-[64ch]">
-            {devotional.body.map((p, i) => (
+            {d.body.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>
 
-          {devotional.related.length > 0 && (
+          {d.related.length > 0 && (
             <div className="mt-8 rounded-2xl bg-gold-soft/60 border-l-4 border-gold p-5">
               <div className="flex items-center gap-2 text-gold-foreground font-semibold mb-3">
                 <Icon icon={BookOpen} size="sm" tone="inherit" /> Related Scripture
               </div>
               <div className="space-y-3 text-sm">
-                {devotional.related.map((r) => (
+                {d.related.map((r) => (
                   <div key={r.ref}>
                     <span className="font-semibold text-gold-foreground">{r.ref}:</span>{" "}
                     <span className="text-foreground/75">{r.text}</span>
@@ -158,7 +200,7 @@ export function DevotionalView({
           )}
 
           <div className="mt-5 rounded-2xl bg-grace-soft border-l-4 border-grace p-5 italic text-foreground/85">
-            {devotional.takeaway}
+            {d.takeaway}
           </div>
 
           <p className="text-[11px] text-foreground/45 mt-6">

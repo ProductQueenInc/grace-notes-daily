@@ -59,6 +59,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Tally feedback button (all pages) | `src/components/feedback-dialog.tsx`, loaded in `__root.tsx` |
 | v2 schema applied (verses, crisis_lines, user_verse_log, daily_grace_notes, chat_sessions, chat_flags, RPCs `select_verse_for_user` and `increment_session_message_count`) | Live DB as of 2026-06-09 |
 | `chat-reply` edge function (3-tier safety + streaming SSE) — DB now backs it | `supabase/functions/chat-reply/index.ts` |
+| `generate-daily-devotional` edge function — day-ahead cron for shared devotional; pg_cron `0 22 * * *` (job id 3, active). Idempotent. Same prompt as `getOrCreateSharedDevotional`. | `supabase/functions/generate-daily-devotional/index.ts` |
 | `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5). Cron scheduled in `cron.job` (daily 01:00 UTC, active). `daily_grace_notes` will fill after the first overnight run. | `supabase/functions/generate-daily-grace-notes/index.ts` |
 | PWA icons (192, 512, apple-touch-180) wired into manifest + `__root.tsx`. Master `icon-source.png` is 1254×1254 (verified). | `public/icons/`, `public/manifest.json` |
 | `crisis_lines` seeded with 51 countries (verified 51 rows). | Live DB |
@@ -241,6 +242,19 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-06-28 (PM) — Day-ahead devotional cron + graceful error state
+
+**Task 1 — Day-ahead generation (`supabase/functions/generate-daily-devotional/index.ts`):**
+- New Supabase edge function deployed (v1, `verify_jwt=false`, bearer-token auth against service role key). Defaults to tomorrow UTC; accepts optional `{ date }` body override. Idempotent: skips if a row already exists for that date.
+- Inlines the same prompt and verse-selection logic as `getOrCreateSharedDevotional` (weekday theme, 8-occurrence no-repeat, related passages, em-dash sanitizer, haiku-4-5, temp 0.7).
+- pg_cron job `generate-daily-devotional` scheduled `0 22 * * *` (22:00 UTC daily, job id 3). Fires ~10 hours before midnight UTC — devotional is ready before any timezone sees the new day.
+- **Lightweight review:** visit `/devotional/YYYY-MM-DD` the evening before to preview. If you want to regenerate, delete the row from `daily_devotionals` and the next view (or a manual curl to the edge function with `{ "date": "YYYY-MM-DD" }`) will create a fresh one.
+- PROMPT POLICY (§5 rule extended): if you change `generateSharedDevotionalRaw` in `src/lib/ai.functions.ts`, also update the inlined prompt in `supabase/functions/generate-daily-devotional/index.ts`.
+
+**Task 2 — Graceful error state:**
+- Both route loaders (`devotional.index.tsx`, `devotional.$date.tsx`) now wrap `getSharedDevotional` in try/catch and return `{ devotional: null, date }` on failure — no more unhandled loader exceptions on AI/DB errors.
+- `DevotionalView` (`src/components/devotional-view.tsx`) accepts `DevotionalResult | null`. When null it renders an on-brand "Today's devotional is being prepared" card with a reload button; the reading layout is unchanged for the happy path.
+
 ### 2026-06-28 — Listen pause/resume fix, Media Session API, sitemap + copy fixes
 
 - **Listen pause/resume bug fixed** (`src/routes/__root.tsx`): the play/pause effect was calling `a.load()` unconditionally on every play, which restarted the track from 0 instead of resuming. Removed `.load()` from the effect; the audio element already uses `key={track.id}` + `autoPlay` which handles new track loading on remount. The effect now only calls `.play()` or `.pause()` to toggle state.
@@ -378,6 +392,7 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 | **Canonical grace-note prompt** | `src/lib/ai.functions.ts` (in `generateGraceNoteRaw`, line ~160) |
 | Chat safety edge function | `supabase/functions/chat-reply/index.ts` |
 | Daily grace-note cron edge function | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| Daily devotional cron edge function (day-ahead) | `supabase/functions/generate-daily-devotional/index.ts` |
 | Personalization helpers | `src/lib/personalization.ts` |
 | Badges | `src/lib/badges.ts` |
 | Supabase client | `src/lib/supabase.ts` |

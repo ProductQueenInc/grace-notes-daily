@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getSharedDevotional } from "@/lib/ai-stubs";
 import { DevotionalView, devotionalHead } from "@/components/devotional-view";
+import type { DevotionalResult } from "@/lib/ai.functions";
 
 function todayISO() {
   const d = new Date();
@@ -10,12 +11,17 @@ function todayISO() {
 }
 
 export const Route = createFileRoute("/devotional/")({
-  loader: async () => {
+  loader: async (): Promise<{ devotional: DevotionalResult | null; date: string }> => {
     const date = todayISO();
-    const devotional = await getSharedDevotional(date);
-    return { devotional, date };
+    try {
+      const devotional = await getSharedDevotional(date);
+      return { devotional, date };
+    } catch (err) {
+      console.error("[devotional/index] generation failed:", err);
+      return { devotional: null, date };
+    }
   },
-  head: ({ loaderData }) => devotionalHead(loaderData?.devotional, loaderData?.date),
+  head: ({ loaderData }) => devotionalHead(loaderData?.devotional ?? undefined, loaderData?.date),
   component: DevotionalTodayRoute,
 });
 
