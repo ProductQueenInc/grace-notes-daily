@@ -213,4 +213,4 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
       },
     },
   },
-})
+} as any)
