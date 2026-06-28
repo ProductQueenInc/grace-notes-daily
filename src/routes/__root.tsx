@@ -157,19 +157,37 @@ function GlobalPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, track?.youtubeId]);
 
-  // Sync audio element play/pause. When src changes we must call .load()
-  // first — otherwise the element keeps the old buffered media and .play()
-  // can reject silently (this caused the 2nd song to never load).
+  // Sync audio element play/pause. The audio element uses key={track.id} so it
+  // remounts (with autoPlay) whenever the track changes — .load() here would
+  // restart from 0 on every pause/resume. Only toggle play state.
   useEffect(() => {
     const a = audioRef.current;
     if (!a || track?.youtubeId) return;
     if (isPlaying) {
-      a.load();
       a.play().catch((err) => console.error("audio play failed:", err));
     } else {
       a.pause();
     }
-  }, [isPlaying, track?.youtubeId, track?.audioUrl]);
+  }, [isPlaying, track?.youtubeId]);
+
+  // Media Session API — lock screen / headphone / car controls + metadata
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || !track) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.title,
+      artist: track.speaker,
+      album: "GraceNotes Daily",
+      artwork: track.thumb ? [{ src: track.thumb, sizes: "512x512", type: "image/jpeg" }] : [],
+    });
+    navigator.mediaSession.setActionHandler("play", () => useAudioPlayer.getState().toggle());
+    navigator.mediaSession.setActionHandler("pause", () => useAudioPlayer.getState().toggle());
+    navigator.mediaSession.setActionHandler("nexttrack", () => useAudioPlayer.getState().playNext());
+    return () => {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+    };
+  }, [track]);
 
   // Reset time on track change
   useEffect(() => {

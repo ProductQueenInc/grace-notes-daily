@@ -134,10 +134,9 @@ function Home() {
                       className="max-w-[280px] text-sm bg-black/85 text-white border-white/10"
                     >
                       <p className="leading-relaxed">
-                        This note is written using what you told us at sign-up:
-                        your faith phase, the voice you chose, and any seasons you
-                        picked. If any of that has changed, update it and the next
-                        note will reflect it.
+                        This note is shaped by your faith phase. As you chat
+                        each day, it will grow more personal. Update your faith
+                        phase in Settings and the next note will reflect it.
                       </p>
                       <Link
                         to="/settings"

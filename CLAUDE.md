@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-06-22**.
+Last updated: **2026-06-28**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -240,6 +240,13 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-06-28 — Listen pause/resume fix, Media Session API, sitemap + copy fixes
+
+- **Listen pause/resume bug fixed** (`src/routes/__root.tsx`): the play/pause effect was calling `a.load()` unconditionally on every play, which restarted the track from 0 instead of resuming. Removed `.load()` from the effect; the audio element already uses `key={track.id}` + `autoPlay` which handles new track loading on remount. The effect now only calls `.play()` or `.pause()` to toggle state.
+- **Media Session API** (`src/routes/__root.tsx`): added a `useEffect` on `track` change that sets `navigator.mediaSession.metadata` (title, artist, album, artwork) and wires `play`, `pause`, and `nexttrack` action handlers. Enables lock-screen controls, headphone buttons, and car media displays.
+- **Sitemap** (`public/sitemap.xml`): added `/devotional` with `changefreq=daily`, `priority=0.9`.
+- **Grace-note info popover copy** (`src/routes/home.tsx`): updated to match 2-step onboarding. Old copy referenced "the voice you chose and seasons you picked" (removed from onboarding 2026-06-22). New copy: "This note is shaped by your faith phase. As you chat each day, it will grow more personal."
 
 ### 2026-06-22 (PM2) — Shared daily devotional + public `/devotional/<date>` page
 
