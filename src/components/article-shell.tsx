@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ShareBar } from "@/components/share-bar";
 import { ArticleCard } from "@/components/article-card";
 import { DoveMark } from "@/components/dove-mark";
+import { BackHomeButton, BackHomeCard } from "@/components/back-home-cta";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
