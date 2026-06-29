@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { marked } from "marked";
 import { useMemo } from "react";
 import essayMd from "@/content/blog/building-gracenotes-daily.md?raw";
+import { DoveMark } from "@/components/dove-mark";
 
 const BASE_URL = "https://www.gracenotesdaily.com";
 const PATH = "/blog/building-gracenotes-daily";
@@ -11,7 +12,7 @@ const TITLE =
   "How I built GraceNotes Daily. The honest, founder to founder version.";
 const SHARE_TITLE = "How I built GraceNotes Daily";
 const DESCRIPTION =
-  "The workflow, the stack, the mistakes that cost the most, and the product calls I refused to hand to the model. No screenshots of secrets. No copy-paste prompts. Just the choices that mattered.";
+  "A field note from inside the build. What I let the model do, what I refused to outsource, and the calls that shaped the product more than any prompt did.";
 const PUBLISHED = "2026-06-29";
 const IMAGE = `${BASE_URL}/icons/icon-512.png`;
 
@@ -150,9 +151,10 @@ function BuildGuide() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link
             to="/"
-            className="font-display text-lg tracking-tight text-white hover:text-[var(--gold,#debe36)]"
+            className="flex items-center gap-2 text-white hover:text-[var(--gold,#debe36)]"
           >
-            GraceNotes Daily
+            <DoveMark variant="medallion" className="w-7 h-7" />
+            <span className="font-display text-base tracking-tight">GraceNotes Daily</span>
           </Link>
           <Link
             to="/signup"
@@ -171,20 +173,20 @@ function BuildGuide() {
         />
         <div className="relative mx-auto max-w-3xl px-6 pt-20 pb-16 text-center sm:pt-28 sm:pb-24">
           <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--gold,#debe36)]">
-            Build guide
+            Field notes
           </p>
-          <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl">
-            How I built GraceNotes Daily.
+          <h1 className="font-display text-3xl leading-[1.15] tracking-tight text-white sm:text-4xl md:text-[2.75rem]">
+            How I built GraceNotes Daily
             <br />
             <span className="bg-gradient-to-r from-[#7ad29a] via-[#a8e0b8] to-[#debe36] bg-clip-text text-transparent">
-              The honest, founder to founder version.
+              without losing my voice to the machine.
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
-            The workflow, the stack at a glance, the mistakes that cost the
-            most, and the product calls I refused to hand to the model. No
-            screenshots of secrets. No copy-paste prompts. Just the choices that
-            mattered.
+            Most build write-ups read like a tour of a toolbox. This one is closer
+            to a journal. What I let the model do for me, what I refused to hand
+            over, and the small, stubborn calls that ended up shaping the product
+            more than any prompt ever did.
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <a
