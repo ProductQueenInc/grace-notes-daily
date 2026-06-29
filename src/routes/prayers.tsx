@@ -23,6 +23,35 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
+type Filter = "all" | "active" | "answered";
+const PAGE_SIZE = 10;
+
+/** Tiny deterministic shuffle so "Remember When" picks rotate daily, not per load. */
+function seededShuffle<T>(arr: T[], seed: string): T[] {
+  // FNV-1a-ish hash of the seed string.
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h = (h ^ seed.charCodeAt(i)) >>> 0;
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  const rand = () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0;
+    h = Math.imul(h ^ (h >>> 13), 3266489909) >>> 0;
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  };
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function localTodayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
 function Prayers() {
   const [items, setItems] = useState<Prayer[]>([]);
   const [draft, setDraft] = useState("");
