@@ -87,7 +87,9 @@ function BlogPost() {
             dangerouslySetInnerHTML={{ __html: html }}
           />
           <div className="mt-10 pt-6 border-t border-black/10">
-            <ShareBar title={TITLE} url={URL} />
+            <div className="rounded-xl bg-[var(--grace-deep,#1d4327)] px-4 py-3">
+              <ShareBar title={TITLE} url={URL} description={DESCRIPTION} />
+            </div>
           </div>
         </article>
         <SiteFooter />
