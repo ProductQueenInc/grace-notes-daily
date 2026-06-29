@@ -242,6 +242,7 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+<<<<<<< Updated upstream
 ### 2026-06-28 (PM) — Day-ahead devotional cron + graceful error state
 
 **Task 1 — Day-ahead generation (`supabase/functions/generate-daily-devotional/index.ts`):**
@@ -272,6 +273,26 @@ The devotional is now **shared** (one per day for everyone), grounded, and publi
 - `routeTree.gen.ts` regenerated to include the two new routes.
 - Type-checked clean (only the pre-existing missing-dep errors remain).
 - **Follow-ups (kept on the list):** (1) a-day-ahead cron generation + lightweight human review (currently the first view of a date generates it on demand); (2) graceful error state if generation fails on a public hit; (3) add the devotional archive to `sitemap.xml`; (4) the Listen fixes (Media Session lock-screen controls + pause/resume restart bug).
+=======
+### 2026-06-29 — Cross-Account Protection (RISC) implementation
+
+Google RISC lets Google notify GraceNotes when a user's Google account is compromised. When triggered, the app revokes the user's Supabase sessions immediately.
+
+**New files:**
+- `src/lib/risc-jwt.ts` — fetches Google's RISC JWKS (via `.well-known/risc-configuration`) and verifies incoming SET JWTs using `jose` (Workers-compatible).
+- `src/lib/risc-events.server.ts` — maps RISC event types to Supabase admin actions: `sessions-revoked`, `account-credential-change-required`, and `account-hijacking-detected` → `auth.admin.signOut(userId, 'global')`; `account-disabled` and `account-purged` → sign out + 100-year ban.
+- `src/routes/api/risc/receiver.ts` — the RISC endpoint. GET handles Google's challenge-echo verification. POST receives SET JWTs, verifies them, and dispatches events. Always returns 202 to prevent Google retries on processing errors.
+- `scripts/register-risc.ts` — one-time registration script. Run with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_CLIENT_ID` set. Uses a service-account JWT to call `https://risc.googleapis.com/v1beta/stream:update`.
+
+**New dependency:** `jose` (JWKS + JWT verify; Workers-compatible).
+
+**New env var required:** `GOOGLE_CLIENT_ID` — add as a Cloudflare Worker secret (`wrangler secret put GOOGLE_CLIENT_ID`). This is the OAuth client ID used by Google sign-in.
+
+**To activate:**
+1. Add `GOOGLE_CLIENT_ID` secret to Cloudflare dashboard.
+2. Deploy to production (via Lovable → Publish).
+3. Run `scripts/register-risc.ts` once with the service account JSON to register the endpoint URL with Google.
+>>>>>>> Stashed changes
 
 ### 2026-06-22 (PM) — Verse grounding: grace note + devotional now use verified NIV from the `verses` table
 
@@ -406,6 +427,10 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 | Listen page (track grid, filter, signed URLs) | `src/routes/listen.tsx` |
 | Listen signed-URL helper (private `listen-audio` bucket) | `src/lib/listen-audio.functions.ts` |
 | Share / download UI | `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx` |
+| RISC JWT verifier | `src/lib/risc-jwt.ts` |
+| RISC event handlers | `src/lib/risc-events.server.ts` |
+| RISC receiver endpoint | `src/routes/api/risc/receiver.ts` |
+| RISC registration script | `scripts/register-risc.ts` |
 | Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Verses library seed (unused for now) | `scripts/seed_verses.js`, `gracenotes_verse_library.json` |
 | Routes | `src/routes/*.tsx` |
