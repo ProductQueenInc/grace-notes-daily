@@ -166,9 +166,7 @@ function LibraryHub() {
           <span className="font-display text-xl sm:text-2xl">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
-          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
-            Home
-          </Link>
+          <BackHomeButton />
         ) : (
           <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
             Come on in
