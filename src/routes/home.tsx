@@ -257,16 +257,16 @@ function Home() {
               <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <h3 className="font-display text-xl text-white whitespace-nowrap">Daily Rhythms</h3>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button aria-label="How this works" className="text-white/75 hover:text-white/90 shrink-0">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button aria-label="How this works" className="text-white/75 hover:text-white/90 shrink-0 p-1 -m-1">
                         <Icon icon={Info} size="sm" />
                       </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-black/85 text-white border border-white/10 max-w-[240px]">
+                    </PopoverTrigger>
+                    <PopoverContent side="bottom" align="start" className="w-[260px] bg-black/90 text-white border border-white/10 text-sm">
                       Gold days update automatically; the rest update at midnight. Tap a circle to go to its space.
-                    </TooltipContent>
-                  </Tooltip>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-semibold whitespace-nowrap shrink-0">
                   <Icon icon={Flame} size="sm" tone="inherit" /> {streak} {streak === 1 ? "day" : "days"}
@@ -502,16 +502,16 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-1.5 min-w-0">
           <h3 className="font-display text-xl text-white whitespace-nowrap">Spiritual Journey</h3>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button aria-label="How this works" className="text-white/70 hover:text-white shrink-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button aria-label="How this works" className="text-white/70 hover:text-white shrink-0 p-1 -m-1">
                 <Icon icon={Info} size="sm" />
               </button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-black/85 text-white border border-white/10 max-w-[220px]">
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="start" className="w-[240px] bg-black/90 text-white border border-white/10 text-sm">
               Each day fills with the badge you earn - copper, silver, or gold.
-            </TooltipContent>
-          </Tooltip>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex items-center gap-2 text-sm text-white/90 shrink-0">
           <button aria-label="Previous month" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center"><Icon icon={ChevronLeft} size="sm" /></button>
