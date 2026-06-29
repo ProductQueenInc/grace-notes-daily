@@ -295,12 +295,12 @@ function Header() {
 
   return (
     <header className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-2 sm:gap-3 text-white relative z-10">
-      <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group min-w-0">
+      <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group min-w-0 flex-1">
         <DoveMark
           variant="medallion"
-          className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 transition-transform group-hover:scale-105"
+          className="w-9 h-9 sm:w-12 sm:h-12 shrink-0 transition-transform group-hover:scale-105"
         />
-        <span className="font-display text-[1.6rem] leading-none sm:text-3xl tracking-tight whitespace-nowrap">
+        <span className="font-display text-[1.15rem] leading-none sm:text-3xl tracking-tight truncate">
           GraceNotes Daily
         </span>
       </Link>
@@ -312,9 +312,9 @@ function Header() {
       <div className="flex items-center gap-2 shrink-0">
         <Link
           to={isLoggedIn ? "/home" : "/login"}
-          className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold bg-white text-grace hover:bg-white/90 transition whitespace-nowrap"
         >
-          {isLoggedIn ? "Open app" : "Come on in"}
+          {isLoggedIn ? "Open" : "Come on in"}
         </Link>
       </div>
     </header>
