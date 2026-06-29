@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
-import { pickRhythmGreeting } from "@/lib/personalization";
+import { pickRhythmGreeting, firstNameCap } from "@/lib/personalization";
 import { badgeForCount, badgeLabel, badgeColors, type BadgeTier } from "@/lib/badges";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
