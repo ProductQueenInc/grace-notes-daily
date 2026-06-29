@@ -244,47 +244,118 @@ function Prayers() {
           <p className="text-xs text-foreground/55 px-5 pb-4 text-right hidden sm:block">Press Enter to add</p>
         </div>
 
-        <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
-          <HandHeart className="w-5 h-5 text-white" />
-          <h2 className="font-display text-2xl text-white">Active Prayers</h2>
-          <span className="ml-auto text-xs font-semibold bg-white/15 text-white px-2.5 py-1 rounded-full">{active.length}</span>
-        </div>
-        <div className="space-y-3 mb-8">
-          {active.map((p) => (
-            <div key={p.id} className="glass rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold break-words">{p.text}</p>
-                <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3 shrink-0" /> Added {p.createdAt}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto">
-                <button onClick={() => markAnswered(p)} className="flex-1 sm:flex-initial px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" /> Mark as Answered
-                </button>
-                <PrayerMenu p={p} tone="light" />
-              </div>
-            </div>
-          ))}
-          {!active.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">No active prayers. Add one above.</p>}
+        {/* Filter chips */}
+        <div className="flex items-center gap-2 mb-5">
+          {(["all", "active", "answered"] as Filter[]).map((f) => {
+            const label = f === "all" ? "All" : f === "active" ? "Active" : "Answered";
+            const isActive = filter === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={[
+                  "px-4 py-2 rounded-full text-sm font-semibold transition",
+                  isActive
+                    ? "bg-gold text-gold-foreground shadow"
+                    : "bg-white/15 text-white hover:bg-white/25",
+                ].join(" ")}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-gold" />
-          <h2 className="font-display text-2xl text-white">Answered Prayers</h2>
-          <span className="ml-auto text-xs font-semibold bg-gold text-gold-foreground px-2.5 py-1 rounded-full">{answered.length}</span>
-        </div>
-        <div className="space-y-3">
-          {answered.map((p) => (
-            <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5 flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-gold-foreground">{p.text}</p>
-                {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
-                <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
-              </div>
-              <PrayerMenu p={p} tone="gold" />
+        {/* Remember When: shows only when filter=All and there are 3+ answered prayers. */}
+        {showRememberWhen && (
+          <div className="mb-8">
+            <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-gold" />
+              <h2 className="font-display text-2xl text-white">Remember When</h2>
+              <span className="ml-auto text-xs text-white/70 italic">Refreshes daily</span>
             </div>
-          ))}
-          {!answered.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">Your testimonies will gather here.</p>}
-        </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {rememberWhen.map((p) => (
+                <div
+                  key={p.id}
+                  className="snap-start shrink-0 w-[78vw] max-w-[320px] rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5"
+                >
+                  <p className="font-semibold text-gold-foreground line-clamp-3">{p.text}</p>
+                  {p.thanksgiving && (
+                    <p className="text-sm italic mt-2 text-foreground/85 line-clamp-3">"{p.thanksgiving}"</p>
+                  )}
+                  <p className="text-xs text-foreground/70 mt-2">Answered {p.answeredAt}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {showActive && (
+          <>
+            <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
+              <HandHeart className="w-5 h-5 text-white" />
+              <h2 className="font-display text-2xl text-white">Active Prayers</h2>
+              <span className="ml-auto text-xs font-semibold bg-white/15 text-white px-2.5 py-1 rounded-full">{active.length}</span>
+            </div>
+            <div className="space-y-3 mb-8">
+              {visibleActive.map((p) => (
+                <div key={p.id} className="glass rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold break-words">{p.text}</p>
+                    <p className="text-xs text-foreground/70 mt-1 flex items-center gap-1"><Clock className="w-3 h-3 shrink-0" /> Added {p.createdAt}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto">
+                    <button onClick={() => markAnswered(p)} className="flex-1 sm:flex-initial px-3 py-2.5 min-h-11 rounded-full border-2 border-grace text-grace hover:bg-grace hover:text-white transition text-sm font-semibold flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" /> Mark as Answered
+                    </button>
+                    <PrayerMenu p={p} tone="light" />
+                  </div>
+                </div>
+              ))}
+              {!active.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">No active prayers. Add one above.</p>}
+              {visibleActive.length < active.length && (
+                <button
+                  onClick={() => setActivePage((p) => p + 1)}
+                  className="w-full py-3 rounded-2xl bg-white/15 text-white font-semibold hover:bg-white/25 transition"
+                >
+                  View more ({active.length - visibleActive.length} more)
+                </button>
+              )}
+            </div>
+          </>
+        )}
+
+        {showAnswered && (
+          <>
+            <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-gold" />
+              <h2 className="font-display text-2xl text-white">Answered Prayers</h2>
+              <span className="ml-auto text-xs font-semibold bg-gold text-gold-foreground px-2.5 py-1 rounded-full">{answered.length}</span>
+            </div>
+            <div className="space-y-3">
+              {visibleAnswered.map((p) => (
+                <div key={p.id} className="rounded-2xl border-l-4 border-gold bg-gold-soft/90 backdrop-blur p-5 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gold-foreground">{p.text}</p>
+                    {p.thanksgiving && <p className="text-sm italic mt-1 text-foreground/85">"{p.thanksgiving}"</p>}
+                    <p className="text-xs text-foreground/70 mt-1">Answered {p.answeredAt}</p>
+                  </div>
+                  <PrayerMenu p={p} tone="gold" />
+                </div>
+              ))}
+              {!answered.length && <p className="text-sm text-white/80 italic text-center py-6 glass-on-hue rounded-2xl">Your testimonies will gather here.</p>}
+              {visibleAnswered.length < answered.length && (
+                <button
+                  onClick={() => setAnsweredPage((p) => p + 1)}
+                  className="w-full py-3 rounded-2xl bg-white/15 text-white font-semibold hover:bg-white/25 transition"
+                >
+                  View more ({answered.length - visibleAnswered.length} more)
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </section>
 
       {celebrating && (
