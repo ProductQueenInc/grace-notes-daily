@@ -89,10 +89,12 @@ function Settings() {
       set_at: existing.get(tag) || today,
     }));
 
+    const normalizedName = capitalizeFirst(name);
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        name,
+        name: normalizedName,
         faith_phase: phase,
         voice,
         rhythms,
