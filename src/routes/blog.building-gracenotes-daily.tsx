@@ -173,20 +173,20 @@ function BuildGuide() {
         />
         <div className="relative mx-auto max-w-3xl px-6 pt-20 pb-16 text-center sm:pt-28 sm:pb-24">
           <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--gold,#debe36)]">
-            Build guide
+            Field notes
           </p>
-          <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl">
-            How I built GraceNotes Daily.
+          <h1 className="font-display text-3xl leading-[1.15] tracking-tight text-white sm:text-4xl md:text-[2.75rem]">
+            How I built GraceNotes Daily
             <br />
             <span className="bg-gradient-to-r from-[#7ad29a] via-[#a8e0b8] to-[#debe36] bg-clip-text text-transparent">
-              The honest, founder to founder version.
+              without losing my voice to the machine.
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
-            The workflow, the stack at a glance, the mistakes that cost the
-            most, and the product calls I refused to hand to the model. No
-            screenshots of secrets. No copy-paste prompts. Just the choices that
-            mattered.
+            Most build write-ups read like a tour of a toolbox. This one is closer
+            to a journal. What I let the model do for me, what I refused to hand
+            over, and the small, stubborn calls that ended up shaping the product
+            more than any prompt ever did.
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <a
