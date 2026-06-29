@@ -55,12 +55,13 @@ function Onboarding() {
 
     setSaving(true);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const normalizedName = capitalizeFirst(name);
 
     try {
       if (supabaseConfigured) {
         const { error } = await supabase.from("profiles").upsert({
           id: user.id,
-          name,
+          name: normalizedName,
           faith_phase: phase,
           onboarded: true,
           // Defaulted, not asked. Editable later in Settings.
