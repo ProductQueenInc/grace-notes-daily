@@ -428,7 +428,7 @@ function LibraryHub() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-baseline justify-between mb-5 sm:mb-4">
               <div>
-                <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold">
+                <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold mb-2">
                   Free Guides
                 </p>
                 <h2 className="font-display text-xl sm:text-2xl md:text-[1.7rem] text-white drop-shadow leading-tight">
