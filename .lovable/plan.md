@@ -1,44 +1,73 @@
-## Why both cards spin forever
+## 1. "Today's Grace Note" header — shrink label, move flag into popover
 
-`getOrCreateGraceNote` and `getOrCreateDevotional` now require a row from the `verses` table before they'll call the AI, and throw `"no active verse available to ground from the verses table"` if the table is empty. Live DB confirms `verses` is empty (0 rows, 0 active). Result: every call fails.
+- Mildly reduce the label size on mobile: `text-sm` → `text-[13px]` (desktop unchanged).
+- Remove the standalone flag icon from the header row. Row becomes: dove · "Today's Grace Note" · (i).
+- Inside the existing info (i) popover, the bottom action row now holds two items on one line:
+  - **Left:** "Edit your preferences →" (unchanged gold link).
+  - **Right:** small flag icon only (no copy), `text-white/40` greyed but fully clickable, opens the existing report flow.
+  - Row uses `flex items-center justify-between`.
 
-- Grace note card eventually flips to its error state after retries, but…
-- Devotional card on `/home` never renders an error branch — `{devotionalPreview ? … : "Loading..."}` — so it sits on "Loading…" indefinitely once the query errors out.
-- The cron edge function (`generate-daily-grace-notes`) has the same dependency, so the overnight populate of `daily_grace_notes` is also failing silently.
+## 2. Name capitalization — first letter only
 
-## Fix plan
+`capitalizeFirst(name)` uppercases only the first character (`hellen` → `Hellen`, `mcDonald` → `McDonald`, `JOHN` → `JOHN`).
+- Apply on save in `onboarding.tsx` and `settings.tsx`.
+- Apply on read in `pickRhythmGreeting`, `home.tsx`, `top-bar.tsx`, Daily Rhythms subtitle.
 
-### 1. Seed the `verses` table (root cause, one-time data fix)
+## 3. Prayer page
 
-- Run a one-shot SQL migration that inserts the curated NIV verse library from `gracenotes_verse_library.json` (the same data the unused `scripts/seed_verses.js` would have inserted) into `public.verses`, marked `is_active = true`, with the existing `theme` / `posture_tag` / `segment_tag` columns populated so `select_verse_for_user` returns rows for every (posture, segment).
-- Idempotent: `ON CONFLICT (reference) DO NOTHING` (or equivalent unique key) so re-runs are safe.
-- Verify after apply: `select count(*) from verses where is_active` > 0, and `select * from select_verse_for_user(<test_uid>, 'hope', 'newbie')` returns a row.
-- Honours the NIV-licensing notes already in CLAUDE.md — we're not adding new wording, just loading the existing curated set.
+Top: filter chips `All` · `Active` · `Answered`.
 
-### 2. Surface server-fn errors instead of "Loading…" forever (defensive UI fix)
+Sections by filter:
+- `All` → Remember When (if ≥3 answered) + Active list + Answered list
+- `Active` → Active list only
+- `Answered` → Answered list only (no Remember When)
 
-- In `src/routes/home.tsx`, change the devotional `useQuery` to expose `isError` / `refetch` and render a small "couldn't load today's devotional — try again" branch with a retry button, mirroring the grace-note card's existing pattern.
-- Keep the existing happy path untouched.
-- This prevents future regressions of the same shape (any AI-side or DB-side failure) from looking like a perpetual loader.
+**Remember When:**
+- Horizontal swipe row of 3 answered prayers.
+- Rotation is **daily**, deterministic seed = `localTodayISO()` + user id. Same trio all day, rotates at midnight.
+- Hidden when answered count < 3.
 
-### 3. Verify the fix end-to-end
+Active and Answered lists paginate 10 at a time with a "View more" button. Existing edit/delete/mark-answered/thanksgiving flows untouched.
 
-- After seeding, reload `/home` in the preview and confirm both cards populate.
-- Tail server-fn logs and `audit_log` for one `success` row each from `getOrCreateGraceNote` and `getOrCreateDevotional`. (Note: `audit_log` table is currently missing — `logAudit` writes are fire-and-forget so this doesn't block anything, but worth flagging as a follow-up.)
-- Confirm `select_verse_for_user` doesn't return the same verse twice in a row for the same user (rotation works).
+## 4. Notes & Letters bottom → 3 Free Guides
 
-### 4. Update CLAUDE.md
+Replace the bottom Foundations strip on `/library` with a "Free Guides" row:
+- The Effective Prayer Toolkit (`/free-prayer-toolkit`)
+- 7-Day Prayer Journal Starter Kit (`/7-day-prayer-journal`)
+- A Guide to Fasting (`/fasting-guide`)
 
-- Move "verses library… unseeded" out of "Not started" and into §11 with today's date.
-- Add a sentence to §5 making the verse-table dependency explicit: "Both generators will throw if `verses` has no active rows — keep the table seeded."
+Compact card visual matches the article cards.
 
-### Out of scope (do not touch in this fix)
+## 5. Signed-in "Back Home" CTA
 
-- AI prompt wording, the `select_verse_for_user` RPC, the cron schedule, RLS, or any other table. The bug is purely a missing data load + an unhandled error state.
-- The earlier name-capitalization plan — that's a separate UI improvement and will be re-proposed on its own.
+On `/library/$slug`, guide pages, foundation articles, and SEO landing pages:
+- `useAuth().user` present → header top-right CTA reads **"Back Home"** with the mobile-Home sun icon, and the bottom CTA card uses signed-in copy.
+- Signed-out → current "Come on in" behavior unchanged.
 
-### Technical notes
+### Signed-in card copy (no dashes)
 
-- The seed will run as a Supabase migration (preferred over the standalone Node script, which isn't wired to anything). Generates one INSERT statement chunked across the ~123 verses already documented in CLAUDE.md.
-- No code changes to `ai.functions.ts` or the cron edge function are required — the fallback path (`any active verse`) will start working the moment the table has rows, and the primary `select_verse_for_user` path will too.
-- Devotional UI change is ~10 lines in `home.tsx`, no new components.
+Article:
+> **Carry this back with you.**
+> Your prayer list, today's Grace Note, and your Heart Notes are waiting. Bring what stirred in you here into the quiet space you have been keeping.
+> Button: ☀ Back Home
+
+Guide:
+> **Practice it in your space.**
+> Open GraceNotes Daily to put this into rhythm. Your prayer list, devotional, and journal are one tap away.
+> Button: ☀ Back Home
+
+## 6. No em / en dashes anywhere
+
+Hard rule across every string added or modified: no `—` or `–`. Use periods, commas, or spaced hyphens. Matches the existing `stripEmDashes` policy.
+
+## Files touched
+
+- `src/routes/home.tsx` — label size, header flag removed, popover row updated.
+- `src/lib/personalization.ts` — `capitalizeFirst` + apply in greetings.
+- `src/routes/onboarding.tsx`, `src/routes/settings.tsx` — capitalize on save.
+- `src/components/top-bar.tsx` — capitalize on read.
+- `src/routes/prayers.tsx` — filter chips, daily-seeded Remember When, pagination.
+- `src/routes/library.index.tsx` — Foundations → Free Guides at bottom.
+- New shared `BackHomeCTA` component used by article/guide/landing routes.
+
+No backend changes, no migrations.
