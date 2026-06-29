@@ -148,19 +148,22 @@ function BuildGuide() {
     <div className="min-h-screen bg-[#0a1a12] text-[#e8efe7]">
       {/* Top bar */}
       <header className="border-b border-white/5">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
           <Link
             to="/"
-            className="flex items-center gap-2 text-white hover:text-[var(--gold,#debe36)]"
+            className="flex min-w-0 items-center gap-2 text-white hover:text-[var(--gold,#debe36)]"
           >
-            <DoveMark variant="medallion" className="w-7 h-7" />
-            <span className="font-display text-base tracking-tight">GraceNotes Daily</span>
+            <DoveMark variant="medallion" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />
+            <span className="truncate whitespace-nowrap font-display text-[0.95rem] tracking-tight sm:text-base">
+              GraceNotes Daily
+            </span>
           </Link>
           <Link
             to="/signup"
-            className="rounded-full bg-[var(--gold,#debe36)] px-4 py-1.5 text-sm font-semibold text-[#0a1a12] hover:opacity-90"
+            className="shrink-0 whitespace-nowrap rounded-full bg-[var(--gold,#debe36)] px-3.5 py-1.5 text-xs font-semibold text-[#0a1a12] hover:opacity-90 sm:px-4 sm:text-sm"
           >
-            Try the app
+            <span className="sm:hidden">Open app</span>
+            <span className="hidden sm:inline">Try the app</span>
           </Link>
         </div>
       </header>
