@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { marked } from "marked";
 import { useMemo } from "react";
 import essayMd from "@/content/blog/building-gracenotes-daily.md?raw";
+import { DoveMark } from "@/components/dove-mark";
 
 const BASE_URL = "https://www.gracenotesdaily.com";
 const PATH = "/blog/building-gracenotes-daily";
@@ -11,7 +12,7 @@ const TITLE =
   "How I built GraceNotes Daily. The honest, founder to founder version.";
 const SHARE_TITLE = "How I built GraceNotes Daily";
 const DESCRIPTION =
-  "The workflow, the stack, the mistakes that cost the most, and the product calls I refused to hand to the model. No screenshots of secrets. No copy-paste prompts. Just the choices that mattered.";
+  "A field note from inside the build. What I let the model do, what I refused to outsource, and the calls that shaped the product more than any prompt did.";
 const PUBLISHED = "2026-06-29";
 const IMAGE = `${BASE_URL}/icons/icon-512.png`;
 
