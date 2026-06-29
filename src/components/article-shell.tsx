@@ -58,9 +58,7 @@ export function ArticleShell({ article }: ArticleShellProps) {
             Notes &amp; Letters
           </Link>
           {isLoggedIn ? (
-            <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
-              Open app
-            </Link>
+            <BackHomeButton />
           ) : (
             <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
               Get started
