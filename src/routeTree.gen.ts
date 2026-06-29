@@ -38,6 +38,7 @@ import { Route as LibraryIndexRouteImport } from './routes/library.index'
 import { Route as DevotionalIndexRouteImport } from './routes/devotional.index'
 import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
 import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
+import { Route as BlogBuildingGracenotesDailyRouteImport } from './routes/blog.building-gracenotes-daily'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -188,6 +189,12 @@ const DevotionalDateRoute = DevotionalDateRouteImport.update({
   path: '/devotional/$date',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogBuildingGracenotesDailyRoute =
+  BlogBuildingGracenotesDailyRouteImport.update({
+    id: '/blog/building-gracenotes-daily',
+    path: '/blog/building-gracenotes-daily',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -237,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/devotional/': typeof DevotionalIndexRoute
@@ -272,6 +280,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/devotional': typeof DevotionalIndexRoute
@@ -308,6 +317,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/devotional/': typeof DevotionalIndexRoute
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/auth/callback'
+    | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
     | '/devotional/'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/auth/callback'
+    | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
     | '/devotional'
@@ -415,6 +427,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/auth/callback'
+    | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
     | '/devotional/'
@@ -451,6 +464,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  BlogBuildingGracenotesDailyRoute: typeof BlogBuildingGracenotesDailyRoute
   DevotionalDateRoute: typeof DevotionalDateRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
   DevotionalIndexRoute: typeof DevotionalIndexRoute
@@ -665,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevotionalDateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/building-gracenotes-daily': {
+      id: '/blog/building-gracenotes-daily'
+      path: '/blog/building-gracenotes-daily'
+      fullPath: '/blog/building-gracenotes-daily'
+      preLoaderRoute: typeof BlogBuildingGracenotesDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -723,6 +744,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  BlogBuildingGracenotesDailyRoute: BlogBuildingGracenotesDailyRoute,
   DevotionalDateRoute: DevotionalDateRoute,
   LibrarySlugRoute: LibrarySlugRoute,
   DevotionalIndexRoute: DevotionalIndexRoute,
