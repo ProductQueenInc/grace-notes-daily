@@ -3,6 +3,7 @@ import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
+import { BackHomeButton, BackHomeCard } from "@/components/back-home-cta";
 
 export const Route = createFileRoute("/7-day-prayer-journal")({
   head: () => ({
