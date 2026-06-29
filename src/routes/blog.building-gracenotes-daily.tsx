@@ -151,9 +151,10 @@ function BuildGuide() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link
             to="/"
-            className="font-display text-lg tracking-tight text-white hover:text-[var(--gold,#debe36)]"
+            className="flex items-center gap-2 text-white hover:text-[var(--gold,#debe36)]"
           >
-            GraceNotes Daily
+            <DoveMark variant="medallion" className="w-7 h-7" />
+            <span className="font-display text-base tracking-tight">GraceNotes Daily</span>
           </Link>
           <Link
             to="/signup"
