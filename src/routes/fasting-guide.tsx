@@ -70,7 +70,7 @@ function FastingGuide() {
           <span className="font-display text-2xl">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
-          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Open app</Link>
+          <BackHomeButton />
         ) : (
           <Link to="/login" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
         )}
