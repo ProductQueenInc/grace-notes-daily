@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { useAuth, writeProfileExtras } from "@/hooks/use-auth";
+import { capitalizeFirst } from "@/lib/personalization";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
