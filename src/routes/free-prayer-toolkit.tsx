@@ -3,6 +3,7 @@ import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
+import { BackHomeButton, BackHomeCard } from "@/components/back-home-cta";
 
 export const Route = createFileRoute("/free-prayer-toolkit")({
   head: () => ({
@@ -69,7 +70,7 @@ function FreePrayerToolkit() {
           <span className="font-display text-2xl">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
-          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Open app</Link>
+          <BackHomeButton />
         ) : (
           <Link to="/login" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">Get started</Link>
         )}
@@ -200,18 +201,20 @@ function FreePrayerToolkit() {
 
           </div>
 
-          <div className="mt-12 glass-on-hue rounded-2xl p-8 text-center">
-            <DoveMark variant="medallion" className="w-14 h-14 mx-auto mb-4" />
-            <h3 className="font-display text-2xl text-white mb-3">Continue your prayer life in GraceNotes Daily</h3>
-            <p className="text-white/75 mb-6 text-sm leading-relaxed max-w-md mx-auto">
-              A daily grace note, guided devotional, prayer journal, and heart notes — all in one quiet space. Built for people who want to pray consistently, not perfectly.
-            </p>
-            {isLoggedIn ? (
-              <Link to="/home" className="inline-block px-8 py-3 rounded-full bg-gold text-white font-semibold hover:bg-gold/90 transition">Open the app</Link>
-            ) : (
+          {isLoggedIn ? (
+            <div className="mt-12">
+              <BackHomeCard variant="guide" />
+            </div>
+          ) : (
+            <div className="mt-12 glass-on-hue rounded-2xl p-8 text-center">
+              <DoveMark variant="medallion" className="w-14 h-14 mx-auto mb-4" />
+              <h3 className="font-display text-2xl text-white mb-3">Continue your prayer life in GraceNotes Daily</h3>
+              <p className="text-white/75 mb-6 text-sm leading-relaxed max-w-md mx-auto">
+                A daily grace note, guided devotional, prayer journal, and heart notes. All in one quiet space, built for people who want to pray consistently, not perfectly.
+              </p>
               <Link to="/login" className="inline-block px-8 py-3 rounded-full bg-gold text-white font-semibold hover:bg-gold/90 transition">Welcome in</Link>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="mt-8 text-center">
             <p className="text-white/75 text-sm">

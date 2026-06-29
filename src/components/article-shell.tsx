@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ShareBar } from "@/components/share-bar";
 import { ArticleCard } from "@/components/article-card";
 import { DoveMark } from "@/components/dove-mark";
+import { BackHomeButton, BackHomeCard } from "@/components/back-home-cta";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
@@ -57,9 +58,7 @@ export function ArticleShell({ article }: ArticleShellProps) {
             Notes &amp; Letters
           </Link>
           {isLoggedIn ? (
-            <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
-              Open app
-            </Link>
+            <BackHomeButton />
           ) : (
             <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
               Get started
@@ -138,7 +137,7 @@ export function ArticleShell({ article }: ArticleShellProps) {
         </div>
       </section>
 
-      {/* Soft CTA — signed-out only */}
+      {/* Soft CTA */}
       {!loading && !isLoggedIn && (
         <section className="px-6 pb-16 relative z-10">
           <div className="max-w-3xl mx-auto glass-parchment rounded-3xl p-8 md:p-12 text-center space-y-5">
@@ -166,6 +165,13 @@ export function ArticleShell({ article }: ArticleShellProps) {
                 Keep reading
               </Link>
             </div>
+          </div>
+        </section>
+      )}
+      {!loading && isLoggedIn && (
+        <section className="px-6 pb-16 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <BackHomeCard variant="article" />
           </div>
         </section>
       )}

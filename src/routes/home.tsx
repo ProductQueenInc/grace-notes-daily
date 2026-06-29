@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
-import { pickRhythmGreeting } from "@/lib/personalization";
+import { pickRhythmGreeting, firstNameCap } from "@/lib/personalization";
 import { badgeForCount, badgeLabel, badgeColors, type BadgeTier } from "@/lib/badges";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/home")({
 function Home() {
   const { profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const name = authLoading ? "" : (profile?.name || "Friend");
+  const name = authLoading ? "" : firstNameCap(profile?.name);
 
 
   const [showVerse, setShowVerse] = useState(false);
@@ -116,9 +116,10 @@ function Home() {
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
                 <div className="flex items-center gap-2 font-semibold text-white min-w-0">
                   <DoveMark variant="medallion" className="w-8 h-8 shrink-0 drop-shadow-sm" alt="" />
-                  <span className="truncate">Today's Grace Note</span>
+                  <span className="truncate text-[13px] sm:text-[15px]">Today's Grace Note</span>
 
-                  {/* Info: explains personalization, links to settings */}
+                  {/* Info: explains personalization, links to settings, and
+                      tucks the report-flag in the bottom-right of the popover. */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
@@ -138,23 +139,24 @@ function Home() {
                         each day, it will grow more personal. Update your faith
                         phase in Settings and the next note will reflect it.
                       </p>
-                      <Link
-                        to="/settings"
-                        className="mt-3 inline-block text-gold font-semibold hover:underline"
-                      >
-                        Edit your preferences →
-                      </Link>
+                      <div className="mt-3 flex items-center justify-between gap-2">
+                        <Link
+                          to="/settings"
+                          className="text-gold font-semibold hover:underline"
+                        >
+                          Edit your preferences →
+                        </Link>
+                        <button
+                          onClick={() => openTallyForm("VL4NY6")}
+                          aria-label="Report this note"
+                          title="Report this note"
+                          className="text-white/40 hover:text-white/70 transition shrink-0 p-1 -m-1"
+                        >
+                          <Icon icon={Flag} size="sm" tone="inherit" />
+                        </button>
+                      </div>
                     </PopoverContent>
                   </Popover>
-
-                  {/* Flag: opens Tally feedback form (has "Flag content" option) */}
-                  <button
-                    onClick={() => openTallyForm("VL4NY6")}
-                    aria-label="Flag this note"
-                    className="text-white/75 hover:text-white/90 shrink-0"
-                  >
-                    <Icon icon={Flag} size="sm" />
-                  </button>
                 </div>
                 <button onClick={() => setShowVerse((v) => !v)} className="shrink-0 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
                   {showVerse ? "Hide Verse" : "Show Verse"}

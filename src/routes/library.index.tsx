@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardCompact, SeeAllTile } from "@/components/article-card-compact";
 import { DoveMark } from "@/components/dove-mark";
+import { BackHomeButton } from "@/components/back-home-cta";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Sheet,
@@ -165,9 +166,7 @@ function LibraryHub() {
           <span className="font-display text-xl sm:text-2xl">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
-          <Link to="/home" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
-            Home
-          </Link>
+          <BackHomeButton />
         ) : (
           <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
             Come on in
@@ -420,31 +419,42 @@ function LibraryHub() {
         </div>
       </section>
 
-      {/* ============ FOUNDATIONS ROW (mobile + desktop) ============ */}
-      {seriesArticles.length > 0 && isAll && (
+      {/* ============ FREE GUIDES (mobile + desktop) ============
+          Foundations already appears at the top of the page as a teaser
+          and as a featured row, so we use the bottom slot to surface
+          our three standalone guides. */}
+      {isAll && (
         <section className="px-6 pb-16 pt-6 sm:pt-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-baseline justify-between mb-5 sm:mb-4">
               <div>
                 <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold">
-                  Foundations
+                  Free Guides
                 </p>
                 <h2 className="font-display text-xl sm:text-2xl md:text-[1.7rem] text-white drop-shadow leading-tight">
-                  The three quiet practices
+                  Take a deeper walk
                 </h2>
               </div>
             </div>
-            <div
-              className="flex gap-3 sm:gap-5 overflow-x-auto pb-3 -mx-6 px-6 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {seriesArticles.map((a) => (
-                <div
-                  key={a.slug}
-                  className="snap-start shrink-0 w-[64vw] max-w-[260px] sm:w-[280px] sm:max-w-none md:w-[320px]"
-                >
-                  <ArticleCardCompact article={a} />
-                </div>
-              ))}
+            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-3">
+              <GuideCard
+                to="/free-prayer-toolkit"
+                eyebrow="Guide"
+                title="The Effective Prayer Toolkit"
+                blurb="Four ways to structure a prayer, plus what to do when you do not feel like praying."
+              />
+              <GuideCard
+                to="/7-day-prayer-journal"
+                eyebrow="Guide"
+                title="7-Day Prayer Journal Starter Kit"
+                blurb="A gentle week of prompts to help you put your prayers on paper."
+              />
+              <GuideCard
+                to="/fasting-guide"
+                eyebrow="Guide"
+                title="A Guide to Fasting"
+                blurb="A practical and pastoral primer on fasting for ordinary believers."
+              />
             </div>
           </div>
         </section>
@@ -514,5 +524,33 @@ function TagChip({
     >
       {label}
     </button>
+  );
+}
+
+function GuideCard({
+  to,
+  eyebrow,
+  title,
+  blurb,
+}: {
+  to: "/free-prayer-toolkit" | "/7-day-prayer-journal" | "/fasting-guide";
+  eyebrow: string;
+  title: string;
+  blurb: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="group glass-parchment rounded-2xl p-5 sm:p-6 flex flex-col gap-2 transition hover:shadow-lg"
+    >
+      <span className="text-gold uppercase tracking-widest text-[10px] font-semibold">
+        {eyebrow}
+      </span>
+      <h3 className="font-display text-lg sm:text-xl text-grace leading-tight group-hover:text-grace-deep transition">
+        {title}
+      </h3>
+      <p className="text-foreground/70 text-sm leading-relaxed">{blurb}</p>
+      <span className="mt-2 text-sm font-semibold text-gold">Read the guide →</span>
+    </Link>
   );
 }

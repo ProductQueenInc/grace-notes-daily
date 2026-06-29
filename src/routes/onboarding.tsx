@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { NatureBackground } from "@/components/nature-background";
 import { useAuth, writeProfileExtras } from "@/hooks/use-auth";
+import { capitalizeFirst } from "@/lib/personalization";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
@@ -54,12 +55,13 @@ function Onboarding() {
 
     setSaving(true);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const normalizedName = capitalizeFirst(name);
 
     try {
       if (supabaseConfigured) {
         const { error } = await supabase.from("profiles").upsert({
           id: user.id,
-          name,
+          name: normalizedName,
           faith_phase: phase,
           onboarded: true,
           // Defaulted, not asked. Editable later in Settings.

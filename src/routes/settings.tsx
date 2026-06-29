@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
+import { capitalizeFirst } from "@/lib/personalization";
 import {
   LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
   Sprout, Wind, Compass as CompassIcon, Anchor,
@@ -88,10 +89,12 @@ function Settings() {
       set_at: existing.get(tag) || today,
     }));
 
+    const normalizedName = capitalizeFirst(name);
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        name,
+        name: normalizedName,
         faith_phase: phase,
         voice,
         rhythms,

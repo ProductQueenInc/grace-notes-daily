@@ -3,10 +3,12 @@ import { Flame, Search } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { firstNameCap } from "@/lib/personalization";
 
 export function TopBar() {
   const { profile, user } = useAuth();
-  const initial = (profile?.name || user?.email || "F").charAt(0).toUpperCase();
+  const displayName = firstNameCap(profile?.name, user?.email?.[0]?.toUpperCase() || "F");
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 px-3 md:px-6 pt-3 bg-transparent">
