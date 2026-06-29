@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardCompact, SeeAllTile } from "@/components/article-card-compact";
 import { DoveMark } from "@/components/dove-mark";
+import { BackHomeButton } from "@/components/back-home-cta";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Sheet,
