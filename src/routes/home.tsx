@@ -41,7 +41,7 @@ export const Route = createFileRoute("/home")({
 function Home() {
   const { profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const name = authLoading ? "" : (profile?.name || "Friend");
+  const name = authLoading ? "" : firstNameCap(profile?.name);
 
 
   const [showVerse, setShowVerse] = useState(false);
