@@ -196,18 +196,20 @@ function SevenDayPrayerJournal() {
             ))}
           </div>
 
-          <div className="mt-12 glass-on-hue rounded-2xl p-8 text-center">
-            <DoveMark variant="medallion" className="w-14 h-14 mx-auto mb-4" />
-            <h3 className="font-display text-2xl text-white mb-3">Continue the practice in GraceNotes Daily</h3>
-            <p className="text-white/75 mb-6 text-sm leading-relaxed max-w-md mx-auto">
-              The best of this practice is still ahead of you. GraceNotes Daily holds a prayer journal, daily grace notes, devotionals, and heart notes, all in one private, quiet space.
-            </p>
-            {isLoggedIn ? (
-              <Link to="/home" className="inline-block px-8 py-3 rounded-full bg-gold text-white font-semibold hover:bg-gold/90 transition">Open the app</Link>
-            ) : (
+          {isLoggedIn ? (
+            <div className="mt-12">
+              <BackHomeCard variant="guide" />
+            </div>
+          ) : (
+            <div className="mt-12 glass-on-hue rounded-2xl p-8 text-center">
+              <DoveMark variant="medallion" className="w-14 h-14 mx-auto mb-4" />
+              <h3 className="font-display text-2xl text-white mb-3">Continue the practice in GraceNotes Daily</h3>
+              <p className="text-white/75 mb-6 text-sm leading-relaxed max-w-md mx-auto">
+                The best of this practice is still ahead of you. GraceNotes Daily holds a prayer journal, daily grace notes, devotionals, and heart notes, all in one private, quiet space.
+              </p>
               <Link to="/login" className="inline-block px-8 py-3 rounded-full bg-gold text-white font-semibold hover:bg-gold/90 transition">Welcome in</Link>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="mt-8 text-center">
             <p className="text-white/75 text-sm">
