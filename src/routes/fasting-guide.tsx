@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
+import { BackHomeButton, BackHomeCard } from "@/components/back-home-cta";
 import { SiteFooter } from "@/components/site-footer";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
