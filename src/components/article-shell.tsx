@@ -137,7 +137,7 @@ export function ArticleShell({ article }: ArticleShellProps) {
         </div>
       </section>
 
-      {/* Soft CTA — signed-out only */}
+      {/* Soft CTA */}
       {!loading && !isLoggedIn && (
         <section className="px-6 pb-16 relative z-10">
           <div className="max-w-3xl mx-auto glass-parchment rounded-3xl p-8 md:p-12 text-center space-y-5">
@@ -165,6 +165,13 @@ export function ArticleShell({ article }: ArticleShellProps) {
                 Keep reading
               </Link>
             </div>
+          </div>
+        </section>
+      )}
+      {!loading && isLoggedIn && (
+        <section className="px-6 pb-16 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <BackHomeCard variant="article" />
           </div>
         </section>
       )}
