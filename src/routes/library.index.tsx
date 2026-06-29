@@ -526,3 +526,31 @@ function TagChip({
     </button>
   );
 }
+
+function GuideCard({
+  to,
+  eyebrow,
+  title,
+  blurb,
+}: {
+  to: "/free-prayer-toolkit" | "/7-day-prayer-journal" | "/fasting-guide";
+  eyebrow: string;
+  title: string;
+  blurb: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="group glass-parchment rounded-2xl p-5 sm:p-6 flex flex-col gap-2 transition hover:shadow-lg"
+    >
+      <span className="text-gold uppercase tracking-widest text-[10px] font-semibold">
+        {eyebrow}
+      </span>
+      <h3 className="font-display text-lg sm:text-xl text-grace leading-tight group-hover:text-grace-deep transition">
+        {title}
+      </h3>
+      <p className="text-foreground/70 text-sm leading-relaxed">{blurb}</p>
+      <span className="mt-2 text-sm font-semibold text-gold">Read the guide →</span>
+    </Link>
+  );
+}
