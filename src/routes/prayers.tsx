@@ -61,10 +61,25 @@ function Prayers() {
   const [editText, setEditText] = useState("");
   
   const [deleting, setDeleting] = useState<Prayer | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [activePage, setActivePage] = useState(1);
+  const [answeredPage, setAnsweredPage] = useState(1);
   const { user } = useAuth();
 
   const active = items.filter((p) => !p.answeredAt);
   const answered = items.filter((p) => p.answeredAt);
+
+  // Daily-seeded picks for the "Remember When" carousel.
+  const rememberWhen = answered.length >= 3
+    ? seededShuffle(answered, `${user?.id ?? "anon"}:${localTodayISO()}`).slice(0, 3)
+    : [];
+
+  const showRememberWhen = filter === "all" && rememberWhen.length === 3;
+  const showActive = filter === "all" || filter === "active";
+  const showAnswered = filter === "all" || filter === "answered";
+
+  const visibleActive = active.slice(0, activePage * PAGE_SIZE);
+  const visibleAnswered = answered.slice(0, answeredPage * PAGE_SIZE);
 
   function openEdit(p: Prayer) {
     setEditing(p);
