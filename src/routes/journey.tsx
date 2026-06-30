@@ -91,9 +91,11 @@ function Journey() {
       const today = todayISO();
 
       // Heart notes: only entries from BEFORE today (today's stays on its page)
+      // Note: `summary` is fetched in a separate query so a missing column on
+      // any environment can't 400 the whole page.
       const heartReq = supabase
         .from("heart_notes")
-        .select("id, body, ai_response, summary, date, created_at")
+        .select("id, body, ai_response, date, created_at")
         .eq("user_id", uid)
         .lt("date", today)
         .order("date", { ascending: false });
@@ -111,15 +113,21 @@ function Journey() {
       const hearts = heartRes.data;
       const prayers = prayerRes.data;
 
-      // Surface silent failures so we can see what's wrong on /journey
-      // eslint-disable-next-line no-console
-      console.log("[journey] uid", uid, "today", today, {
-        heartCount: hearts?.length ?? 0,
-        heartError: heartRes.error?.message,
-        prayerCount: prayers?.length ?? 0,
-        prayerError: prayerRes.error?.message,
-        sampleHearts: hearts?.slice(0, 3).map((h) => ({ id: h.id, date: h.date })),
-      });
+      // Best-effort fetch of AI titles. Silently no-ops if the column is
+      // missing on this environment.
+      const heartIds = (hearts ?? []).map((h) => h.id as string);
+      let summaryMap: Record<string, string | null> = {};
+      if (heartIds.length) {
+        const { data: sumRows, error: sumErr } = await supabase
+          .from("heart_notes")
+          .select("id, summary")
+          .in("id", heartIds);
+        if (!sumErr && sumRows) {
+          summaryMap = Object.fromEntries(
+            sumRows.map((r) => [r.id as string, (r.summary as string | null) ?? null]),
+          );
+        }
+      }
 
       const prayerIds = (prayers ?? []).map((p) => p.id as string);
       const { data: thanks } = prayerIds.length
@@ -139,7 +147,7 @@ function Journey() {
       for (const h of hearts ?? []) {
         const iso = (h.date as string) || (h.created_at as string).slice(0, 10);
         const body = (h.body as string) ?? "";
-        const summary = (h.summary as string | null) ?? null;
+        const summary = summaryMap[h.id as string] ?? null;
         entries.push({
           id: `hn-${h.id}`,
           type: "heart-note",
@@ -153,10 +161,12 @@ function Journey() {
 
       // Lazily generate summaries for older entries that don't have one yet,
       // then patch them in place so the user sees the AI title without a
-      // reload. One-time per entry — once written it stays.
+      // reload. One-time per entry — once written it stays. Silently skips
+      // if the summary column is missing on this environment.
       const missingSummary = (hearts ?? []).filter(
-        (h) => !h.summary && ((h.body as string) ?? "").trim().length > 0,
+        (h) => !summaryMap[h.id as string] && ((h.body as string) ?? "").trim().length > 0,
       );
+
       if (missingSummary.length) {
         void Promise.all(
           missingSummary.map(async (h) => {
