@@ -308,19 +308,6 @@ function Journey() {
                         ) : (
                           <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
                         )}
-                        {isOpen && !isEditing && (
-                          <>
-                            {isHeart && (
-                              <p className="text-sm text-foreground/80 mt-2 whitespace-pre-wrap">{e.body}</p>
-                            )}
-                            {e.extra && (
-                              <div className="mt-3 border-l-4 border-gold pl-3 py-1">
-                                <p className="text-[11px] uppercase tracking-wider text-gold-foreground/70 font-semibold">{replyLabel}</p>
-                                <p className="text-sm italic text-foreground/80 mt-1 whitespace-pre-wrap">{e.extra}</p>
-                              </div>
-                            )}
-                          </>
-                        )}
                       </button>
                       <div className="flex items-center gap-1 shrink-0">
                         {isEditing ? (
@@ -354,8 +341,23 @@ function Journey() {
                         )}
                       </div>
                     </div>
+
+                    {isOpen && !isEditing && (
+                      <div className="mt-2">
+                        {isHeart && (
+                          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{e.body}</p>
+                        )}
+                        {e.extra && (
+                          <div className="mt-3 border-l-4 border-gold pl-3 py-1">
+                            <p className="text-[11px] uppercase tracking-wider text-gold-foreground/70 font-semibold">{replyLabel}</p>
+                            <p className="text-sm italic text-foreground/80 mt-1 whitespace-pre-wrap">{e.extra}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
+
               })}
               {!pageRows.length && (
                 <p className="text-center text-white/80 italic py-10 glass-on-hue rounded-2xl">
