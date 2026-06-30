@@ -282,13 +282,21 @@ function Journey() {
                 return (
                   <div
                     key={e.id}
-                    className="glass rounded-2xl p-5"
+                    role="button"
+                    tabIndex={isEditing ? -1 : 0}
+                    onClick={() => !isEditing && setOpen(isOpen ? null : e.id)}
+                    onKeyDown={(ev) => {
+                      if (isEditing) return;
+                      if (ev.key === "Enter" || ev.key === " ") {
+                        ev.preventDefault();
+                        setOpen(isOpen ? null : e.id);
+                      }
+                    }}
+                    aria-expanded={isOpen}
+                    className="glass rounded-2xl p-5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-grace"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <button
-                        onClick={() => !isEditing && setOpen(isOpen ? null : e.id)}
-                        className="flex-1 min-w-0 text-left"
-                      >
+                      <div className="flex-1 min-w-0 text-left">
                         <div className="text-xs text-grace font-semibold uppercase tracking-wider">
                           {isHeart ? "Heart Note" : "Answered Prayer"} · {e.date}
                         </div>
@@ -299,6 +307,7 @@ function Journey() {
                               value={titleDraft}
                               onChange={(ev) => setTitleDraft(ev.target.value)}
                               onKeyDown={(ev) => {
+                                ev.stopPropagation();
                                 if (ev.key === "Enter") saveTitle(e);
                                 if (ev.key === "Escape") setEditingId(null);
                               }}
@@ -308,8 +317,8 @@ function Journey() {
                         ) : (
                           <h3 className="font-display text-xl text-foreground mt-1">{e.title}</h3>
                         )}
-                      </button>
-                      <div className="flex items-center gap-1 shrink-0">
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0" onClick={(ev) => ev.stopPropagation()}>
                         {isEditing ? (
                           <>
                             <button onClick={() => saveTitle(e)} aria-label="Save title" className="p-2 rounded-full bg-grace text-white">
@@ -341,6 +350,7 @@ function Journey() {
                         )}
                       </div>
                     </div>
+
 
                     {isOpen && !isEditing && (
                       <div className="mt-2">
