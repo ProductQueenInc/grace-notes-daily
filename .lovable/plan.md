@@ -1,73 +1,51 @@
-## 1. "Today's Grace Note" header — shrink label, move flag into popover
+## The actual cause
 
-- Mildly reduce the label size on mobile: `text-sm` → `text-[13px]` (desktop unchanged).
-- Remove the standalone flag icon from the header row. Row becomes: dove · "Today's Grace Note" · (i).
-- Inside the existing info (i) popover, the bottom action row now holds two items on one line:
-  - **Left:** "Edit your preferences →" (unchanged gold link).
-  - **Right:** small flag icon only (no copy), `text-white/40` greyed but fully clickable, opens the existing report flow.
-  - Row uses `flex items-center justify-between`.
+You can see it in the console screenshot:
 
-## 2. Name capitalization — first letter only
+```
+GET .../heart_notes?select=id,bo... → 400 Bad Request
+```
 
-`capitalizeFirst(name)` uppercases only the first character (`hellen` → `Hellen`, `mcDonald` → `McDonald`, `JOHN` → `JOHN`).
-- Apply on save in `onboarding.tsx` and `settings.tsx`.
-- Apply on read in `pickRhythmGreeting`, `home.tsx`, `top-bar.tsx`, Daily Rhythms subtitle.
+A 400 on a `select=` like that means **one column in the projection doesn't exist on the live database**. `/journey` selects:
 
-## 3. Prayer page
+```
+id, body, ai_response, summary, date, created_at
+```
 
-Top: filter chips `All` · `Active` · `Answered`.
+The `summary` column was added in `supabase/migrations/20260525220101_…sql` (`ALTER TABLE public.heart_notes ADD COLUMN summary text`). That migration lives in our repo but **was never run against the tkoebo project** — so `summary` exists in code but not in the actual DB. Result: every Heart Notes fetch on `/journey` fails, and the page shows "Nothing here yet."
 
-Sections by filter:
-- `All` → Remember When (if ≥3 answered) + Active list + Answered list
-- `Active` → Active list only
-- `Answered` → Answered list only (no Remember When)
+The 404s on `announcement_dismissals` and `system_announcements` are the same story (tables in our migrations but not on tkoebo) — separate problem, not what's hiding your past Heart Notes.
 
-**Remember When:**
-- Horizontal swipe row of 3 answered prayers.
-- Rotation is **daily**, deterministic seed = `localTodayISO()` + user id. Same trio all day, rotates at midnight.
-- Hidden when answered count < 3.
+## What I need to do
 
-Active and Answered lists paginate 10 at a time with a "View more" button. Existing edit/delete/mark-answered/thanksgiving flows untouched.
+### Step 1 — Add the missing column to tkoebo (you run this, one time)
 
-## 4. Notes & Letters bottom → 3 Free Guides
+Lovable's migration tool only touches the connected Lovable Cloud project, not tkoebo. So you need to paste this into the tkoebo SQL editor (the same dashboard in your screenshot → SQL Editor):
 
-Replace the bottom Foundations strip on `/library` with a "Free Guides" row:
-- The Effective Prayer Toolkit (`/free-prayer-toolkit`)
-- 7-Day Prayer Journal Starter Kit (`/7-day-prayer-journal`)
-- A Guide to Fasting (`/fasting-guide`)
+```sql
+ALTER TABLE public.heart_notes
+  ADD COLUMN IF NOT EXISTS summary text;
+```
 
-Compact card visual matches the article cards.
+That single line unblocks the Journey page. Your past Heart Notes will appear on the next reload, and the existing lazy-summarizer in `journey.tsx` will start filling in AI-generated titles for the older rows automatically.
 
-## 5. Signed-in "Back Home" CTA
+### Step 2 — Harden the query so a future schema drift can't blank the page (I do this)
 
-On `/library/$slug`, guide pages, foundation articles, and SEO landing pages:
-- `useAuth().user` present → header top-right CTA reads **"Back Home"** with the mobile-Home sun icon, and the bottom CTA card uses signed-in copy.
-- Signed-out → current "Come on in" behavior unchanged.
+In `src/routes/journey.tsx`, change the heart-notes fetch:
+- Drop `summary` from the initial `select`.
+- After rows return, do a second tiny select for `id, summary` keyed by the same ids. If that errors (column missing on some other env), catch silently and fall back to the truncated-body title the code already has.
 
-### Signed-in card copy (no dashes)
+Net effect: today the page works because the column exists after step 1, and it stays working even if a column is ever missing on a future environment.
 
-Article:
-> **Carry this back with you.**
-> Your prayer list, today's Grace Note, and your Heart Notes are waiting. Bring what stirred in you here into the quiet space you have been keeping.
-> Button: ☀ Back Home
+### Step 3 — Remove the temporary `console.log("[journey] …")` I added last turn.
 
-Guide:
-> **Practice it in your space.**
-> Open GraceNotes Daily to put this into rhythm. Your prayer list, devotional, and journal are one tap away.
-> Button: ☀ Back Home
+### Step 4 — Optional follow-up I'd like to do in a separate turn
 
-## 6. No em / en dashes anywhere
+The same drift hides the in-app announcement banner (the 404s on `announcement_dismissals` and `system_announcements`). I can give you a second one-shot SQL block to create those two tables on tkoebo whenever you want — not blocking past Heart Notes, so I'll skip it unless you say go.
 
-Hard rule across every string added or modified: no `—` or `–`. Use periods, commas, or spaced hyphens. Matches the existing `stripEmDashes` policy.
+## What I'm NOT going to do
 
-## Files touched
+- I'm not changing `src/lib/supabase.ts` or `src/integrations/supabase/client.ts`. The tkoebo hardcoding stays.
+- I'm not creating any new Lovable Cloud migration that pretends to fix tkoebo — it can't reach it.
 
-- `src/routes/home.tsx` — label size, header flag removed, popover row updated.
-- `src/lib/personalization.ts` — `capitalizeFirst` + apply in greetings.
-- `src/routes/onboarding.tsx`, `src/routes/settings.tsx` — capitalize on save.
-- `src/components/top-bar.tsx` — capitalize on read.
-- `src/routes/prayers.tsx` — filter chips, daily-seeded Remember When, pagination.
-- `src/routes/library.index.tsx` — Foundations → Free Guides at bottom.
-- New shared `BackHomeCTA` component used by article/guide/landing routes.
-
-No backend changes, no migrations.
+Say the word and I'll ship steps 2 and 3, and you can paste step 1 into tkoebo whenever.
