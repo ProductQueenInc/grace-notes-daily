@@ -107,7 +107,19 @@ function Journey() {
         .is("deleted_at", null)
         .order("answered_at", { ascending: false });
 
-      const [{ data: hearts }, { data: prayers }] = await Promise.all([heartReq, prayerReq]);
+      const [heartRes, prayerRes] = await Promise.all([heartReq, prayerReq]);
+      const hearts = heartRes.data;
+      const prayers = prayerRes.data;
+
+      // Surface silent failures so we can see what's wrong on /journey
+      // eslint-disable-next-line no-console
+      console.log("[journey] uid", uid, "today", today, {
+        heartCount: hearts?.length ?? 0,
+        heartError: heartRes.error?.message,
+        prayerCount: prayers?.length ?? 0,
+        prayerError: prayerRes.error?.message,
+        sampleHearts: hearts?.slice(0, 3).map((h) => ({ id: h.id, date: h.date })),
+      });
 
       const prayerIds = (prayers ?? []).map((p) => p.id as string);
       const { data: thanks } = prayerIds.length
@@ -120,6 +132,7 @@ function Journey() {
       const thanksMap = Object.fromEntries(
         (thanks ?? []).map((t) => [t.prayer_id as string, t.content as string]),
       );
+
 
       const entries: Entry[] = [];
 
