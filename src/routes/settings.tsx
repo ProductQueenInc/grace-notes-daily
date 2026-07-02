@@ -45,7 +45,7 @@ const SEASONS = [
 ] as const;
 
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 function Settings() {
