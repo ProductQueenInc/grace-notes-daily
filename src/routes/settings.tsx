@@ -110,13 +110,13 @@ function Settings() {
     }
 
     // Personalization changed - today's cached grace note and devotional are stale.
-    await supabase
-      .from("daily_content")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("date", today);
+    // Clear both cache tables (personal per-user cache + cron-prepared grace note).
+    await Promise.all([
+      supabase.from("daily_content").delete().eq("user_id", user.id).eq("date", today),
+      supabase.from("daily_grace_notes").delete().eq("user_id", user.id).eq("date", today),
+    ]);
 
-    queryClient.invalidateQueries({ queryKey: ["grace-note"] });
+    queryClient.invalidateQueries({ queryKey: ["daily-grace-note"] });
     queryClient.invalidateQueries({ queryKey: ["devotional"] });
 
     toast.success("Saved with care. Today's note will refresh.");
