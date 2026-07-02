@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { capitalizeFirst } from "@/lib/personalization";
+import { localTodayISO } from "@/lib/today";
 import {
   LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
   Sprout, Wind, Compass as CompassIcon, Anchor,
@@ -44,7 +45,7 @@ const SEASONS = [
 ] as const;
 
 function todayISO() {
-  return new Date().toISOString().split("T")[0];
+  return localTodayISO();
 }
 
 function Settings() {
@@ -109,13 +110,13 @@ function Settings() {
     }
 
     // Personalization changed - today's cached grace note and devotional are stale.
-    await supabase
-      .from("daily_content")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("date", today);
+    // Clear both cache tables (personal per-user cache + cron-prepared grace note).
+    await Promise.all([
+      supabase.from("daily_content").delete().eq("user_id", user.id).eq("date", today),
+      supabase.from("daily_grace_notes").delete().eq("user_id", user.id).eq("date", today),
+    ]);
 
-    queryClient.invalidateQueries({ queryKey: ["grace-note"] });
+    queryClient.invalidateQueries({ queryKey: ["daily-grace-note"] });
     queryClient.invalidateQueries({ queryKey: ["devotional"] });
 
     toast.success("Saved with care. Today's note will refresh.");
