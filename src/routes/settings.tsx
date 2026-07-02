@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { capitalizeFirst } from "@/lib/personalization";
+import { localTodayISO } from "@/lib/today";
 import {
   LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
   Sprout, Wind, Compass as CompassIcon, Anchor,
