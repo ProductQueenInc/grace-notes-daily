@@ -34,11 +34,7 @@ const IMAGE_GATEWAY = 'https://ai.gateway.lovable.dev/v1/images/generations'
 // the BASE_URL in src/lib/library.ts.
 const SITE_BASE_URL = 'https://www.gracenotesdaily.com'
 
-const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') })
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-)
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
