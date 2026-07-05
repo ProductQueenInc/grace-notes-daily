@@ -110,7 +110,7 @@ export function devotionalHead(devotional?: DevotionalResult, dateISO?: string) 
 // Reusable top bar and masthead so the empty/error state matches.
 function TopBar({ isLoggedIn, onShare }: { isLoggedIn: boolean; onShare?: () => void }) {
   return (
-    <nav className="w-full max-w-3xl mx-auto flex items-center justify-between mb-12 md:mb-16 border-b border-grace/10 pb-4 px-1">
+    <nav className="glass-parchment rounded-full w-full max-w-3xl mx-auto flex items-center justify-between mb-8 md:mb-12 shadow-md px-4 sm:px-6 py-2.5">
       <Link
         to="/library"
         className="flex items-center gap-2 text-grace font-semibold hover:opacity-70 transition-opacity"
