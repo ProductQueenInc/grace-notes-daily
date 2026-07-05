@@ -78,7 +78,7 @@ RLS: `share_events` insert/select own rows; `share_clicks` insert via server onl
 
 ## The campaign (numbered phases with gates)
 
-**Phase 0 — Preconditions.** `git fetch origin && git status -sb` (expect: not behind). Confirm Stage 1 Canva approval status in roadmap.md. GATE G0: 16 approved frames + slot maps exist. If not → STOP; only contract-draft work (already done) may proceed.
+**Phase 0 — Preconditions.** `git fetch origin && git status -sb` (expect: not behind). Confirm Stage 1 Canva approval status in roadmap.md. GATE G0: Canva deliverables approved per contract v1.1 (background banks + mockups + caption bank, delivered 2026-07-05 to `grace-notes-daily/public/` in the parent folder) AND the G-S1 gaps closed (size-variant strategy, peace-theme mapping, naming normalization - see contract skill §2). If not → STOP; only contract-draft work and the Phase 1 spike may proceed.
 
 **Phase 1 — Renderer spike (backend only).**
 1. `supabase functions new render-share-card`
@@ -94,7 +94,7 @@ GATE G1 — expected: 200 + `image_url` of a PNG that `identify` reports as 1200
 
 **Phase 2 — Storage + idempotency.** Create PRIVATE `share-cards` bucket + the `/api/public/share-card/$key` proxy route (copy the devotional-cover proxy); upload with content-addressed key; return cached proxy URL on repeat calls. GATE G2: same request twice → same `image_url`, second call <300 ms; `curl -sI <image_url>` shows `cache-control: ... immutable`. NOTE: the proxy route ships with app code → it goes live only on a Lovable publish; coordinate the publish before testing the public URL.
 
-**Phase 3 — All 16 template×size implementations** from approved Canva exports + slot maps, with max-length fixtures. GATE G3: golden-image suite green (≤1% pixel diff, all 16) — harness in `gracenotes-proof-and-analysis-toolkit`. Branch: any template needing >2 retries to match design → review the slot map with Cindy rather than eyeballing further.
+**Phase 3 — All 16 template×size implementations.** Satori composites typography + data over the delivered background banks, matching the `share-assets/` mockups (glass card, gold-bar verse callout, gracenotesdaily.com footer). Non-1080x1920 sizes center-crop the background art unless G-S1 decided otherwise. Background choice is deterministic per share event (hash of user+date+type → index into the bank; devotional uses its theme dir). Build with max-length fixtures. GATE G3: golden-image suite green (≤1% pixel diff, all 16) — harness in `gracenotes-proof-and-analysis-toolkit`. Branch: any template needing >2 retries to match design → review the slot map with Cindy rather than eyeballing further.
 
 **Phase 4 — Personalization + auth.** grace-note/streak paths: derive user from JWT, server-fetch `daily_grace_notes.message` / streak + `calendar_state`; devotional path: verify `daily_devotionals` row exists (else 404 `content_not_found`); answered-prayer: accept user-confirmed `prayer_text` from payload. GATE G4: valid JWT → personalized card; missing/foreign JWT → 401; nonexistent devotional date → 404. Verify with three curls.
 

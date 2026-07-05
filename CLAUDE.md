@@ -293,6 +293,13 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-07-05 (PM10) — Canva share assets verified + contract amended to v1.1; housekeeping
+
+- **Canva share-card assets located and verified** (Cindy's delivery): `grace-notes-daily/public/` in the PARENT folder (one level above this repo, not in git; 137 MB). Inventory: 62 background PNGs, all 1080x1920 - grace-note (10), streak (11), answered-prayer (10), devotional (31 across 10 theme dirs: courage, gratitude, grief, hope, identity, joy, purpose, rest, surrender, trust); 3 full design mockups at 1080x1080 in `share-assets/` (e.g. glass card over nature art with gold-bar verse callout and gracenotesdaily.com footer); an answered-prayer confetti SVG; `share-captions.json` caption bank (~10 captions per share type, user-editable before sharing).
+- **Contract amended to v1.1-draft** (`.claude/skills/gracenotes-canva-lovable-backend-contract` §2): Canva's deliverable is a background-bank model, not the original 16 fully designed frames - Canva ships art + mockups + captions; the backend renders ALL typography/data over the backgrounds in Satori; mockups serve as the design reference in lieu of slot maps. Campaign skill G0/Phase 3 updated to match; roadmap Stage 1 marked ASSETS DELIVERED.
+- **Three G-S1 decisions still open for Cindy:** (1) center-crop the 1080x1920 art for the other three sizes vs new Canva crops; (2) devotional theme→dir mapping (no `peace` dir for Tuesday; identity/joy/surrender/trust unused by the weekday rotation); (3) normalize export names (`11.png`, `grace-note-01-note-01.png`, etc.) and one-time upload to a private `share-templates` bucket.
+- **Housekeeping (owner-approved):** deleted `HANDOFF 2.md` (duplicate of `HANDOFF.md`); committed `docs/devotionals-in-journey.md` (ready-to-build feature spec for devotionals in Journey; its link target updated to the `/library/devotional/` URL).
+
 ### 2026-07-05 (PM9) — Synced 55 Lovable commits (devotional covers + UI revamp), reconciled CLAUDE.md, skills/roadmap updated, pushed
 
 - **Synced.** Local `main` reset onto `origin/main` (55 new Lovable commits: AI devotional cover images, devotional page redesign, archive grid restructure, masthead fixes, archive `listDevotionals` limit raised to 500, migration adding `daily_devotionals.cover_image_url`).

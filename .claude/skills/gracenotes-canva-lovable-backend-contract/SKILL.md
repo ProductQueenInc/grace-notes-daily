@@ -5,7 +5,7 @@ description: The formal three-way contract between Canva (design), Lovable (UI/p
 
 # The Canva / Lovable / Backend Contract
 
-**Contract version: 1.0-draft (2026-07-05). Status: DRAFT until roadmap.md Stage 3 gate G-S3 passes (endpoint implemented, personalization proven at G4, Cindy review) - then stamped `1.0-frozen` with a CLAUDE.md §11 entry.** Once frozen, changes follow the amendment process at the bottom.
+**Contract version: 1.1-draft (2026-07-05 PM10 - Canva deliverable format amended to match what Canva actually shipped). Status: DRAFT until roadmap.md Stage 3 gate G-S3 passes (endpoint implemented, personalization proven at G4, Cindy review) - then stamped `1.0-frozen` with a CLAUDE.md §11 entry.** Once frozen, changes follow the amendment process at the bottom.
 
 ## When NOT to use this skill
 
@@ -20,16 +20,32 @@ description: The formal three-way contract between Canva (design), Lovable (UI/p
 | **Lovable** | Share UI: modal, post-"I receive this" CTA, confetti→share transition, streak card display, native share sheet call; mapping dynamic fields to placeholder slots in app components; calling the backend API and passing the returned URL to the share sheet | Generating images; routing decisions; attribution; anything server-side |
 | **Backend** | Render pipeline, this API, CDN hosting, deep links, attribution + share_events schema, server-side personalization | Share UI |
 
-## 2. Canva export specification
+## 2. Canva deliverables (v1.1 - AS DELIVERED 2026-07-05)
 
-- Format: PNG, exact pixel dimensions, sRGB, no transparency in the base layer.
-- Naming convention (exact): `{template-type}-{width}x{height}.png`
-- Template types (exact strings, used as `template_id` prefixes): `grace-note`, `devotional`, `answered-prayer`, `streak-calendar`
-- Sizes (all four per template): `1080x1080` (IG/FB feed square), `1080x1920` (IG/WhatsApp stories), `1200x628` (Twitter/X summary_large_image), `1200x630` (OG: FB/iMessage/WhatsApp link previews)
-- The 16 deliverables: `grace-note-1080x1080.png`, `grace-note-1080x1920.png`, `grace-note-1200x628.png`, `grace-note-1200x630.png`, `devotional-1080x1080.png`, `devotional-1080x1920.png`, `devotional-1200x628.png`, `devotional-1200x630.png`, `answered-prayer-1080x1080.png`, `answered-prayer-1080x1920.png`, `answered-prayer-1200x628.png`, `answered-prayer-1200x630.png`, `streak-calendar-1080x1080.png`, `streak-calendar-1080x1920.png`, `streak-calendar-1200x628.png`, `streak-calendar-1200x630.png`
-- Each export ships with a slot map (one page of annotations): for every dynamic zone, its bounding box, max character count, and alignment. Without the slot map an export is NOT approved.
-- Visual constraints (hard): Fraunces for display text, Nunito for body; brand greens + gold accents (`--grace` oklch(0.42 0.08 152), `--gold` oklch(0.78 0.14 85), gold-coin gradient `#f4cf5a → #c98f1c`); imagery policy applies (see `faithapp-domain-reference`); no em-dashes in any placeholder copy.
-- Approval gate: Cindy approves all 16 frames + slot maps before ANY parameterization or renderer templating begins.
+The original v1.0 spec (16 fully designed frames, one per template x size, + slot maps) is SUPERSEDED. Canva shipped a **background-bank model** instead, which fits the Satori renderer better: Canva ships art, the backend renders ALL typography and data over it.
+
+Delivered inventory (location: `grace-notes-daily/public/` in the PARENT folder, one level ABOVE the repo - not in git, 137 MB):
+
+| Item | Contents | Format |
+|---|---|---|
+| `share-backgrounds/grace-note/` | 10 background PNGs | all 1080x1920 |
+| `share-backgrounds/streak/` | 11 background PNGs | all 1080x1920 |
+| `share-backgrounds/answered-prayer/` | 10 background PNGs | all 1080x1920 |
+| `share-backgrounds/devotional/<theme>/` | 31 PNGs across 10 theme dirs (courage, gratitude, grief, hope, identity, joy, purpose, rest, surrender, trust; 3-4 each) | all 1080x1920 |
+| `share-assets/1.png, 2.png, 3.png` | full design MOCKUPS (e.g. 1.png = grace-note card: glass card over nature art, "Today's Grace Note" header, note text, gold-bar verse callout, "Get yours at: www.gracenotesdaily.com" footer). These are the design reference in lieu of slot maps | 1080x1080 |
+| `share-assets/Answered Prayer confetti icon.svg` | overlay icon, 1080x1920 viewBox | SVG |
+| `share-captions.json` | caption bank, ~10 captions per share type, v1.0, "system selects one per share event, rotates, user may edit" | JSON |
+
+Division of labor under v1.1: **Canva owns background art + mockups + captions. Backend owns ALL text/data rendering (typography, layout, card surfaces) in Satori, matching the mockups.** Lovable still only builds share UI; the caption bank is consumed by Lovable's share sheet (copy it into the repo's `public/` when Stage 4 starts - it is 4 KB, unlike the art).
+
+Background selection: renderer picks per share event (rotate or hash by user+date for determinism); devotional cards select from the matching theme dir.
+
+KNOWN GAPS at delivery (resolve at gate G-S1):
+
+1. Only 1080x1920 backgrounds exist. 1080x1080 / 1200x628 / 1200x630 variants must be center-cropped from the 1080x1920 art by the renderer (default assumption) OR Canva ships dedicated crops - Cindy to confirm.
+2. No `peace` theme dir, but Tuesday devotionals are themed Peace (weekday themes: Mon Hope, Tue Peace, Wed Grief & Comfort, Thu Gratitude, Fri Courage, Sat Rest, Sun Purpose). Delivered dirs also include 4 themes the weekday rotation doesn't use (identity, joy, surrender, trust). A theme->dir mapping table must be frozen at G-S1 (e.g. peace -> rest or trust).
+3. Naming inconsistencies from export: `grace-note/11.png`, `grace-note-01-note-01.png`, `answered-prayer-09-prayer-08.png`, `devotional-hope-03-hope-06.png`. Normalize to `{type}-{nn}.png` / `devotional-{theme}-{nn}.png` before bucket upload.
+4. Assets live OUTSIDE the repo and outside git. Plan of record: normalize names, then upload once to a private `share-templates` storage bucket the renderer reads (137 MB does not belong in git or the deploy bundle). Originals stay in Canva.
 
 ## 3. Dynamic fields (names and types are normative)
 
