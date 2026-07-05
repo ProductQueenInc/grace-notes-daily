@@ -38,6 +38,14 @@ export async function getStoredDevotional(date: string): Promise<DevotionalResul
   return getStoredSharedDevotional({ data: { date } });
 }
 
+// Archive helpers - re-exported so route files import from one place.
+export {
+  getDevotionalNeighbours,
+  listDevotionals,
+  getLatestDevotional,
+  type DevotionalListItem,
+} from "@/lib/devotional-archive.functions";
+
 export async function respondToHeartNote(
   text: string,
   profile?: Profile | null,
