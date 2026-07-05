@@ -115,21 +115,16 @@ function LibraryHub() {
     [],
   );
 
-  const latest: LibraryArticle | undefined = useMemo(() => sorted[0], [sorted]);
-
   // Themed mobile rows — one per primary tag with ≥2 articles.
   // Articles MAY appear in more than one category row (no de-duplication).
-  // The "latest" article is still excluded to avoid double-showing it
-  // immediately below its own featured card.
   const themedSections = useMemo(() => {
-    const pool = sorted.filter((a) => a.slug !== latest?.slug);
     const sections: { tag: LibraryTag; items: LibraryArticle[] }[] = [];
     for (const tag of PRIMARY_TAGS) {
-      const items = pool.filter((a) => a.tags.includes(tag)).slice(0, 8);
+      const items = sorted.filter((a) => a.tags.includes(tag)).slice(0, 8);
       if (items.length >= 2) sections.push({ tag, items });
     }
     return sections;
-  }, [sorted, latest]);
+  }, [sorted]);
 
   const filtered = useMemo(() => {
     if (isAll) return sorted;
