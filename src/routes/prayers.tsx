@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ShareCardModal } from "@/components/share-card-modal";
+import { dismissAnsweredPrayerShare } from "@/lib/share-dismissals";
 
 export const Route = createFileRoute("/prayers")({
   head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
@@ -60,6 +62,7 @@ function Prayers() {
   const [thanksgivingText, setThanksgivingText] = useState("");
   const [editing, setEditing] = useState<Prayer | null>(null);
   const [editText, setEditText] = useState("");
+  const [sharingPrayer, setSharingPrayer] = useState<Prayer | null>(null);
   
   const [deleting, setDeleting] = useState<Prayer | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
@@ -192,22 +195,23 @@ function Prayers() {
   async function submitThanks() {
     if (!celebrating) return;
     const answeredAt = new Date().toLocaleDateString("en-US");
+    const target = celebrating;
 
     setItems((s) =>
-      s.map((x) => (x.id === celebrating.id ? { ...x, answeredAt, thanksgiving: thanksgivingText } : x)),
+      s.map((x) => (x.id === target.id ? { ...x, answeredAt, thanksgiving: thanksgivingText } : x)),
     );
 
     if (supabaseConfigured && user) {
       await supabase
         .from("prayers")
         .update({ answered: true, answered_at: new Date().toISOString() })
-        .eq("id", celebrating.id)
+        .eq("id", target.id)
         .eq("user_id", user.id);
 
       if (thanksgivingText.trim()) {
         await supabase
           .from("thanksgivings")
-          .insert({ user_id: user.id, prayer_id: celebrating.id, content: thanksgivingText.trim() });
+          .insert({ user_id: user.id, prayer_id: target.id, content: thanksgivingText.trim() });
       }
     }
 
@@ -215,6 +219,8 @@ function Prayers() {
     toast.success("Thanksgiving received. Praise be");
     setCelebrating(null);
     setThanksgivingText("");
+    // Morph into the share prompt (one-shot per prayer).
+    setTimeout(() => setSharingPrayer({ ...target, answeredAt, thanksgiving: thanksgivingText }), 350);
   }
 
   return (
@@ -420,6 +426,18 @@ function Prayers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ShareCardModal
+        open={!!sharingPrayer}
+        ctx={sharingPrayer ? { type: "answered_prayer", prayer_id: sharingPrayer.id } : null}
+        heading={{
+          eyebrow: "Answered prayer",
+          title: "Praise God with someone",
+          subtitle: "A quiet testimony can carry further than you think.",
+        }}
+        onClose={() => setSharingPrayer(null)}
+        onDismiss={() => sharingPrayer && dismissAnsweredPrayerShare(sharingPrayer.id)}
+      />
     </>
   );
 }

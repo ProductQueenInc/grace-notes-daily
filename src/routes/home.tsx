@@ -12,9 +12,11 @@ import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-
 import { useStreak } from "@/hooks/use-streak";
 import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
+import { ShareCardModal } from "@/components/share-card-modal";
+import { MilestoneWatcher } from "@/components/milestone-watcher";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
-  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag,
+  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag, Share2,
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
@@ -46,6 +48,7 @@ function Home() {
 
   const [showVerse, setShowVerse] = useState(false);
   const [devotionalOpen, setDevotionalOpen] = useState(false);
+  const [graceShareOpen, setGraceShareOpen] = useState(false);
 
   const { habits, markComplete } = useHabits();
   const completedCount = Object.values(habits).filter(Boolean).length;
@@ -161,9 +164,19 @@ function Home() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <button onClick={() => setShowVerse((v) => !v)} className="shrink-0 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
-                  {showVerse ? "Hide Verse" : "Show Verse"}
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setGraceShareOpen(true)}
+                    disabled={!graceNote}
+                    aria-label="Share this grace note"
+                    className="text-xs bg-white/10 hover:bg-white/20 text-white p-2 min-h-9 min-w-9 rounded-full flex items-center justify-center disabled:opacity-40"
+                  >
+                    <Icon icon={Share2} size="sm" tone="inherit" />
+                  </button>
+                  <button onClick={() => setShowVerse((v) => !v)} className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
+                    {showVerse ? "Hide Verse" : "Show Verse"}
+                  </button>
+                </div>
               </div>
               <div className="p-4 sm:p-6">
                 {!graceNote ? (
@@ -315,6 +328,19 @@ function Home() {
         open={devotionalOpen}
         onClose={() => setDevotionalOpen(false)}
       />
+
+      <ShareCardModal
+        open={graceShareOpen}
+        ctx={graceNote ? { type: "grace_note", note_id: today } : null}
+        heading={{
+          eyebrow: "Today's grace note",
+          title: "Share this note",
+          subtitle: "A quiet word for someone who might need it.",
+        }}
+        onClose={() => setGraceShareOpen(false)}
+      />
+
+      <MilestoneWatcher />
     </TooltipProvider>
   );
 }
