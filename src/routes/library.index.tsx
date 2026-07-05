@@ -486,7 +486,7 @@ function LibraryHub() {
               </div>
             </div>
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {recentDevotionals.slice(0, 6).map((d) => (
+              {recentDevotionals.slice(0, 6).map((d: DevotionalListItem) => (
                 <Link
                   key={d.date}
                   to="/library/devotional/$date"
