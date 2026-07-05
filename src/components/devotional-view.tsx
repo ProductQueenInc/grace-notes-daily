@@ -215,14 +215,18 @@ function EnvelopeBottom() {
           aria-hidden
         />
       </div>
-      <div className="bg-stone-100 py-6 border-t border-stone-200 text-center">
+      <div className="bg-stone-100 py-6 border-t border-stone-200 text-center px-6">
         <Link
           to="/"
-          className="text-[11px] text-stone-500 font-semibold tracking-[0.25em] uppercase hover:text-grace transition-colors"
+          className="block max-w-xl mx-auto font-display italic text-stone-600 text-base md:text-lg leading-relaxed hover:text-grace transition-colors"
         >
-          GraceNotes Daily &middot; Peace be with you
+          &ldquo;{pickDailyPromise()}&rdquo;
         </Link>
+        <p className="mt-2 text-[10px] text-stone-400 font-semibold tracking-[0.25em] uppercase">
+          GraceNotes Daily
+        </p>
       </div>
+
     </>
   );
 }
