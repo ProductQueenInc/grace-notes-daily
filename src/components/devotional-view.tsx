@@ -4,11 +4,11 @@ import {
   Share2,
   RefreshCw,
   Library,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
-import { NatureBackground } from "@/components/nature-background";
 import { BASE_URL } from "@/lib/library";
 import { useAuth } from "@/hooks/use-auth";
 import type { DevotionalResult } from "@/lib/ai.functions";
@@ -39,6 +39,14 @@ function formatShortDate(iso: string) {
     timeZone: "UTC",
   });
 }
+
+// Vetted forest imagery (from src/components/nature-background.tsx). Static
+// bands - the "envelope" that frames the letter. Not the full-page ambient
+// slideshow we use in the authenticated app.
+const ENVELOPE_TOP =
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=70&auto=format&fit=crop";
+const ENVELOPE_BOTTOM =
+  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=70&auto=format&fit=crop";
 
 // Shared head builder so the dated route and the index (today) route stay in sync.
 export function devotionalHead(devotional?: DevotionalResult, dateISO?: string) {
@@ -107,74 +115,112 @@ export function devotionalHead(devotional?: DevotionalResult, dateISO?: string) 
   };
 }
 
-// Reusable top bar and masthead so the empty/error state matches.
-function TopBar({ isLoggedIn, onShare }: { isLoggedIn: boolean; onShare?: () => void }) {
+// Small pill floating above the title card, right-aligned. Matches the
+// prototype's felt hierarchy: primary CTA lives with the letter, not in nav.
+function BeginPill({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
-    <nav className="glass-parchment rounded-full w-full max-w-3xl mx-auto flex items-center justify-between mb-8 md:mb-12 shadow-md px-4 sm:px-6 py-2.5">
+    <div className="flex justify-end mb-4">
       <Link
-        to="/library"
-        className="flex items-center gap-2 text-grace font-semibold hover:opacity-70 transition-opacity"
-        aria-label="Back to Library"
+        to={isLoggedIn ? "/home" : "/signup"}
+        className="inline-flex items-center gap-2 bg-grace text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-md hover:bg-grace-deep transition-colors"
       >
-        <Icon icon={Library} size="sm" tone="inherit" />
-        <span>Library</span>
+        <span>{isLoggedIn ? "Go Home" : "Begin Today"}</span>
+        <Icon icon={ArrowRight} size="sm" tone="inherit" />
       </Link>
-      <div className="flex items-center gap-4 sm:gap-6">
-        {onShare && (
-          <button
-            onClick={onShare}
-            className="text-grace hover:text-gold transition-colors"
-            aria-label="Share this devotional"
-          >
-            <Icon icon={Share2} size="md" tone="inherit" />
-          </button>
-        )}
-        {isLoggedIn ? (
-          <Link
-            to="/home"
-            className="bg-grace text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-grace-deep transition-all"
-          >
-            Go Home
-          </Link>
-        ) : (
-          <Link
-            to="/signup"
-            className="bg-grace text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-grace-deep transition-all"
-          >
-            Begin Today
-          </Link>
-        )}
-      </div>
-    </nav>
+    </div>
   );
 }
 
-function Masthead({ date }: { date: string }) {
+function TitleCard({ date, title }: { date: string; title?: string }) {
   return (
-    <header className="w-full max-w-3xl mx-auto text-center mb-10 md:mb-12">
-      <div className="glass-parchment rounded-sm shadow-xl px-6 py-8 md:px-10 md:py-10 inline-block">
-        <p className="uppercase tracking-[0.2em] text-grace/60 text-xs font-bold mb-3">
-          {formatLongDate(date)}
-        </p>
-        <h1 className="font-display text-grace text-5xl md:text-6xl font-bold tracking-tight mb-2">
-          GraceNotes Daily
-        </h1>
-        <div className="flex items-center justify-center gap-4">
-          <div className="h-px w-8 bg-gold"></div>
-          <p className="font-display italic text-grace/80 text-lg">Daily Devotional</p>
-          <div className="h-px w-8 bg-gold"></div>
-        </div>
-      </div>
+    <header className="bg-white/85 backdrop-blur-sm border border-stone-200/70 px-8 py-10 md:px-12 md:py-12 text-center rounded-t-sm">
+      <p className="text-xs uppercase tracking-widest text-stone-500 mb-4 font-semibold">
+        {formatLongDate(date)}
+      </p>
+      <h1 className="font-display text-grace text-4xl md:text-5xl leading-tight tracking-tight">
+        {title || "Today's Devotional"}
+      </h1>
     </header>
   );
 }
 
-// Faint parchment texture as an inline SVG data URI (no external network dep).
-const PAPER_TEXTURE_URL =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.36  0 0 0 0 0.21  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>`,
+function NavStrip({ onShare }: { onShare?: () => void }) {
+  return (
+    <nav
+      className="flex justify-between items-center px-6 md:px-8 py-4 border-y border-stone-200/70 bg-white/50 backdrop-blur-sm"
+      aria-label="Devotional actions"
+    >
+      <Link
+        to="/library"
+        className="flex items-center gap-2 text-stone-600 hover:text-grace transition-colors group"
+        aria-label="Back to Library"
+      >
+        <Icon icon={Library} size="sm" tone="inherit" />
+        <span className="text-sm font-semibold">Library</span>
+      </Link>
+      {onShare ? (
+        <button
+          onClick={onShare}
+          className="flex items-center gap-2 text-stone-600 hover:text-grace transition-colors"
+          aria-label="Share this devotional"
+        >
+          <span className="text-sm font-semibold">Share</span>
+          <Icon icon={Share2} size="sm" tone="inherit" />
+        </button>
+      ) : (
+        <span aria-hidden />
+      )}
+    </nav>
   );
+}
+
+function EnvelopeTop() {
+  return (
+    <div className="relative w-full h-32 md:h-40 overflow-hidden">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${ENVELOPE_TOP})` }}
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(to bottom, oklch(0 0 0 / 0.15), #fdfcf7)",
+        }}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
+function EnvelopeBottom() {
+  return (
+    <>
+      <div className="relative w-full h-40 md:h-48 overflow-hidden mt-16">
+        <div
+          className="absolute inset-0 bg-cover bg-bottom opacity-25"
+          style={{ backgroundImage: `url(${ENVELOPE_BOTTOM})` }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(to top, transparent, #fdfcf7)",
+          }}
+          aria-hidden
+        />
+      </div>
+      <div className="bg-stone-100 py-6 border-t border-stone-200 text-center">
+        <Link
+          to="/"
+          className="text-[11px] text-stone-500 font-semibold tracking-[0.25em] uppercase hover:text-grace transition-colors"
+        >
+          GraceNotes Daily &middot; Peace be with you
+        </Link>
+      </div>
+    </>
+  );
+}
 
 export function DevotionalView({
   devotional,
@@ -208,19 +254,18 @@ export function DevotionalView({
     }
   }
 
+  // Empty / error state - same envelope shell so the page still feels held.
   if (!devotional) {
     return (
-      <>
-        <NatureBackground />
-        <div className="min-h-screen w-full selection:bg-gold/30 py-8 md:py-12 px-4">
-          <TopBar isLoggedIn={isLoggedIn} />
-          <Masthead date={date} />
-          <main className="w-full max-w-3xl mx-auto glass-parchment rounded-sm p-8 md:p-16 text-center shadow-2xl">
-            <Icon icon={BookOpen} size="md" tone="inherit" className="mx-auto mb-4 text-grace/50" />
-            <h2 className="font-display text-2xl text-grace mb-3">
-              Today's devotional is being prepared
-            </h2>
-            <p className="text-foreground/70 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+      <div className="min-h-screen w-full bg-[#fdfcf7] flex flex-col selection:bg-gold/30">
+        <EnvelopeTop />
+        <div className="max-w-3xl w-full mx-auto px-6 -mt-16 z-10 flex flex-col">
+          <BeginPill isLoggedIn={isLoggedIn} />
+          <TitleCard date={date} title="Today's devotional is being prepared" />
+          <NavStrip />
+          <div className="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-10 md:p-14 rounded-b-sm border-x border-b border-stone-200/50 text-center">
+            <Icon icon={BookOpen} size="nav" tone="inherit" className="mx-auto mb-4 text-grace/50" />
+            <p className="text-stone-600 leading-relaxed mb-6 max-w-md mx-auto">
               Something interrupted the preparation of today's reading. Try refreshing in a
               moment - it should be ready shortly.
             </p>
@@ -230,171 +275,157 @@ export function DevotionalView({
             >
               <Icon icon={RefreshCw} size="sm" tone="inherit" /> Try again
             </button>
-          </main>
+          </div>
         </div>
-      </>
+        <EnvelopeBottom />
+      </div>
     );
   }
 
   const d = devotional;
-  const bodyLast = d.body.length - 1;
 
   return (
-    <>
-      <NatureBackground />
-      <div className="min-h-screen w-full selection:bg-gold/30 py-8 md:py-12 px-4">
-        <TopBar isLoggedIn={isLoggedIn} onShare={onShare} />
-        <Masthead date={date} />
+    <div className="min-h-screen w-full bg-[#fdfcf7] text-stone-800 flex flex-col selection:bg-gold/30">
+      <EnvelopeTop />
 
-        {/* Reader Area */}
-        <main className="w-full max-w-3xl mx-auto glass-parchment border border-gold/20 shadow-2xl rounded-sm overflow-hidden relative">
-          {/* Faint parchment texture overlay */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{ backgroundImage: `url("${PAPER_TEXTURE_URL}")` }}
-        />
+      <div className="max-w-3xl w-full mx-auto px-6 -mt-16 z-10 flex flex-col">
+        <BeginPill isLoggedIn={isLoggedIn} />
 
-        <div className="relative p-8 md:p-16">
+        <TitleCard date={date} title={d.title} />
+        <NavStrip onShare={onShare} />
+
+        {/* Content card */}
+        <article className="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] px-8 py-10 md:px-14 md:py-14 flex flex-col gap-8 rounded-b-sm border-x border-b border-stone-200/50">
           {/* Verse hero */}
-          <section className="mb-12 text-center border-b border-gold/30 pb-10 md:pb-12">
-            <blockquote className="font-display italic text-grace text-2xl md:text-3xl leading-relaxed mb-6">
+          <blockquote className="text-center">
+            <p className="font-display italic text-grace text-2xl md:text-3xl leading-relaxed">
               &ldquo;{d.verseOfDay}&rdquo;
-            </blockquote>
-            <cite className="text-xs uppercase tracking-widest text-gold-foreground font-bold not-italic">
+            </p>
+            <cite className="block mt-4 text-stone-500 not-italic text-xs font-bold tracking-[0.2em] uppercase">
               {d.verseRef}
             </cite>
-          </section>
+          </blockquote>
 
-          {/* Devotional title (semantic h2 under the page h1 "GraceNotes Daily") */}
-          <h2 className="font-display text-3xl md:text-4xl text-grace mb-8 leading-tight text-center">
-            {d.title}
-          </h2>
-
-          {/* Body with related scripture inserted mid-flow */}
-          <article className="text-grace/90 leading-relaxed max-w-none text-lg space-y-6">
+          {/* Body */}
+          <div className="space-y-6 text-lg leading-relaxed text-stone-700">
             {d.body.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
+          </div>
 
-            {d.related.length > 0 && (
-              <div className="bg-gold-soft/40 border-l-2 border-gold p-6 my-10 rounded-sm">
-                <h3 className="text-xs uppercase tracking-widest font-bold mb-4 text-gold-foreground">
-                  Related Scripture
-                </h3>
-                <ul className="space-y-3 text-base">
-                  {d.related.map((r) => (
-                    <li key={r.ref}>
-                      <span className="font-semibold text-grace">{r.ref}</span>
-                      {r.text ? (
-                        <span className="text-foreground/75">
-                          {" "}
-                          - <span className="italic">{r.text}</span>
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          {/* Related Scripture inset */}
+          {d.related.length > 0 && (
+            <aside className="bg-gold-soft/40 border-l-4 border-gold p-6 rounded-r-lg">
+              <h3 className="font-display text-[color:var(--gold-foreground)] text-sm font-bold mb-3 uppercase tracking-widest">
+                Related Scripture
+              </h3>
+              <ul className="space-y-2 text-base">
+                {d.related.map((r) => (
+                  <li key={r.ref} className="text-stone-700">
+                    <span className="font-semibold text-grace">{r.ref}</span>
+                    {r.text ? (
+                      <span className="text-stone-600">
+                        {" - "}
+                        <span className="italic">{r.text}</span>
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          )}
+
+          {/* Takeaway pull-quote */}
+          <div className="bg-grace-soft border-l-4 border-grace p-6 rounded-r-lg">
+            <h3 className="font-display text-grace text-sm font-bold mb-2 uppercase tracking-widest">
+              Heart Takeaway
+            </h3>
+            <p className="text-stone-800 leading-relaxed italic">{d.takeaway}</p>
+          </div>
+
+          {/* NIV notice */}
+          <p className="text-[11px] text-stone-500 leading-relaxed mt-2">
+            Scripture taken from the Holy Bible, New International Version&reg;, NIV&reg;
+            Copyright &copy; 1973, 1978, 1984, 2011 by Biblica, Inc.&reg; Used by permission.
+            All rights reserved worldwide.
+          </p>
+        </article>
+
+        {/* Prev/Next thumbnails */}
+        {(prev || next) && (
+          <nav
+            className="grid grid-cols-2 gap-px bg-stone-200 mt-6 rounded-sm overflow-hidden border border-stone-200"
+            aria-label="Devotional navigation"
+          >
+            {prev ? (
+              <Link
+                to="/library/devotional/$date"
+                params={{ date: prev.date }}
+                className="bg-white p-6 hover:bg-stone-50 transition-colors flex flex-col gap-1 text-left group"
+                aria-label={`Previous devotional: ${prev.title}`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 group-hover:text-grace transition-colors">
+                  Previous
+                </span>
+                <span className="font-display text-grace text-lg leading-snug">
+                  {prev.title}
+                </span>
+                <span className="text-xs text-stone-500 mt-1">
+                  {formatShortDate(prev.date)}
+                </span>
+              </Link>
+            ) : (
+              <span className="bg-white p-6" aria-hidden />
             )}
+            {next ? (
+              <Link
+                to="/library/devotional/$date"
+                params={{ date: next.date }}
+                className="bg-white p-6 hover:bg-stone-50 transition-colors flex flex-col gap-1 text-right group"
+                aria-label={`Next devotional: ${next.title}`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 group-hover:text-grace transition-colors">
+                  Next
+                </span>
+                <span className="font-display text-grace text-lg leading-snug">
+                  {next.title}
+                </span>
+                <span className="text-xs text-stone-500 mt-1">
+                  {formatShortDate(next.date)}
+                </span>
+              </Link>
+            ) : (
+              <span className="bg-white p-6" aria-hidden />
+            )}
+          </nav>
+        )}
 
-            {/* Takeaway pull quote */}
-            <div className="bg-grace-soft border-l-2 border-grace p-6 my-10 rounded-sm italic text-foreground/85">
-              {d.takeaway}
-            </div>
-
-            {/* Ensure the last paragraph closes the flow visually. If body has
-                more than one paragraph, the last has already rendered above. */}
-            {bodyLast < 0 && null}
-          </article>
-
-          {/* Closing */}
-          <footer className="mt-16 pt-12 border-t border-gold/20 text-center">
-            <div className="mb-6 flex justify-center">
-              <DoveMark variant="medallion" className="w-14 h-14" alt="GraceNotes Daily" />
-            </div>
-            <h4 className="font-display text-grace text-xl font-bold mb-2">
-              {isLoggedIn ? "Keep walking with GraceNotes" : "Walk deeper with GraceNotes"}
-            </h4>
-            <p className="text-grace/70 text-sm max-w-sm mx-auto mb-8">
+        {/* Closing CTA block */}
+        <section className="mt-12 py-12 flex flex-col items-center text-center gap-6">
+          <DoveMark variant="medallion" className="w-16 h-16" alt="GraceNotes Daily" />
+          <div>
+            <h2 className="font-display text-grace text-2xl md:text-3xl mb-2">
+              {isLoggedIn
+                ? "Keep walking with GraceNotes"
+                : "Walk deeper with GraceNotes"}
+            </h2>
+            <p className="text-stone-600 max-w-sm mx-auto leading-relaxed">
               {isLoggedIn
                 ? "Return to your home to continue today's rhythm."
                 : "Receive a quiet reading like this every morning."}
             </p>
-            {isLoggedIn ? (
-              <Link
-                to="/home"
-                className="inline-block border-2 border-grace text-grace px-8 py-2 rounded-full font-bold hover:bg-grace hover:text-white transition-all"
-              >
-                Go Home
-              </Link>
-            ) : (
-              <Link
-                to="/signup"
-                className="inline-block border-2 border-grace text-grace px-8 py-2 rounded-full font-bold hover:bg-grace hover:text-white transition-all"
-              >
-                Begin Today
-              </Link>
-            )}
-          </footer>
-
-          <p className="text-[11px] text-foreground/45 mt-10 text-center">
-            Scripture quotations are from the Holy Bible, New International Version (NIV).
-          </p>
-        </div>
-      </main>
-
-      {/* Prev / Next cards */}
-      {(prev || next) && (
-        <nav
-          className="w-full max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mt-8"
-          aria-label="Devotional navigation"
-        >
-          {prev ? (
-            <Link
-              to="/library/devotional/$date"
-              params={{ date: prev.date }}
-              className="group p-6 bg-white/60 border border-transparent hover:border-gold transition-all rounded-sm flex flex-col items-start"
-              aria-label="Previous devotional"
-            >
-              <span className="text-[10px] uppercase tracking-widest text-grace/50 font-bold mb-1">
-                Previous
-              </span>
-              <span className="font-display text-grace font-bold text-lg group-hover:text-gold-foreground transition-colors leading-snug">
-                {prev.title}
-              </span>
-              <span className="text-xs text-grace/60 mt-1">{formatShortDate(prev.date)}</span>
-            </Link>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <Link
-              to="/library/devotional/$date"
-              params={{ date: next.date }}
-              className="group p-6 bg-white/60 border border-transparent hover:border-gold transition-all rounded-sm flex flex-col items-end text-right md:col-start-2"
-              aria-label="Next devotional"
-            >
-              <span className="text-[10px] uppercase tracking-widest text-grace/50 font-bold mb-1">
-                Next
-              </span>
-              <span className="font-display text-grace font-bold text-lg group-hover:text-gold-foreground transition-colors leading-snug">
-                {next.title}
-              </span>
-              <span className="text-xs text-grace/60 mt-1">{formatShortDate(next.date)}</span>
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      )}
-
-      <p className="text-center text-xs text-foreground/45 mt-8">
-        <Link to="/" className="hover:text-grace">
-          GraceNotes Daily
-        </Link>
-      </p>
+          </div>
+          <Link
+            to={isLoggedIn ? "/home" : "/signup"}
+            className="inline-flex items-center gap-2 bg-gold text-grace px-8 py-3 rounded-full font-bold shadow-sm hover:brightness-95 active:scale-95 transition-all"
+          >
+            {isLoggedIn ? "Go Home" : "Begin Today"}
+            <Icon icon={ArrowRight} size="sm" tone="inherit" />
+          </Link>
+        </section>
       </div>
-    </>
+
+      <EnvelopeBottom />
+    </div>
   );
 }
