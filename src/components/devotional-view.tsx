@@ -238,13 +238,15 @@ export function DevotionalView({
   const bodyLast = d.body.length - 1;
 
   return (
-    <div className="min-h-screen w-full bg-[#f8faf7] selection:bg-gold/30 py-8 md:py-12 px-4">
-      <TopBar isLoggedIn={isLoggedIn} onShare={onShare} />
-      <Masthead date={date} />
+    <>
+      <NatureBackground />
+      <div className="min-h-screen w-full selection:bg-gold/30 py-8 md:py-12 px-4">
+        <TopBar isLoggedIn={isLoggedIn} onShare={onShare} />
+        <Masthead date={date} />
 
-      {/* Reader Area */}
-      <main className="w-full max-w-3xl mx-auto glass-parchment border border-gold/20 shadow-xl rounded-sm overflow-hidden relative">
-        {/* Faint parchment texture overlay */}
+        {/* Reader Area */}
+        <main className="w-full max-w-3xl mx-auto glass-parchment border border-gold/20 shadow-2xl rounded-sm overflow-hidden relative">
+          {/* Faint parchment texture overlay */}
         <div
           aria-hidden
           className="absolute inset-0 opacity-[0.06] pointer-events-none"
