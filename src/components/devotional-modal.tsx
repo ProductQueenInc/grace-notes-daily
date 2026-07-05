@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
-import { X, BookOpen, Heart, Check, RefreshCw } from "lucide-react";
+import { X, BookOpen, Heart, Check, RefreshCw, Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSharedDevotional } from "@/lib/ai-stubs";
 import { softGoldConfetti } from "@/lib/confetti";
@@ -9,6 +9,11 @@ import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
 import { useHabits } from "@/hooks/use-habits";
 import { localTodayISO, isoForDate } from "@/lib/today";
+import { ShareCardModal } from "@/components/share-card-modal";
+import {
+  devotionalShareDismissed,
+  dismissDevotionalShare,
+} from "@/lib/share-dismissals";
 
 function formatDisplayDate(iso: string): string {
   return new Date(iso + "T12:00:00").toLocaleDateString("en-US", {
