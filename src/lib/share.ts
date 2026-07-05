@@ -1,9 +1,15 @@
-// Share card contract — frozen. Backend will replace `generateShareCard`'s
-// body with the real Satori/CDN pipeline. UI must not change the shape.
+// Share card contract — v1.1-draft (backend live).
 //
-// Version A (2026-07-05): native share sends { title, url } only. The
-// backend sets og:image on `deep_link` so unfurls show the card. The
-// `image_url` here is what the modal displays in-app for preview + copy.
+// Version A: native share sends { title, url } only. The backend sets
+// og:image on `deep_link` so unfurls show the card. `image_url` here is
+// what the modal displays in-app for preview + copy.
+//
+// Requests go to the `render-share-card` edge function on the GraceNotes
+// backend project via `supabase.functions.invoke`, which attaches the
+// signed-in user's bearer token automatically (required for grace-note,
+// streak-calendar, and answered-prayer; devotional works anon).
+
+import { supabase } from "@/lib/supabase";
 
 export type ShareType =
   | "grace_note"
@@ -16,7 +22,13 @@ export type MilestoneTier = 1 | 5 | 10 | 30 | 60 | 100;
 export type ShareContext =
   | { type: "grace_note"; note_id: string; theme?: string }
   | { type: "devotional"; date: string; theme?: string }
-  | { type: "answered_prayer"; prayer_id: string }
+  | {
+      type: "answered_prayer";
+      prayer_id: string;
+      /** User-confirmed prayer text, ≤200 chars. Trimmed before send. */
+      prayer_text?: string;
+      answered_date?: string;
+    }
   | { type: "milestone"; tier: MilestoneTier; streak: number };
 
 export type ShareCard = {
@@ -25,62 +37,86 @@ export type ShareCard = {
   deep_link: string;
 };
 
-const APP_ORIGIN =
-  typeof window !== "undefined" ? window.location.origin : "https://gracenotesdaily.com";
-
-// Mock captions per trigger. Backend swaps these for the real caption bank.
-const MOCK_CAPTIONS: Record<ShareType, string[]> = {
-  grace_note: [
-    "A quiet word from the Father, for today.",
-    "This one settled me. Sending it your way.",
-  ],
-  devotional: [
-    "Today's devotional. In case it meets you where you are.",
-    "A small light for the middle of your day.",
-  ],
-  answered_prayer: [
-    "He heard. He answered. Giving thanks today.",
-    "Adding this one to the pile of quiet miracles.",
-  ],
-  milestone: [
-    "Small daily returns. That's the whole thing.",
-    "Showing up, one gentle day at a time.",
-  ],
+type BackendResponse = {
+  image_url: string;
+  caption: string;
+  share_url: string;
+  storage_key?: string;
+  template_id?: string;
+  size?: string;
+  share_token?: string;
+  contract_version?: string;
 };
 
-function pickCaption(type: ShareType): string {
-  const bank = MOCK_CAPTIONS[type];
-  return bank[Math.floor(Math.random() * bank.length)];
-}
+type BackendError = { error?: { code?: string; message?: string } };
 
-function buildDeepLink(ctx: ShareContext): string {
+// Maps our internal ShareType → the edge function route segment.
+const ROUTE: Record<ShareType, string> = {
+  grace_note: "grace-note",
+  devotional: "devotional",
+  answered_prayer: "answered-prayer",
+  milestone: "streak-calendar",
+};
+
+function bodyFor(ctx: ShareContext): Record<string, unknown> {
   switch (ctx.type) {
     case "grace_note":
-      return `${APP_ORIGIN}/share/grace-note/${ctx.note_id}`;
+      // Server fetches today's grace note from the JWT — never send content.
+      return {};
     case "devotional":
-      return `${APP_ORIGIN}/library/devotional/${ctx.date}`;
-    case "answered_prayer":
-      return `${APP_ORIGIN}/share/answered-prayer/${ctx.prayer_id}`;
+      return ctx.date ? { date: ctx.date } : {};
+    case "answered_prayer": {
+      const text = (ctx.prayer_text ?? "").trim().slice(0, 200);
+      const body: Record<string, unknown> = { prayer_text: text };
+      if (ctx.answered_date) body.answered_date = ctx.answered_date;
+      return body;
+    }
     case "milestone":
-      return `${APP_ORIGIN}/share/milestone/${ctx.tier}`;
+      // Server fetches the user's streak from the JWT.
+      return {};
   }
 }
 
-// Mocked image URL — reuses the existing OG image so the modal preview
-// looks real during dev. Backend replaces with the rendered share card.
-const MOCK_IMAGE = "/og/daily-devotional.png";
+export class ShareCardError extends Error {
+  code: string;
+  status?: number;
+  constructor(code: string, message: string, status?: number) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
+}
 
 /**
- * Frozen contract. Backend swaps the body — must return the same shape.
- * UI treats every rejection as an error state with retry.
+ * Calls the live render-share-card edge function. Interface is frozen:
+ * returns `{ image_url, caption, deep_link }` regardless of backend shape.
+ * Throws `ShareCardError` on non-2xx so the modal can show retry/toast.
  */
 export async function generateShareCard(ctx: ShareContext): Promise<ShareCard> {
-  // Simulate network latency so the loading skeleton renders visibly.
-  await new Promise((r) => setTimeout(r, 550));
+  const route = `render-share-card/${ROUTE[ctx.type]}`;
+  const { data, error } = await supabase.functions.invoke<
+    BackendResponse | BackendError
+  >(route, { body: bodyFor(ctx) });
+
+  if (error) {
+    // supabase-js wraps non-2xx into FunctionsHttpError; try to surface backend code.
+    const status = (error as { context?: { status?: number } }).context?.status;
+    let code = "render_failed";
+    let message = error.message || "Share card render failed";
+    const payload = (data as BackendError | null)?.error;
+    if (payload?.code) code = payload.code;
+    if (payload?.message) message = payload.message;
+    throw new ShareCardError(code, message, status);
+  }
+
+  const ok = data as BackendResponse | null;
+  if (!ok?.image_url || !ok?.share_url) {
+    throw new ShareCardError("render_failed", "Empty share card response");
+  }
 
   return {
-    image_url: MOCK_IMAGE,
-    caption: pickCaption(ctx.type),
-    deep_link: buildDeepLink(ctx),
+    image_url: ok.image_url,
+    caption: ok.caption ?? "",
+    deep_link: ok.share_url,
   };
 }

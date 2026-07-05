@@ -429,7 +429,7 @@ function Prayers() {
 
       <ShareCardModal
         open={!!sharingPrayer}
-        ctx={sharingPrayer ? { type: "answered_prayer", prayer_id: sharingPrayer.id } : null}
+        ctx={sharingPrayer ? { type: "answered_prayer", prayer_id: sharingPrayer.id, prayer_text: sharingPrayer.text, answered_date: sharingPrayer.answeredAt } : null}
         heading={{
           eyebrow: "Answered prayer",
           title: "Praise God with someone",
