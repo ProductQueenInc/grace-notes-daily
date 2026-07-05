@@ -62,6 +62,7 @@ function Prayers() {
   const [thanksgivingText, setThanksgivingText] = useState("");
   const [editing, setEditing] = useState<Prayer | null>(null);
   const [editText, setEditText] = useState("");
+  const [sharingPrayer, setSharingPrayer] = useState<Prayer | null>(null);
   
   const [deleting, setDeleting] = useState<Prayer | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
