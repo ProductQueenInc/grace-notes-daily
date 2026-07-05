@@ -26,29 +26,31 @@ const DateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM
 // Nearest existing devotional dates on either side of a given date.
 // Skips gaps (missed cron days, historical holes) - the arrows always land
 // on a real row, never a 404.
+export type NeighbourInfo = { date: string; title: string } | null;
 export const getDevotionalNeighbours = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => z.object({ date: DateSchema }).parse(data))
-  .handler(async ({ data }): Promise<{ prev: string | null; next: string | null }> => {
+  .handler(async ({ data }): Promise<{ prev: NeighbourInfo; next: NeighbourInfo }> => {
     const [{ data: prev }, { data: next }] = await Promise.all([
       admin
         .from("daily_devotionals")
-        .select("date")
+        .select("date, title")
         .lt("date", data.date)
         .order("date", { ascending: false })
         .limit(1)
         .maybeSingle(),
       admin
         .from("daily_devotionals")
-        .select("date")
+        .select("date, title")
         .gt("date", data.date)
         .order("date", { ascending: true })
         .limit(1)
         .maybeSingle(),
     ]);
-    return {
-      prev: (prev as { date: string } | null)?.date ?? null,
-      next: (next as { date: string } | null)?.date ?? null,
+    const asInfo = (r: unknown): NeighbourInfo => {
+      const row = r as { date: string; title: string } | null;
+      return row ? { date: row.date, title: row.title } : null;
     };
+    return { prev: asInfo(prev), next: asInfo(next) };
   });
 
 // Paginated list for the archive index (and the recent strip on the hub).
