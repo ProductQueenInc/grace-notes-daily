@@ -293,6 +293,13 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-07-05 (PM12) — Stage 3 progress: owner decisions locked, PostHog mirror shipped, Lovable adapter verified
+
+- **Owner decisions (Cindy):** (1) grace-note cards KEEP the full NIV verse text - deliberate, licensing risk accepted ("if they send a cease and desist, I'll deal with it then"); (2) non-devotional share links land on the HOMEPAGE (`/?s=<token>`) - frozen as a contract term. Contract skill + roadmap updated.
+- **PostHog event mirror built** (migration `20260705210000_posthog_share_event_mirror.sql`, applied live): DB triggers on `share_events` (share_card_created), `share_clicks` (share_link_opened), and `profiles.attributed_share_token` (signup_attributed) fire via pg_net to us.i.posthog.com. Key must live in VAULT (`posthog_project_api_key`) because Postgres cannot read edge-function secrets; the owner's POSTHOG_API_KEY/POSTHOG_HOST edge secrets stay for any future in-function capture. Triggers are silent no-ops until the vault secret exists and can never break the write path.
+- **Lovable's adapter verified against the real API** (commit `9a4d676`): per-type routes via `supabase.functions.invoke` (session JWT attached), route map correct incl. milestone→streak-calendar, prayer_text clamped 200 + answered_date passed, `share_url`→`deep_link` mapping in one place, zero backend files touched.
+- ⚠️ Still pending: Lovable PUBLISH (live proxy check on `/api/public/share-card/...` still 404s), G4 personalized-path proof (owner test shares), vault one-liner above, then the G-S3 contract review + freeze stamp.
+
 ### 2026-07-05 (PM10) — STAGE 2 SHIPPED: PLG sharing backend built, deployed, and verified end-to-end
 
 Principal-engineer session (Claude, with Cindy). Roadmap Stage 2 (sharing architecture backend) built in full. Ran CONCURRENTLY with another session that closed G-S1 (contract v1.1 asset-model amendment, `share-templates` originals upload, Peace→trust decision) - reconciled at the end of this entry.

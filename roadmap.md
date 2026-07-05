@@ -51,8 +51,9 @@ answered-prayer-1200x630.png    streak-calendar-1200x630.png
 
 - All four share types + all four sizes specced in `gracenotes-canva-lovable-backend-contract` (v1.1-draft). Operational runbook: skill `gracenotes-sharing-architecture`.
 - Endpoint implemented 2026-07-05 (all four per-type routes live; devotional E2E-verified anon incl. 401/404 error contract; caption rotation + share_events writes verified). REMAINING for G4: personalization proven with a real signed-in user JWT (grace-note + streak).
-- PostHog GraceNotes project + server-side event mirror (share_card_created / share_link_opened / signup_attributed).
-- Freeze non-devotional share_url targets (currently provisional `/?s=<token>`).
+- [x] PostHog mirror BUILT 2026-07-05 (migration `20260705210000_posthog_share_event_mirror.sql`): DB triggers on share_events/share_clicks/profiles fire share_card_created / share_link_opened / signup_attributed via pg_net. ⚠️ Silent no-op until the owner adds the vault secret: `select vault.create_secret(<phc_... key>, posthog_project_api_key);`
+- [x] Non-devotional share_url target FROZEN (owner, 2026-07-05): the homepage `https://www.gracenotesdaily.com/?s=<token>`. (Private grace-note token pages remain a Later item.)
+- [x] Verse-on-card decision (owner, 2026-07-05): grace-note cards KEEP the full NIV verse text per the approved design; licensing risk accepted knowingly (revisit if Biblica objects).
 - **Freeze gate G-S3:** contract reviewed with Cindy, version stamped `1.0-frozen`, CLAUDE.md §11 entry. No Lovable work before this.
 
 ### STAGE 4 - Lovable UI implementation — status: BLOCKED by G-S1 + G-S3

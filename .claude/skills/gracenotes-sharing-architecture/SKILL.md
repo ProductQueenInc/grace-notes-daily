@@ -64,10 +64,10 @@ Lovable's share UI (shipped 2026-07-05, `share-card-modal.tsx` + `src/lib/share.
 ## 6. Attribution + deep links
 
 - Every render mints a `share_token` (32-hex) + `share_events` row (user_id nullable for anon devotional shares - documented deviation from the campaign draft SQL).
-- `share_url`: devotional -> `https://www.gracenotesdaily.com/library/devotional/YYYY-MM-DD?s=<token>` (the live invariant); other types -> `https://www.gracenotesdaily.com/?s=<token>` PROVISIONAL until Stage 3 freeze (grace-note private `/n/<token>` pages are a Later item).
+- `share_url`: devotional -> `https://www.gracenotesdaily.com/library/devotional/YYYY-MM-DD?s=<token>` (the live invariant); other types -> `https://www.gracenotesdaily.com/?s=<token>` (FROZEN by owner 2026-07-05; grace-note private token pages remain a Later item).
 - `?s=` clicks on the devotional page are logged server-side into `share_clicks` (fire-and-forget; invalid tokens rejected by regex + FK).
 - Signup attribution: Lovable persists the landing token and calls `claim_share_attribution(p_token)` (SECURITY DEFINER, authenticated) after onboarding - sets `profiles.attributed_share_token` once. "Share resulted in signup" = join profiles.attributed_share_token -> share_events.
-- PostHog event mirror (share_card_created / share_link_opened / signup_attributed): NOT BUILT YET - Stage 3 with the PostHog GraceNotes project setup.
+- PostHog mirror: DB triggers (migration 20260705210000) on share_events / share_clicks / profiles fire share_card_created / share_link_opened / signup_attributed via pg_net to us.i.posthog.com. Key lives in VAULT secret `posthog_project_api_key` (edge-function secrets are unreadable from Postgres); no-op until that secret exists. Analytics failures can never break writes (exception-swallowing).
 
 ## 7. Ops
 
