@@ -392,6 +392,7 @@ export function DevotionalView({
           GraceNotes Daily
         </Link>
       </p>
-    </div>
+      </div>
+    </>
   );
 }
