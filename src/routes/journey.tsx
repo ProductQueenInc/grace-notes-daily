@@ -90,15 +90,18 @@ function Journey() {
       const uid = user.id;
       const today = todayISO();
 
-      // Heart notes: only entries from BEFORE today (today's stays on its page)
+      // Heart notes on Journey: any past-day note, PLUS any archived
+      // (superseded) note from today. Today's still-active note stays on the
+      // Heart Notes page until the user archives or replaces it.
       // Note: `summary` is fetched in a separate query so a missing column on
       // any environment can't 400 the whole page.
       const heartReq = supabase
         .from("heart_notes")
-        .select("id, body, ai_response, date, created_at")
+        .select("id, body, ai_response, date, created_at, superseded_at")
         .eq("user_id", uid)
-        .lt("date", today)
-        .order("date", { ascending: false });
+        .or(`date.lt.${today},superseded_at.not.is.null`)
+        .order("date", { ascending: false })
+        .order("superseded_at", { ascending: false, nullsFirst: false });
 
       // Answered prayers + their thanksgivings
       const prayerReq = supabase
