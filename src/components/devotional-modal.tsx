@@ -189,8 +189,8 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
         ctx={{ type: "devotional", date: devotionalDate }}
         heading={{
           eyebrow: "Today's devotional",
-          title: "Share it forward",
-          subtitle: "Someone in your life might be sitting with the same thing.",
+          title: "Keep this one close",
+          subtitle: "A quiet way to remember what stirred in you today.",
         }}
         onClose={() => {
           setShareOpen(false);
