@@ -40,6 +40,7 @@ import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
 import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
 import { Route as BlogBuildingGracenotesDailyRouteImport } from './routes/blog.building-gracenotes-daily'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as LibraryDevotionalDateRouteImport } from './routes/library.devotional.$date'
 import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -201,6 +202,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryDevotionalDateRoute = LibraryDevotionalDateRouteImport.update({
+  id: '/library/devotional/$date',
+  path: '/library/devotional/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRiscReceiverRoute = ApiRiscReceiverRouteImport.update({
   id: '/api/risc/receiver',
   path: '/api/risc/receiver',
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
+  '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/devotional': typeof DevotionalIndexRoute
   '/library': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
+  '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -331,6 +339,7 @@ export interface FileRoutesById {
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
+  '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
+    | '/library/devotional/$date'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -407,6 +417,7 @@ export interface FileRouteTypes {
     | '/devotional'
     | '/library'
     | '/api/risc/receiver'
+    | '/library/devotional/$date'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
+    | '/library/devotional/$date'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -482,6 +494,7 @@ export interface RootRouteChildren {
   DevotionalIndexRoute: typeof DevotionalIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   ApiRiscReceiverRoute: typeof ApiRiscReceiverRoute
+  LibraryDevotionalDateRoute: typeof LibraryDevotionalDateRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -706,6 +719,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/devotional/$date': {
+      id: '/library/devotional/$date'
+      path: '/library/devotional/$date'
+      fullPath: '/library/devotional/$date'
+      preLoaderRoute: typeof LibraryDevotionalDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/risc/receiver': {
       id: '/api/risc/receiver'
       path: '/api/risc/receiver'
@@ -770,6 +790,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevotionalIndexRoute: DevotionalIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   ApiRiscReceiverRoute: ApiRiscReceiverRoute,
+  LibraryDevotionalDateRoute: LibraryDevotionalDateRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
