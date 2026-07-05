@@ -470,6 +470,57 @@ function LibraryHub() {
         </div>
       </section>
 
+      {/* Recent devotionals strip — primary entry point to the archive.
+          Small horizontal cards, then a warm CTA to the full archive index. */}
+      {recentDevotionals.length > 0 && isAll && (
+        <section className="px-6 pb-10 sm:pb-12 pt-2 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold mb-2">
+                  Daily Devotionals
+                </p>
+                <h2 className="font-display text-xl sm:text-2xl md:text-[1.7rem] text-white drop-shadow leading-tight">
+                  Recent readings
+                </h2>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {recentDevotionals.slice(0, 6).map((d) => (
+                <Link
+                  key={d.date}
+                  to="/library/devotional/$date"
+                  params={{ date: d.date }}
+                  className="group glass-parchment rounded-2xl p-4 sm:p-5 flex flex-col gap-1.5 transition hover:shadow-lg"
+                >
+                  <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
+                    {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      timeZone: "UTC",
+                    })}
+                  </span>
+                  <h3 className="font-display text-lg text-grace leading-snug group-hover:text-grace-deep transition line-clamp-2">
+                    {d.title}
+                  </h3>
+                  <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <Link
+                to="/library/devotional"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gold text-gold-foreground font-semibold text-sm hover:scale-[1.02] transition"
+              >
+                Browse all devotionals
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ============ FREE GUIDES (mobile + desktop) ============
           Foundations already appears at the top of the page as a teaser
           and as a featured row, so we use the bottom slot to surface
