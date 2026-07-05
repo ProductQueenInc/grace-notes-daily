@@ -10,9 +10,11 @@ import { toast } from "sonner";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
 import { BASE_URL } from "@/lib/library";
+import { pickDailyPromise } from "@/lib/promises";
 import { useAuth } from "@/hooks/use-auth";
 import type { DevotionalResult } from "@/lib/ai.functions";
 import type { NeighbourInfo } from "@/lib/devotional-archive.functions";
+
 
 // Canonical share URL for a devotional.
 function devotionalUrl(dateISO: string) {
