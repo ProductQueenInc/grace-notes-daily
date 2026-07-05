@@ -1,27 +1,38 @@
 // supabase/functions/generate-daily-devotional/index.ts
 // Day-ahead cron: pre-generates the shared daily devotional for a given date
-// (defaults to tomorrow UTC). Safe to call multiple times - skips if a row
-// already exists. Scheduled by pg_cron at 09:00 UTC daily (early enough that
-// the row exists before UTC+14 reaches its local midnight).
+// (defaults to tomorrow UTC) AND its AI-generated nature cover image. Safe
+// to call multiple times - skips text generation if a row already exists,
+// and backfills a missing cover image on that same row when needed.
+// Scheduled by pg_cron at 09:00 UTC daily.
 //
-// To schedule (run once in Supabase SQL editor):
-//   select cron.schedule(
-//     'generate-daily-devotional',
-//     '0 9 * * *',
-//     $$
-//     select net.http_post(
-//       url := '<SUPABASE_PROJECT_URL>/functions/v1/generate-daily-devotional',
-//       headers := '{"Content-Type":"application/json","Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb,
-//       body := '{}'::jsonb
-//     ) as request_id;
-//     $$
-//   );
+// Modes (POST body):
+//   {}                              -> generate tomorrow (default)
+//   { "date": "YYYY-MM-DD" }        -> generate that specific date
+//   { "backfill": true, "limit": N} -> backfill covers for the N oldest rows
+//                                      missing cover_image_url (default 5)
 //
-// PROMPT POLICY: the system prompt below mirrors getOrCreateSharedDevotional
-// in src/lib/ai.functions.ts. If you change one, change the other.
+// PROMPT POLICY: the devotional system prompt below mirrors
+// getOrCreateSharedDevotional in src/lib/ai.functions.ts, and the cover
+// prompt mirrors buildCoverPrompt in src/lib/devotional-cover.server.ts.
+// If you change one, change the other (edge functions can't import from src/).
 
 import Anthropic from 'npm:@anthropic-ai/sdk'
 import { createClient } from 'npm:@supabase/supabase-js'
+
+const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') })
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+)
+
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? ''
+const COVER_BUCKET = 'devotional-covers'
+const IMAGE_MODEL = 'google/gemini-3.1-flash-image'
+const IMAGE_GATEWAY = 'https://ai.gateway.lovable.dev/v1/images/generations'
+// Public proxy that serves cover images from the private bucket.
+// Keep in sync with coverPublicUrl in src/lib/devotional-cover.server.ts and
+// the BASE_URL in src/lib/library.ts.
+const SITE_BASE_URL = 'https://www.gracenotesdaily.com'
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') })
 const supabase = createClient(
