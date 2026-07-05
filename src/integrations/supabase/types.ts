@@ -188,6 +188,56 @@ export type Database = {
           },
         ]
       }
+      daily_devotionals: {
+        Row: {
+          body: Json | null
+          date: string
+          generated_at: string
+          id: string
+          related: Json | null
+          takeaway: string | null
+          theme: string
+          title: string | null
+          verse_id: number | null
+          verse_reference: string | null
+          verse_text: string | null
+        }
+        Insert: {
+          body?: Json | null
+          date: string
+          generated_at?: string
+          id?: string
+          related?: Json | null
+          takeaway?: string | null
+          theme: string
+          title?: string | null
+          verse_id?: number | null
+          verse_reference?: string | null
+          verse_text?: string | null
+        }
+        Update: {
+          body?: Json | null
+          date?: string
+          generated_at?: string
+          id?: string
+          related?: Json | null
+          takeaway?: string | null
+          theme?: string
+          title?: string | null
+          verse_id?: number | null
+          verse_reference?: string | null
+          verse_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_devotionals_verse_id_fkey"
+            columns: ["verse_id"]
+            isOneToOne: false
+            referencedRelation: "verses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_grace_notes: {
         Row: {
           created_at: string
@@ -507,6 +557,7 @@ export type Database = {
           created_at: string
           faith_phase: string | null
           id: string
+          inferred_themes: Json
           name: string | null
           onboarded: boolean
           rhythms: string[]
@@ -521,6 +572,7 @@ export type Database = {
           created_at?: string
           faith_phase?: string | null
           id: string
+          inferred_themes?: Json
           name?: string | null
           onboarded?: boolean
           rhythms?: string[]
@@ -535,6 +587,7 @@ export type Database = {
           created_at?: string
           faith_phase?: string | null
           id?: string
+          inferred_themes?: Json
           name?: string | null
           onboarded?: boolean
           rhythms?: string[]

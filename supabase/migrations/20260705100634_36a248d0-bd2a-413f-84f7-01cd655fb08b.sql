@@ -1,0 +1,50 @@
+-- Recreate the shared daily devotional schema that never made it to the live DB.
+-- Additive and idempotent — safe if any pieces already exist.
+
+create table if not exists public.daily_devotionals (
+  id uuid primary key default gen_random_uuid(),
+  date date not null unique,
+  theme text not null,
+  verse_id integer references public.verses(id),
+  verse_text text,
+  verse_reference text,
+  title text,
+  body jsonb,
+  related jsonb,
+  takeaway text,
+  generated_at timestamptz not null default now()
+);
+
+alter table public.daily_devotionals enable row level security;
+
+grant select on public.daily_devotionals to anon, authenticated;
+grant all on public.daily_devotionals to service_role;
+
+drop policy if exists "daily_devotionals readable by all" on public.daily_devotionals;
+create policy "daily_devotionals readable by all"
+  on public.daily_devotionals for select
+  to anon, authenticated
+  using (true);
+
+-- Inferred themes on profiles (used by personalised grace note).
+alter table public.profiles
+  add column if not exists inferred_themes jsonb not null default '[]'::jsonb;
+
+-- Grief & Comfort verse pool (Wednesday slot), NIV 2011.
+with base as (select coalesce(max(id), 0) as m from public.verses)
+insert into public.verses (id, reference, text, theme, posture_tags, is_active)
+select base.m + v.rn, v.reference, v.text, 'Grief & Comfort', array['grief','comfort']::text[], true
+from base,
+(values
+  (1, 'Psalm 34:18', 'The Lord is close to the brokenhearted and saves those who are crushed in spirit.'),
+  (2, 'Matthew 5:4', 'Blessed are those who mourn, for they will be comforted.'),
+  (3, 'Psalm 147:3', 'He heals the brokenhearted and binds up their wounds.'),
+  (4, 'Revelation 21:4', 'He will wipe every tear from their eyes. There will be no more death or mourning or crying or pain, for the old order of things has passed away.'),
+  (5, 'Psalm 46:1', 'God is our refuge and strength, an ever-present help in trouble.'),
+  (6, '2 Corinthians 1:3-4', 'Praise be to the God and Father of our Lord Jesus Christ, the Father of compassion and the God of all comfort, who comforts us in all our troubles, so that we can comfort those in any trouble with the comfort we ourselves receive from God.'),
+  (7, 'Psalm 73:26', 'My flesh and my heart may fail, but God is the strength of my heart and my portion forever.'),
+  (8, 'Isaiah 49:13', 'For the Lord comforts his people and will have compassion on his afflicted ones.')
+) as v(rn, reference, text)
+where not exists (
+  select 1 from public.verses x where x.theme = 'Grief & Comfort'
+);
