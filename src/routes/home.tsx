@@ -334,8 +334,8 @@ function Home() {
         ctx={graceNote ? { type: "grace_note", note_id: today } : null}
         heading={{
           eyebrow: "Today's grace note",
-          title: "Share this note",
-          subtitle: "A quiet word for someone who might need it.",
+          title: "Hold onto this",
+          subtitle: "Save it where you'll see it again.",
         }}
         onClose={() => setGraceShareOpen(false)}
       />

@@ -43,7 +43,7 @@ export function MilestoneWatcher() {
           openTier === 1
             ? "Your first gold day"
             : `${openTier} days of showing up`,
-        subtitle: "Small daily returns. Share what's growing.",
+        subtitle: "A marker for your own walk.",
       }}
       onClose={() => {
         markMilestoneShareSeen(openTier);

@@ -158,16 +158,18 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
             </div>
 
             {received ? (
-              <div className="mt-7 flex flex-col md:flex-row items-stretch md:items-center md:justify-center gap-2">
-                <div className="md:px-8 py-3.5 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
+              <div className="mt-7 flex items-center justify-center gap-2">
+                <div className="px-6 py-3 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
                   <Icon icon={Check} size="sm" tone="inherit" />{" "}
                   {devotionalDate === localTodayISO() ? "Received today" : "Received"}
                 </div>
                 <button
                   onClick={() => setShareOpen(true)}
-                  className="md:px-6 py-3.5 rounded-full border-2 border-grace text-grace font-semibold flex items-center justify-center gap-2 hover:bg-grace hover:text-white transition"
+                  aria-label="Share"
+                  title="Share"
+                  className="w-10 h-10 rounded-full text-grace/70 hover:text-grace hover:bg-grace-soft flex items-center justify-center transition"
                 >
-                  <Icon icon={Share2} size="sm" tone="inherit" /> Share
+                  <Icon icon={Share2} size="sm" tone="inherit" />
                 </button>
               </div>
             ) : (
@@ -187,8 +189,8 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
         ctx={{ type: "devotional", date: devotionalDate }}
         heading={{
           eyebrow: "Today's devotional",
-          title: "Share it forward",
-          subtitle: "Someone in your life might be sitting with the same thing.",
+          title: "Keep this one close",
+          subtitle: "A quiet way to remember what stirred in you today.",
         }}
         onClose={() => {
           setShareOpen(false);
