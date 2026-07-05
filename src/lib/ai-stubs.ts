@@ -2,6 +2,7 @@ import type { Profile } from "@/hooks/use-auth";
 import {
   getOrCreateGraceNote,
   getOrCreateSharedDevotional,
+  getStoredSharedDevotional,
   callRespondToHeartNote,
   callRespondToDailyMessage,
   callSummarizeHeartNote,
@@ -25,9 +26,16 @@ export async function generateGraceNote(
 }
 
 // Shared daily devotional: the same one for everyone, keyed by date.
-// Used by the in-app modal and the public /devotional/<date> page.
+// Used by the in-app modal, home, and the public /devotional (today) page.
 export async function getSharedDevotional(date?: string): Promise<DevotionalResult> {
   return getOrCreateSharedDevotional({ data: { date: date ?? localTodayISO() } });
+}
+
+// Read-only stored lookup for the dated archive route. Null means the row
+// doesn't exist yet - the route 404s instead of generating or showing an
+// empty state.
+export async function getStoredDevotional(date: string): Promise<DevotionalResult | null> {
+  return getStoredSharedDevotional({ data: { date } });
 }
 
 export async function respondToHeartNote(

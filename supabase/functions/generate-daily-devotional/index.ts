@@ -1,12 +1,13 @@
 // supabase/functions/generate-daily-devotional/index.ts
 // Day-ahead cron: pre-generates the shared daily devotional for a given date
 // (defaults to tomorrow UTC). Safe to call multiple times - skips if a row
-// already exists. Scheduled by pg_cron at 22:00 UTC daily.
+// already exists. Scheduled by pg_cron at 09:00 UTC daily (early enough that
+// the row exists before UTC+14 reaches its local midnight).
 //
 // To schedule (run once in Supabase SQL editor):
 //   select cron.schedule(
 //     'generate-daily-devotional',
-//     '0 22 * * *',
+//     '0 9 * * *',
 //     $$
 //     select net.http_post(
 //       url := '<SUPABASE_PROJECT_URL>/functions/v1/generate-daily-devotional',
@@ -110,6 +111,24 @@ POSITIVE EXAMPLES - different entry points, shown to illustrate range of shape, 
 "A kettle, left on the stove past its whistle."
 `
 
+// Service-token check. The cron sends the legacy service_role JWT from the
+// vault, but the edge runtime's injected SUPABASE_SERVICE_ROLE_KEY can be a
+// different format (new sb_secret keys), so plain equality can 401 a
+// genuinely privileged token. Fast-path the env match; otherwise prove the
+// token has service-level power with a harmless admin call.
+async function isServiceToken(token: string): Promise<boolean> {
+  if (!token) return false
+  const envKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (envKey && token === envKey) return true
+  try {
+    const probe = createClient(Deno.env.get('SUPABASE_URL')!, token)
+    const { error } = await probe.auth.admin.listUsers({ page: 1, perPage: 1 })
+    return !error
+  } catch {
+    return false
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -118,7 +137,7 @@ Deno.serve(async (req: Request) => {
   // Bearer-token auth (service role only)
   const authHeader = req.headers.get('Authorization') ?? ''
   const token = authHeader.replace(/^Bearer\s+/i, '')
-  if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+  if (!(await isServiceToken(token))) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -229,7 +248,7 @@ Respond with valid JSON only - no markdown, no code fences:
     const body = parsed.body.map((p) => sanitizeText(p))
     const takeaway = sanitizeText(parsed.takeaway ?? '')
 
-    await supabase.from('daily_devotionals').upsert(
+    const { error: persistError } = await supabase.from('daily_devotionals').upsert(
       {
         date,
         theme: themeName,
@@ -246,6 +265,7 @@ Respond with valid JSON only - no markdown, no code fences:
       // of replacing content users may already be reading.
       { onConflict: 'date', ignoreDuplicates: true },
     )
+    if (persistError) throw new Error(`persist failed: ${persistError.message}`)
 
     return new Response(
       JSON.stringify({ ok: true, date, theme: themeName, title }),

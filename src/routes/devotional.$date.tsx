@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { getSharedDevotional } from "@/lib/ai-stubs";
+import { getStoredDevotional } from "@/lib/ai-stubs";
 import { DevotionalView, devotionalHead } from "@/components/devotional-view";
 import type { DevotionalResult } from "@/lib/ai.functions";
 
@@ -8,18 +8,16 @@ function isValidDate(s: string) {
 }
 
 export const Route = createFileRoute("/devotional/$date")({
-  loader: async ({ params }): Promise<{ devotional: DevotionalResult | null; date: string }> => {
+  // Archive URLs are READ-ONLY: they serve the stored row or 404. They never
+  // trigger generation (so crawlers can't mint devotionals for arbitrary
+  // dates) and never show a placeholder - a dated page simply doesn't exist
+  // until its devotional does. Generation lives in the cron and the today
+  // paths (in-app + /devotional index).
+  loader: async ({ params }): Promise<{ devotional: DevotionalResult; date: string }> => {
     if (!isValidDate(params.date)) throw notFound();
-    try {
-      const devotional = await getSharedDevotional(params.date);
-      // A dated archive URL must only ever show that date's devotional. If
-      // the server fell back to a different day's content, treat it as not
-      // ready ("being prepared" card) rather than mislabeling the content.
-      return { devotional: devotional.isFallback ? null : devotional, date: params.date };
-    } catch (err) {
-      console.error("[devotional/$date] generation failed:", err);
-      return { devotional: null, date: params.date };
-    }
+    const devotional = await getStoredDevotional(params.date);
+    if (!devotional) throw notFound();
+    return { devotional, date: params.date };
   },
   head: ({ loaderData }) => devotionalHead(loaderData?.devotional ?? undefined, loaderData?.date),
   component: DevotionalDateRoute,

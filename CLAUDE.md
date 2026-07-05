@@ -244,6 +244,15 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-07-05 (PM5) — Dated devotional archive URLs now 404 until the row exists (read-only route)
+
+Owner decision: a dated archive page shouldn't exist publicly until its devotional is ready — no "being prepared" empty state on `/devotional/$date`.
+
+- **New read-only server fn `getStoredSharedDevotional`** (`src/lib/ai.functions.ts`) + stub `getStoredDevotional` (`ai-stubs.ts`): returns the stored row or null, never generates.
+- **`src/routes/devotional.$date.tsx`:** loader now uses the read-only lookup and `throw notFound()` when the row doesn't exist (renders the root 404). Side benefit: archive URLs can no longer trigger on-demand AI generation, closing a hole where crawlers or visitors hitting arbitrary/future dated URLs minted devotionals for those dates. Generation now happens only via the cron and the today paths (in-app + `/devotional` index, which keep the PM4 fallback chain).
+- 404 for not-yet-generated dates is also correct for SEO (no thin/duplicate placeholder pages in the index).
+- `tsc --noEmit` clean.
+
 ### 2026-07-05 (PM4) — Production audit: devotional persistence broken since 06-22, both crons never ran; fallback strategy shipped; cron moved to 09:00 UTC
 
 Following up the two-devices divergence fix with a live-DB audit revealed the divergence was not an edge-case race. Persistence of the shared devotional has never worked in production:

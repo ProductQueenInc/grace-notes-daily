@@ -154,15 +154,33 @@ async function generateGraceNote(faithPhase: string, seasons: string[], verse: {
   }
 }
 
+// Service-token check. The cron sends the legacy service_role JWT from the
+// vault, but the edge runtime's injected SUPABASE_SERVICE_ROLE_KEY can be a
+// different format (new sb_secret keys), so plain equality can 401 a
+// genuinely privileged token. Fast-path the env match; otherwise prove the
+// token has service-level power with a harmless admin call.
+async function isServiceToken(token: string): Promise<boolean> {
+  if (!token) return false
+  const envKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (envKey && token === envKey) return true
+  try {
+    const probe = createClient(Deno.env.get('SUPABASE_URL')!, token)
+    const { error } = await probe.auth.admin.listUsers({ page: 1, perPage: 1 })
+    return !error
+  } catch {
+    return false
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   // Auth guard: only the scheduled cron (sending the service role key) may invoke this.
-  const authHeader = req.headers.get('Authorization')
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!authHeader || !serviceKey || authHeader !== `Bearer ${serviceKey}`) {
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const token = authHeader.replace(/^Bearer\s+/i, '')
+  if (!(await isServiceToken(token))) {
     return new Response('Unauthorized', {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'text/plain' },

@@ -868,3 +868,21 @@ export const getOrCreateSharedDevotional = createServerFn({ method: "POST" })
     }
   });
 
+// Read-only lookup for the dated archive route (/devotional/$date): returns
+// the stored devotional or null, NEVER generates. Archive URLs should 404
+// until the row actually exists - no empty "being prepared" placeholder, and
+// no letting crawlers or curious visitors trigger generation for arbitrary
+// (including future) dates. Generation happens only via the cron and the
+// today paths (in-app + /devotional index), which use getOrCreateSharedDevotional.
+export const getStoredSharedDevotional = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => SharedDevotionalInputSchema.parse(data))
+  .handler(async ({ data }): Promise<DevotionalResult | null> => {
+    const { data: existing } = await admin
+      .from("daily_devotionals")
+      .select("theme, verse_text, verse_reference, title, body, related, takeaway")
+      .eq("date", data.date)
+      .maybeSingle();
+    if (!existing) return null;
+    return sharedRowToResult(existing as SharedDevotionalRow, devotionalDisplayDate(data.date));
+  });
+
