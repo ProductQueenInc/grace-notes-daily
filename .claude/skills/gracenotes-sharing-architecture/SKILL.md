@@ -36,6 +36,10 @@ Errors: { error: { code, message } } - invalid_template/invalid_size/payload_inv
 
 Lovable passes `image_url` + `caption` + `share_url` straight to the native share sheet (`{ title, url }` only - never `text`). Personalized content is ALWAYS server-fetched from the JWT (grace note text, habits); `prayer_text` is the one client-supplied field (user-confirmed, per contract).
 
+### 2a. The Lovable adapter (Stage 3 handoff item)
+
+Lovable's share UI (shipped 2026-07-05, `share-card-modal.tsx` + `src/lib/share.ts`) calls a MOCKED `generateShareCard({ type, context })` that returns `{ image_url, caption, deep_link }`. The real implementation is a thin adapter the backend seat writes at Stage 3: call the per-type route above with the signed-in session token (`supabase.functions.invoke("render-share-card/<type>", ...)` from the client lib, since server fns don't hold the user's session), and map `share_url` -> `deep_link`. Field names inside the modal stay as Lovable froze them; the mapping lives in ONE place (the adapter).
+
 ## 3. Content resolution (how each card gets its data)
 
 - **grace-note**: latest `daily_grace_notes` row for the JWT user -> `grace_note` (<=320 chars), `verse_text`, `verse_reference` (rendered as `ref - NIV`). NOTE: full verse text appears on the card because the owner's Canva design includes it - NIV licensing exposure is on record (CLAUDE.md 2026-06-22); revisit before major launch.

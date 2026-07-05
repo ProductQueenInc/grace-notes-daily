@@ -311,6 +311,7 @@ Principal-engineer session (Claude, with Cindy). Roadmap Stage 2 (sharing archit
 - **Docs**: new skill `.claude/skills/gracenotes-sharing-architecture/` (verified runbook - THE operational reference); contract skill amended (1.1-draft: per-type routes, caption/storage_key fields, as-built asset layout, `daily_grace_notes.grace_note` field-source fix); campaign skill marked executed; roadmap Stage 1+2 COMPLETE, Stage 3 OPEN.
 - **tsc --noEmit fully clean.** routeTree regenerated (share-card proxy route registered).
 - **Open items moved to Stage 3**: G4 personalization proof with a real user JWT; PostHog project + event mirror; freeze non-devotional share_url targets (provisional `/?s=<token>`); grace-note verse text on cards carries the known NIV exposure (owner design includes full verse; revisit before major launch).
+- **Stage 3 handoff item (discovered post-push):** the concurrent Lovable session shipped the share modal UI against a MOCKED `generateShareCard({type, context}) -> { image_url, caption, deep_link }`. Real adapter = call the per-type edge routes with the session token and map `share_url` -> `deep_link` (runbook skill 2a). Do this swap at Stage 3 alongside G4.
 - Side-discovery, needs a look: `devotional-covers` bucket does NOT exist in storage.buckets, yet PM8 claims covers were backfilled and `cover_image_url` values point at the proxy - the cover pipeline may be silently broken in production. Check worker logs on next publish.
 
 
