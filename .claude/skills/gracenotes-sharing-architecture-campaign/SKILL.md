@@ -5,6 +5,8 @@ description: The executable, decision-gated campaign for building GraceNotes Dai
 
 # Sharing Architecture Campaign
 
+> **STAGE 2 EXECUTED 2026-07-05 (PM10).** Phases 1, 2, 3 and 5 are built and live; operational truth (deployed shapes, bucket layout, constraints discovered during the build - baked story footers, resvg free(), per-type routes) lives in skill `gracenotes-sharing-architecture`. Treat the phases below as the historical plan + the still-open items (Phase 4 G4 JWT proof, Phase 6 native deep links, Phase 7 freeze/handoff).
+
 Decision-gated runbook. Do phases in order; each gate states the expected observation and the branch if you see something else. Field names, API shape, and ownership boundary live in `gracenotes-canva-lovable-backend-contract` — this file never redefines them.
 
 ## When NOT to use this skill

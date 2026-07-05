@@ -42,7 +42,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired UX, dist
 |---|---|
 | "I am fixing a bug" | `gracenotes-debugging-playbook` → `gracenotes-failure-archaeology` → `gracenotes-validation-and-qa` |
 | "I am adding a new feature" | `gracenotes-architecture-contract` → `gracenotes-change-control` → `faithapp-domain-reference` (if user-facing) → `gracenotes-validation-and-qa` |
-| "I am working on the sharing architecture" | `gracenotes-canva-lovable-backend-contract` → `gracenotes-sharing-architecture-campaign` → `gracenotes-proof-and-analysis-toolkit` |
+| "I am working on the sharing architecture" | `gracenotes-sharing-architecture` (the built system) → `gracenotes-canva-lovable-backend-contract` → `gracenotes-proof-and-analysis-toolkit` |
 | "I am working on the Lovable integration" | `gracenotes-canva-lovable-backend-contract` → `gracenotes-change-control` → `gracenotes-architecture-contract` |
 | "I am preparing for App Store submission" | `gracenotes-build-and-env` → `gracenotes-run-and-operate` → `gracenotes-validation-and-qa` (deep-link matrix) |
 | Deploying / operating / cron issues | `gracenotes-run-and-operate` → `gracenotes-config-and-flags` → `gracenotes-diagnostics-and-tooling` |
@@ -59,7 +59,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired UX, dist
 - **Backend storage**: the v2 schema (`verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`) is live with proper RLS + GRANTs.
 - **Edge functions**: `chat-reply` (chat safety + streaming SSE) and `generate-daily-grace-notes` (overnight cron) are deployed and now fully wired — `crisis_lines` seeded (51 countries) and pg_cron scheduled (daily 01:00 UTC).
 - **PWA icons**: shipped and verified. Master `icon-source.png` is **1254×1254** (larger than the 1024 minimum, safe to downscale for App Store / Play Store when native build lands).
-- **What's NOT done yet** (corrected 2026-07-05): no push notifications; no native (Capacitor) build (targeted <3 months); no share-card / PLG sharing system (the roadmap.md "Now" project); no analytics instrumentation (PostHog decided, not built); dated devotional archive pages not yet in a dynamic sitemap. (Stale claim removed: verse grounding from the `verses` table HAS been live since 2026-06-22.)
+- **What's NOT done yet** (corrected 2026-07-05 PM10): no push notifications; no native (Capacitor) build (targeted <3 months); no analytics instrumentation (PostHog decided, not built); dated devotional archive pages not yet in a dynamic sitemap. **The PLG sharing BACKEND is now live** (render-share-card v8 + schema + assets + proxy; see PM10) - the share UI (Lovable, Stage 4) and contract freeze (Stage 3) remain.
 
 > **Checkpoint:** "MVP UI + v2 backend live + cron + crisis lines seeded" — this version is the rollback target.
 
@@ -292,6 +292,27 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-07-05 (PM10) — STAGE 2 SHIPPED: PLG sharing backend built, deployed, and verified end-to-end
+
+Principal-engineer session (Claude, with Cindy). Roadmap Stage 2 (sharing architecture backend) built in full. Ran CONCURRENTLY with another session that closed G-S1 (contract v1.1 asset-model amendment, `share-templates` originals upload, Peace→trust decision) - reconciled at the end of this entry.
+
+**Deployed and verified live:**
+
+- **`render-share-card` edge function (v8)** - Satori + resvg-wasm renderer, one clean route per share type (owner decision; supersedes single-endpoint 1.0 draft): `POST /functions/v1/render-share-card/{grace-note|devotional|answered-prayer|streak-calendar}`. JWT required for personalized types (server-fetches `daily_grace_notes` / `daily_habits` from claims - never client-supplied); devotional accepts anon. Returns `{ image_url, storage_key, template_id, size, caption, share_url, share_token, contract_version: "1.1-draft" }`; error shape per contract. Verified: 16/16 template x size renders with exact dims, warm 0.5-1.5s / cold ~2.6s (p95 < 2.5s target met), idempotent (content-addressed sha256 keys; identical request twice -> same image_url, 2nd call <1s), 401/404 error contract, caption rotation advancing sequentially.
+- **Assets**: PRIVATE `share-assets` bucket (258 objects) = the renderer's processed store: 62 owner-delivered backgrounds pre-cropped offline into 4 JPEG size variants each (248), Fraunces/Nunito woffs (5), logo + confetti icon (2), `share-captions.json` + `backgrounds-manifest.json` (2), resvg wasm (1). The concurrent session's `share-templates` bucket (67 objects) holds the raw originals archive. Confetti icon extracted from the Canva page-1 spec; logo = PWA icon-192.
+- **Background selection**: deterministic-random (FNV-1a of template|user-or-date|content, mod pool) - random across users/days, stable per share for caching, same background across all 4 sizes. Devotional pools selected by the devotional's `theme` column via manifest theme_map; **Peace→trust** (owner G-S1 decision, live in the storage manifest).
+- **Caption rotation**: sequential per user per template - index = count of prior `share_events` rows mod 10, from the user-editable caption bank.
+- **Schema (migration `20260705190000_plg_sharing_stage2.sql`, applied live + committed)**: `share_events` (user_id NULLABLE - documented deviation for anon devotional shares), `share_clicks` (no IP), `profiles.attributed_share_token`, SECURITY DEFINER RPC `claim_share_attribution(p_token)` for the Stage 4 signup flow. RLS: own-rows select on share_events; server-only writes.
+- **CDN**: PRIVATE `share-cards` bucket + public SSR proxy `src/routes/api/public/share-card.$key.ts` (immutable cache headers, key-format validation; devotional-cover precedent). ⚠️ image_url 404s publicly until the next Lovable publish ships the proxy route.
+- **Click logging**: `src/lib/share.functions.ts` (`logShareClick`) + `?s=` validateSearch/loaderDeps wiring in `library.devotional.$date.tsx` - fire-and-forget, never blocks the page, bad tokens rejected by regex + FK.
+- **Hard-won build knowledge** (full detail in the new `gracenotes-sharing-architecture` skill): (1) the 1080x1920 background art has the "... yours at: www.gracenotesdaily.com" footer BAKED IN - the renderer must not draw a footer at that size (chased for six deploy cycles as a satori/resvg bug; inspect source assets first next time); (2) resvg-wasm objects are free()d every render; (3) `render-test?svg=1` diagnostic route separates satori bugs from resvg bugs; (4) woff yes / woff2 no for satori fonts.
+- **Admin/ops routes** on the same function: `admin/upload` (service-role bearer) for asset sync; `admin/render-test` (nonce in index.ts; fixtures only, no data access).
+- **Docs**: new skill `.claude/skills/gracenotes-sharing-architecture/` (verified runbook - THE operational reference); contract skill amended (1.1-draft: per-type routes, caption/storage_key fields, as-built asset layout, `daily_grace_notes.grace_note` field-source fix); campaign skill marked executed; roadmap Stage 1+2 COMPLETE, Stage 3 OPEN.
+- **tsc --noEmit fully clean.** routeTree regenerated (share-card proxy route registered).
+- **Open items moved to Stage 3**: G4 personalization proof with a real user JWT; PostHog project + event mirror; freeze non-devotional share_url targets (provisional `/?s=<token>`); grace-note verse text on cards carries the known NIV exposure (owner design includes full verse; revisit before major launch).
+- Side-discovery, needs a look: `devotional-covers` bucket does NOT exist in storage.buckets, yet PM8 claims covers were backfilled and `cover_image_url` values point at the proxy - the cover pipeline may be silently broken in production. Check worker logs on next publish.
+
 
 ### 2026-07-05 (PM11) — G-S1 CLOSED: share-asset decisions locked, names normalized, `share-templates` bucket created
 
@@ -635,6 +656,12 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 | Legacy devotional 301 routes | `src/routes/devotional.index.tsx`, `devotional.$date.tsx` |
 | Roadmap (read before coding) | `roadmap.md` |
 | Skill library (verified ops knowledge) | `.claude/skills/*/SKILL.md` |
+| Share-card render edge function (Satori+resvg, per-type routes) | `supabase/functions/render-share-card/index.ts` |
+| Share-card public proxy route | `src/routes/api/public/share-card.$key.ts` |
+| Share click logging server fn | `src/lib/share.functions.ts` |
+| Share captions bank (repo copy; storage copy is canonical) | `public/share-captions.json` |
+| PLG sharing schema migration | `supabase/migrations/20260705190000_plg_sharing_stage2.sql` |
+| Sharing runbook (verified, operational) | `.claude/skills/gracenotes-sharing-architecture/SKILL.md` |
 | Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Verses library seed (unused for now) | `scripts/seed_verses.js`, `gracenotes_verse_library.json` |
 | Routes | `src/routes/*.tsx` |

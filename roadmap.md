@@ -2,7 +2,7 @@
 
 Living document. **Read this before writing any code.** Any model or engineer must check current stage completion before beginning work on a later stage. Sequencing rules at the bottom are enforced, not suggested. Companion knowledge lives in `.claude/skills/` (start with `gracenotes-architecture-contract`); CLAUDE.md is the audit hook and changelog.
 
-Last updated: 2026-07-05.
+Last updated: 2026-07-05 (PM10 - Stage 2 built and verified; Stage 3 open).
 
 ## Now - The PLG sharing system
 
@@ -12,13 +12,13 @@ Terminology: roadmap **STAGES (1-5, gates G-S1/G-S3)** are the project-level seq
 
 Decisions already made (2026-07-05, owner): renderer = self-hosted Satori + resvg on a Supabase Edge Function; analytics = PostHog (new GraceNotes project) with Supabase `share_events` as source of truth; deep links = custom Universal Links / App Links on gracenotesdaily.com (no third-party vendor; Firebase Dynamic Links is a dead product); native Capacitor build is imminent (<3 months), so deep links are designed native-ready from day one.
 
-### STAGE 1 - Canva (happens outside the repo) — status: COMPLETE, G-S1 CLOSED 2026-07-05 (one owner action pending)
+### STAGE 1 - Canva (happens outside the repo) — status: COMPLETE, G-S1 CLOSED 2026-07-05
 
 Delivered and verified: 62 background PNGs, all 1080x1920 (grace-note 10, streak 11, answered-prayer 10, devotional 31 across 10 theme dirs), 3 design mockups (1080x1080), confetti SVG, `share-captions.json` — in `grace-notes-daily/public/` in the PARENT folder. Deliverable format is the background-bank model per contract skill §2 (v1.1): Canva ships art + mockups + captions; the backend renders all typography. The frame list below remains as the 4 types x 4 sizes the RENDERER outputs.
 
 **G-S1 decisions (owner-approved 2026-07-05, recorded in contract skill §2):** sizes center-cropped from the 1080x1920 art; devotional theme→dir mapping frozen with **Peace (Tue) → `trust/`**; filenames normalized in place; assets go to the private `share-templates` bucket (created).
 
-⚠️ **One owner action:** run the one-time upload — `SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/upload_share_templates.js` from the repo root. Stage 2 renderer work is unblocked now; Phase 3 (all 16 implementations) needs the upload done.
+**Upload DONE (2026-07-05 PM10):** originals archived in `share-templates` (67 objects, via the script); the renderer's processed store `share-assets` (258 objects: 4 pre-cropped JPEG size variants per background + fonts + icons + config + resvg wasm) uploaded and verified. No owner action remains.
 
 - Design all four share card templates, four size variants each (16 frames total).
 - Naming convention (exact): `{template-type}-{width}x{height}.png`
@@ -38,19 +38,21 @@ answered-prayer-1200x630.png    streak-calendar-1200x630.png
 - Visual constraints: Fraunces/Nunito, brand greens + gold, imagery policy, no em-dashes.
 - **Approval gate G-S1:** Cindy approves all 16 frames + slot maps. Expected observation: 16 named PNGs + 16 slot maps delivered, an explicit "approved" from Cindy recorded in CLAUDE.md §11. If any frame is rejected → iterate in Canva only; do NOT start partial parameterization with the approved subset. Nothing in Stage 4 (and no renderer templating in Stage 2 beyond the spike) begins before this.
 
-### STAGE 2 - Backend infrastructure — status: NOT STARTED
+### STAGE 2 - Backend infrastructure — status: COMPLETE 2026-07-05 (built + verified; see notes)
 
-- Renderer spike deployed and proven (campaign Phase 1, gate G1) - may run before G-S1 with placeholder design.
-- `share-cards` PRIVATE storage bucket + public SSR proxy route + content-addressed caching (Phase 2, gate G2). Public buckets are blocked by workspace policy; pattern precedent is the devotional-covers proxy (`/api/public/devotional-cover/$date`, shipped 2026-07-05).
-- All 16 template implementations matching approved exports; golden-image suite green (Phase 3, gate G3). Requires G-S1.
-- Database schema for `share_events`, `share_clicks`, `profiles.attributed_share_token` (Phase 5 SQL), applied AND committed as a migration.
-- Deep link infrastructure: share URLs resolve to `https://www.gracenotesdaily.com/library/devotional/YYYY-MM-DD` (already-live invariant); `?s=` token click logging.
+- [x] G1 PASSED: `render-share-card` edge function (v8) live - Satori + resvg-wasm, Fraunces/Nunito from storage, 1200x630 devotional spike verified, cold ~2.6s / warm 0.5-1.5s.
+- [x] G2 PASSED: PRIVATE `share-cards` bucket + `/api/public/share-card/$key` SSR proxy (committed; live on next Lovable publish) + content-addressed keys - identical request twice returns the same image_url, second call <1s.
+- [x] All 16 template x size implementations built from the delivered background banks + page-1 specs; 16/16 exact dims, visually verified. Automated golden-image pixel-diff harness deferred to Stage 5 (the `render-test` fixture route + `?svg=1` diagnostic exist to power it).
+- [x] Schema applied live AND committed (`supabase/migrations/20260705190000_plg_sharing_stage2.sql`): `share_events` (user_id nullable - documented deviation for anon devotional shares), `share_clicks`, `profiles.attributed_share_token`, RPC `claim_share_attribution`.
+- [x] Deep links: devotional share_url = the live library invariant + `?s=`; `?s=` click logging server-side in the `/library/devotional/$date` loader (`logShareClick`). Non-devotional share_url targets provisional (`/?s=`) until G-S3.
 - Server-side 301 verification: `curl -sI https://www.gracenotesdaily.com/devotional/2026-07-04` returns HTTP 301 + location on the first hop. VERIFIED 2026-07-05 (SSR-level; re-run after any router/SSR change - see skill `gracenotes-validation-and-qa`).
 
-### STAGE 3 - API contract finalization — status: DRAFT EXISTS
+### STAGE 3 - API contract finalization — status: OPEN (current stage - endpoint already live as 1.1-draft)
 
-- All four share types + all four sizes specced in `gracenotes-canva-lovable-backend-contract` (v1.0-draft).
-- Endpoint implemented, personalization auth proven (campaign Phase 4, gate G4).
+- All four share types + all four sizes specced in `gracenotes-canva-lovable-backend-contract` (v1.1-draft). Operational runbook: skill `gracenotes-sharing-architecture`.
+- Endpoint implemented 2026-07-05 (all four per-type routes live; devotional E2E-verified anon incl. 401/404 error contract; caption rotation + share_events writes verified). REMAINING for G4: personalization proven with a real signed-in user JWT (grace-note + streak).
+- PostHog GraceNotes project + server-side event mirror (share_card_created / share_link_opened / signup_attributed).
+- Freeze non-devotional share_url targets (currently provisional `/?s=<token>`).
 - **Freeze gate G-S3:** contract reviewed with Cindy, version stamped `1.0-frozen`, CLAUDE.md §11 entry. No Lovable work before this.
 
 ### STAGE 4 - Lovable UI implementation — status: BLOCKED by G-S1 + G-S3

@@ -46,6 +46,7 @@ import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicShareCardKeyRouteImport } from './routes/api/public/share-card.$key'
 import { Route as ApiPublicDevotionalCoverDateRouteImport } from './routes/api/public/devotional-cover.$date'
 
 const TermsRoute = TermsRouteImport.update({
@@ -235,6 +236,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicShareCardKeyRoute = ApiPublicShareCardKeyRouteImport.update({
+  id: '/api/public/share-card/$key',
+  path: '/api/public/share-card/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDevotionalCoverDateRoute =
   ApiPublicDevotionalCoverDateRouteImport.update({
     id: '/api/public/devotional-cover/$date',
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/library/devotional/': typeof LibraryDevotionalIndexRoute
   '/api/public/devotional-cover/$date': typeof ApiPublicDevotionalCoverDateRoute
+  '/api/public/share-card/$key': typeof ApiPublicShareCardKeyRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -318,6 +325,7 @@ export interface FileRoutesByTo {
   '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/library/devotional': typeof LibraryDevotionalIndexRoute
   '/api/public/devotional-cover/$date': typeof ApiPublicDevotionalCoverDateRoute
+  '/api/public/share-card/$key': typeof ApiPublicShareCardKeyRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/library/devotional/': typeof LibraryDevotionalIndexRoute
   '/api/public/devotional-cover/$date': typeof ApiPublicDevotionalCoverDateRoute
+  '/api/public/share-card/$key': typeof ApiPublicShareCardKeyRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -401,6 +410,7 @@ export interface FileRouteTypes {
     | '/library/devotional/$date'
     | '/library/devotional/'
     | '/api/public/devotional-cover/$date'
+    | '/api/public/share-card/$key'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/library/devotional/$date'
     | '/library/devotional'
     | '/api/public/devotional-cover/$date'
+    | '/api/public/share-card/$key'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -481,6 +492,7 @@ export interface FileRouteTypes {
     | '/library/devotional/$date'
     | '/library/devotional/'
     | '/api/public/devotional-cover/$date'
+    | '/api/public/share-card/$key'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -522,6 +534,7 @@ export interface RootRouteChildren {
   LibraryDevotionalDateRoute: typeof LibraryDevotionalDateRoute
   LibraryDevotionalIndexRoute: typeof LibraryDevotionalIndexRoute
   ApiPublicDevotionalCoverDateRoute: typeof ApiPublicDevotionalCoverDateRoute
+  ApiPublicShareCardKeyRoute: typeof ApiPublicShareCardKeyRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -788,6 +801,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/share-card/$key': {
+      id: '/api/public/share-card/$key'
+      path: '/api/public/share-card/$key'
+      fullPath: '/api/public/share-card/$key'
+      preLoaderRoute: typeof ApiPublicShareCardKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/devotional-cover/$date': {
       id: '/api/public/devotional-cover/$date'
       path: '/api/public/devotional-cover/$date'
@@ -834,6 +854,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryDevotionalDateRoute: LibraryDevotionalDateRoute,
   LibraryDevotionalIndexRoute: LibraryDevotionalIndexRoute,
   ApiPublicDevotionalCoverDateRoute: ApiPublicDevotionalCoverDateRoute,
+  ApiPublicShareCardKeyRoute: ApiPublicShareCardKeyRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

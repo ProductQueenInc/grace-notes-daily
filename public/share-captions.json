@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "description": "Caption bank for GraceNotes Daily share cards. System selects one caption per share event as the default. Rotates sequentially or randomly. User may edit before sharing.",
+  "captions": {
+    "grace-note": [
+      "What a love note looks like.",
+      "This felt more like a love note than a GraceNote.",
+      "Exactly what I needed today.",
+      "He knows exactly what to say.",
+      "I don't know who else needed this but here.",
+      "This landed differently today.",
+      "Read this and tell me God doesn't know you.",
+      "Mine for today. Maybe yours too.",
+      "He's been sending me notes like this every morning.",
+      "This is what I wake up to. Grateful."
+    ],
+    "streak-calendar": [
+      "I've been spending some time with Father.",
+      "Life lately.",
+      "Showing up, one day at a time.",
+      "This is what consistency looks like for me right now.",
+      "Quietly, every morning.",
+      "Not perfect. Present.",
+      "This is my practice.",
+      "Some things you just keep doing.",
+      "He meets me here every day.",
+      "Small faithfulness adds up."
+    ],
+    "answered-prayer": [
+      "See what God does when you trust Him with things.",
+      "He heard this one.",
+      "Adding this to the record.",
+      "Faithful. Every time.",
+      "I wrote this down so I would never forget.",
+      "He did it again.",
+      "This is why I keep praying.",
+      "Proof, for the days I forget.",
+      "It took time. But He came through.",
+      "I asked. He answered. That's the whole story."
+    ],
+    "devotional": [
+      "Read this slowly.",
+      "This one stopped me.",
+      "Something worth sitting with today.",
+      "For anyone who needs this right now.",
+      "This is what I've been reading in the mornings.",
+      "I needed every word of this.",
+      "Come read this with me.",
+      "This changed the way I'm thinking about something.",
+      "Quiet and true. Read it.",
+      "If your week has been heavy, start here."
+    ]
+  }
+}
