@@ -59,7 +59,7 @@ export const listDevotionals = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
     z
       .object({
-        limit: z.number().int().min(1).max(100).default(20),
+        limit: z.number().int().min(1).max(500).default(20),
         offset: z.number().int().min(0).default(0),
       })
       .parse(data ?? {}),
