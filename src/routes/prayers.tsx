@@ -426,6 +426,18 @@ function Prayers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ShareCardModal
+        open={!!sharingPrayer}
+        ctx={sharingPrayer ? { type: "answered_prayer", prayer_id: sharingPrayer.id } : null}
+        heading={{
+          eyebrow: "Answered prayer",
+          title: "Praise God with someone",
+          subtitle: "A quiet testimony can carry further than you think.",
+        }}
+        onClose={() => setSharingPrayer(null)}
+        onDismiss={() => sharingPrayer && dismissAnsweredPrayerShare(sharingPrayer.id)}
+      />
     </>
   );
 }
