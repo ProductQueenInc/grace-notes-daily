@@ -4,10 +4,11 @@ import {
   Share2,
   RefreshCw,
   Library,
-  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
+import { DoveMark } from "@/components/dove-mark";
+import { NatureBackground } from "@/components/nature-background";
 import { BASE_URL } from "@/lib/library";
 import { useAuth } from "@/hooks/use-auth";
 import type { DevotionalResult } from "@/lib/ai.functions";
@@ -133,14 +134,14 @@ function TopBar({ isLoggedIn, onShare }: { isLoggedIn: boolean; onShare?: () => 
             to="/home"
             className="bg-grace text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-grace-deep transition-all"
           >
-            Go home
+            Go Home
           </Link>
         ) : (
           <Link
             to="/signup"
             className="bg-grace text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-grace-deep transition-all"
           >
-            Join the Circle
+            Begin Today
           </Link>
         )}
       </div>
@@ -207,26 +208,29 @@ export function DevotionalView({
 
   if (!devotional) {
     return (
-      <div className="min-h-screen w-full bg-[#f8faf7] selection:bg-gold/30 py-8 md:py-12 px-4">
-        <TopBar isLoggedIn={isLoggedIn} />
-        <Masthead date={date} />
-        <main className="w-full max-w-3xl mx-auto glass-parchment rounded-sm p-8 md:p-16 text-center shadow-xl">
-          <Icon icon={BookOpen} size="md" tone="inherit" className="mx-auto mb-4 text-grace/50" />
-          <h2 className="font-display text-2xl text-grace mb-3">
-            Today's devotional is being prepared
-          </h2>
-          <p className="text-foreground/70 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-            Something interrupted the preparation of today's reading. Try refreshing in a
-            moment - it should be ready shortly.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-grace/30 text-grace text-sm font-semibold hover:bg-grace/5 transition"
-          >
-            <Icon icon={RefreshCw} size="sm" tone="inherit" /> Try again
-          </button>
-        </main>
-      </div>
+      <>
+        <NatureBackground />
+        <div className="min-h-screen w-full selection:bg-gold/30 py-8 md:py-12 px-4">
+          <TopBar isLoggedIn={isLoggedIn} />
+          <Masthead date={date} />
+          <main className="w-full max-w-3xl mx-auto glass-parchment rounded-sm p-8 md:p-16 text-center shadow-2xl">
+            <Icon icon={BookOpen} size="md" tone="inherit" className="mx-auto mb-4 text-grace/50" />
+            <h2 className="font-display text-2xl text-grace mb-3">
+              Today's devotional is being prepared
+            </h2>
+            <p className="text-foreground/70 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+              Something interrupted the preparation of today's reading. Try refreshing in a
+              moment - it should be ready shortly.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-grace/30 text-grace text-sm font-semibold hover:bg-grace/5 transition"
+            >
+              <Icon icon={RefreshCw} size="sm" tone="inherit" /> Try again
+            </button>
+          </main>
+        </div>
+      </>
     );
   }
 
@@ -234,13 +238,15 @@ export function DevotionalView({
   const bodyLast = d.body.length - 1;
 
   return (
-    <div className="min-h-screen w-full bg-[#f8faf7] selection:bg-gold/30 py-8 md:py-12 px-4">
-      <TopBar isLoggedIn={isLoggedIn} onShare={onShare} />
-      <Masthead date={date} />
+    <>
+      <NatureBackground />
+      <div className="min-h-screen w-full selection:bg-gold/30 py-8 md:py-12 px-4">
+        <TopBar isLoggedIn={isLoggedIn} onShare={onShare} />
+        <Masthead date={date} />
 
-      {/* Reader Area */}
-      <main className="w-full max-w-3xl mx-auto glass-parchment border border-gold/20 shadow-xl rounded-sm overflow-hidden relative">
-        {/* Faint parchment texture overlay */}
+        {/* Reader Area */}
+        <main className="w-full max-w-3xl mx-auto glass-parchment border border-gold/20 shadow-2xl rounded-sm overflow-hidden relative">
+          {/* Faint parchment texture overlay */}
         <div
           aria-hidden
           className="absolute inset-0 opacity-[0.06] pointer-events-none"
@@ -302,8 +308,8 @@ export function DevotionalView({
 
           {/* Closing */}
           <footer className="mt-16 pt-12 border-t border-gold/20 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 border border-grace/15 rounded-full mb-6 text-grace">
-              <Icon icon={Shield} size="md" tone="inherit" />
+            <div className="mb-6 flex justify-center">
+              <DoveMark variant="medallion" className="w-14 h-14" alt="GraceNotes Daily" />
             </div>
             <h4 className="font-display text-grace text-xl font-bold mb-2">
               {isLoggedIn ? "Keep walking with GraceNotes" : "Walk deeper with GraceNotes"}
@@ -318,14 +324,14 @@ export function DevotionalView({
                 to="/home"
                 className="inline-block border-2 border-grace text-grace px-8 py-2 rounded-full font-bold hover:bg-grace hover:text-white transition-all"
               >
-                Go home
+                Go Home
               </Link>
             ) : (
               <Link
                 to="/signup"
                 className="inline-block border-2 border-grace text-grace px-8 py-2 rounded-full font-bold hover:bg-grace hover:text-white transition-all"
               >
-                Join GraceNotes Daily
+                Begin Today
               </Link>
             )}
           </footer>
@@ -386,6 +392,7 @@ export function DevotionalView({
           GraceNotes Daily
         </Link>
       </p>
-    </div>
+      </div>
+    </>
   );
 }
