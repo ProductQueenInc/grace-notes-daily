@@ -1,12 +1,22 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Share2, ArrowRight, Sparkles, RefreshCw } from "lucide-react";
+import {
+  BookOpen,
+  Share2,
+  ArrowRight,
+  Sparkles,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
 import { BASE_URL } from "@/lib/library";
+import { useAuth } from "@/hooks/use-auth";
 import type { DevotionalResult } from "@/lib/ai.functions";
 
+// Canonical share URL for a devotional. Always the new /library/devotional path.
 function devotionalUrl(dateISO: string) {
-  return `${BASE_URL}/devotional/${dateISO}`;
+  return `${BASE_URL}/library/devotional/${dateISO}`;
 }
 
 // Shared head builder so the dated route and the index (today) route stay in sync.
@@ -41,8 +51,14 @@ export function devotionalHead(devotional?: DevotionalResult, dateISO?: string) 
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Daily Devotional", item: `${BASE_URL}/devotional` },
-      { "@type": "ListItem", position: 3, name: devotional.title, item: url },
+      { "@type": "ListItem", position: 2, name: "Library", item: `${BASE_URL}/library` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "Daily Devotionals",
+        item: `${BASE_URL}/library/devotional`,
+      },
+      { "@type": "ListItem", position: 4, name: devotional.title, item: url },
     ],
   };
 
@@ -73,10 +89,17 @@ export function devotionalHead(devotional?: DevotionalResult, dateISO?: string) 
 export function DevotionalView({
   devotional,
   date,
+  prevDate,
+  nextDate,
 }: {
   devotional: DevotionalResult | null;
   date: string;
+  prevDate?: string | null;
+  nextDate?: string | null;
 }) {
+  const { session, loading } = useAuth();
+  const isLoggedIn = !loading && !!session;
+
   if (!devotional) {
     return (
       <div
@@ -116,15 +139,21 @@ export function DevotionalView({
     );
   }
 
-  // narrowed: null case is handled by early return above
   const d = devotional as DevotionalResult;
 
   function onShare() {
     if (typeof navigator === "undefined") return;
     const url = devotionalUrl(date);
     const title = `${d.title} - GraceNotes Daily`;
+    // Log before dispatching so we can verify the URL is clean in either path.
+    console.log("[share] devotional url =", url);
+    // NOTE: We intentionally omit `text` from navigator.share. Some share
+    // targets (and some Copy fallbacks) concatenate text onto url without a
+    // separator, which was appending the Bible verse reference straight onto
+    // the URL (e.g. `.../2026-07-05Psalm 138:8`). Passing only title + url
+    // keeps the shared link clean everywhere.
     if (typeof navigator.share === "function") {
-      navigator.share({ title, text: d.verseRef, url }).catch(() => {});
+      navigator.share({ title, url }).catch(() => {});
       return;
     }
     if (navigator.clipboard) {
@@ -143,12 +172,20 @@ export function DevotionalView({
           "radial-gradient(1100px 560px at 50% -8%, var(--grace-haze, #e7efe9), transparent), #f7f4ee",
       }}
     >
-      <div className="max-w-2xl mx-auto px-5 py-8 md:py-14">
-        {/* Wordmark */}
-        <div className="flex items-center justify-between mb-8">
+      {/* Minimal top bar - wordmark + Library link + auth-aware CTA + Share */}
+      <div className="max-w-2xl mx-auto px-5 pt-6 md:pt-8 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-5">
           <Link to="/" className="font-display text-xl text-grace">
             GraceNotes Daily
           </Link>
+          <Link
+            to="/library"
+            className="hidden sm:inline text-sm text-grace/70 hover:text-grace transition"
+          >
+            Library
+          </Link>
+        </div>
+        <div className="flex items-center gap-2">
           <button
             onClick={onShare}
             className="inline-flex items-center gap-1.5 text-sm text-grace/80 hover:text-grace px-3 py-1.5 rounded-full border border-grace/20 bg-white/70 transition"
@@ -156,8 +193,25 @@ export function DevotionalView({
           >
             <Icon icon={Share2} size="sm" tone="inherit" /> Share
           </button>
+          {isLoggedIn ? (
+            <Link
+              to="/home"
+              className="hidden sm:inline-flex items-center px-4 py-1.5 rounded-full bg-grace text-white text-sm font-semibold hover:bg-grace-deep transition"
+            >
+              Go home
+            </Link>
+          ) : (
+            <Link
+              to="/signup"
+              className="hidden sm:inline-flex items-center px-4 py-1.5 rounded-full bg-gold text-gold-foreground text-sm font-semibold hover:scale-[1.02] transition"
+            >
+              Join GraceNotes
+            </Link>
+          )}
         </div>
+      </div>
 
+      <div className="max-w-2xl mx-auto px-5 py-6 md:py-10">
         {/* Reading card */}
         <article className="glass-parchment rounded-3xl p-6 md:p-10 shadow-sm">
           <div className="flex items-center gap-2 text-grace/70 text-[11px] uppercase tracking-[0.2em] mb-5">
@@ -208,21 +262,75 @@ export function DevotionalView({
           </p>
         </article>
 
-        {/* Soft CTA */}
+        {/* Prev / Next devotionals - only shown when a neighbour exists.
+            Both use TanStack <Link> so navigation is client-side (loader
+            re-runs, head/OG tags swap, no full reload). */}
+        {(prevDate || nextDate) && (
+          <nav
+            className="mt-6 flex items-center justify-between gap-3"
+            aria-label="Devotional navigation"
+          >
+            {prevDate ? (
+              <Link
+                to="/library/devotional/$date"
+                params={{ date: prevDate }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 border border-grace/20 text-grace/85 hover:text-grace hover:bg-white transition text-sm"
+                aria-label="Previous devotional"
+              >
+                <Icon icon={ChevronLeft} size="sm" tone="inherit" />
+                Previous
+              </Link>
+            ) : (
+              <span />
+            )}
+            {nextDate ? (
+              <Link
+                to="/library/devotional/$date"
+                params={{ date: nextDate }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 border border-grace/20 text-grace/85 hover:text-grace hover:bg-white transition text-sm"
+                aria-label="Next devotional"
+              >
+                Next
+                <Icon icon={ChevronRight} size="sm" tone="inherit" />
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )}
+
+        {/* Soft closing section - auth-aware, warm and unhurried. */}
         <div className="mt-7 rounded-3xl bg-grace text-white p-6 md:p-8 text-center shadow-sm">
           <div className="flex items-center justify-center gap-1.5 text-gold text-xs uppercase tracking-[0.2em] mb-2">
-            <Icon icon={Sparkles} size="sm" tone="inherit" /> A quiet moment, every day
+            <Icon icon={Sparkles} size="sm" tone="inherit" />{" "}
+            {isLoggedIn ? "Keep reading" : "There is more where this came from"}
           </div>
-          <h2 className="font-display text-2xl md:text-3xl mb-2">Start your own daily grace</h2>
-          <p className="text-white/80 text-sm max-w-md mx-auto mb-5">
-            A short devotional and a grace note, written to meet you where you are. Free to begin.
-          </p>
-          <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-gold text-gold-foreground font-semibold hover:scale-[1.02] transition"
-          >
-            Begin <Icon icon={ArrowRight} size="sm" tone="inherit" />
-          </Link>
+          <h2 className="font-display text-2xl md:text-3xl mb-5">
+            {isLoggedIn ? "Your library is waiting." : "Start your own daily grace."}
+          </h2>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <Link
+              to="/library"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-white/40 text-white font-semibold hover:bg-white/10 transition"
+            >
+              Explore the Library
+            </Link>
+            {isLoggedIn ? (
+              <Link
+                to="/home"
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-gold text-gold-foreground font-semibold hover:scale-[1.02] transition"
+              >
+                Go home <Icon icon={ArrowRight} size="sm" tone="inherit" />
+              </Link>
+            ) : (
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-gold text-gold-foreground font-semibold hover:scale-[1.02] transition"
+              >
+                Join GraceNotes Daily <Icon icon={ArrowRight} size="sm" tone="inherit" />
+              </Link>
+            )}
+          </div>
         </div>
 
         <p className="text-center text-xs text-foreground/45 mt-6">
