@@ -48,6 +48,7 @@ function Home() {
 
   const [showVerse, setShowVerse] = useState(false);
   const [devotionalOpen, setDevotionalOpen] = useState(false);
+  const [graceShareOpen, setGraceShareOpen] = useState(false);
 
   const { habits, markComplete } = useHabits();
   const completedCount = Object.values(habits).filter(Boolean).length;
