@@ -74,10 +74,13 @@ function DevotionalArchive() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const availableDates = useMemo(() => new Set(items.map((i) => i.date)), [items]);
+  const availableDates = useMemo(
+    () => new Set((items as DevotionalListItem[]).map((i) => i.date)),
+    [items],
+  );
   const byDate = useMemo(() => {
     const map = new Map<string, DevotionalListItem>();
-    for (const i of items) map.set(i.date, i);
+    for (const i of items as DevotionalListItem[]) map.set(i.date, i);
     return map;
   }, [items]);
 
