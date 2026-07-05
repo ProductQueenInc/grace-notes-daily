@@ -12,9 +12,11 @@ import { useDailyGraceNote, type DailyGraceNote } from "@/hooks/use-daily-grace-
 import { useStreak } from "@/hooks/use-streak";
 import { supabase } from "@/lib/supabase";
 import { DevotionalModal } from "@/components/devotional-modal";
+import { ShareCardModal } from "@/components/share-card-modal";
+import { MilestoneWatcher } from "@/components/milestone-watcher";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
-  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag,
+  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag, Share2,
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
