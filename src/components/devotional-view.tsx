@@ -319,14 +319,14 @@ export function DevotionalView({
                 to="/home"
                 className="inline-block border-2 border-grace text-grace px-8 py-2 rounded-full font-bold hover:bg-grace hover:text-white transition-all"
               >
-                Go home
+                Go Home
               </Link>
             ) : (
               <Link
                 to="/signup"
                 className="inline-block border-2 border-grace text-grace px-8 py-2 rounded-full font-bold hover:bg-grace hover:text-white transition-all"
               >
-                Join GraceNotes Daily
+                Begin Today
               </Link>
             )}
           </footer>
