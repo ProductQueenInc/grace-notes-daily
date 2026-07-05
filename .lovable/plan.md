@@ -1,84 +1,123 @@
-## Context
 
-We talked about this once (CLAUDE.md §11, 2026-06-22 entry): *"allow multiple HeartNotes/day (drop the `heart_notes (user_id,date)` unique, add `superseded_at`) so adding a new note pushes the prior one to Journey immediately."* It was scoped, never built. Today HeartNotes is strictly one-per-day: the `heart_notes` table has a `UNIQUE (user_id, date)` constraint, the page upserts on that key, and Journey only shows notes where `date < today` — so today's note never appears there.
+# GraceNotes Daily — share fix + library/devotional merge
 
-## What we're building
+Two tasks, done in order. Task 1 is a small surgical fix. Task 2 is a routing + layout change with 301 redirects and SEO care.
 
-A small, quiet action on the HeartNotes page (once a note has been submitted for today) that:
+---
 
-1. Marks the current note as archived (stamps `superseded_at = now()`).
-2. Immediately shows it on the Journey page under Heart Notes, tagged and dated today.
-3. Resets the HeartNotes page to the empty composer so the user can write a fresh note for the same day.
-4. Leaves the streak/habit alone — journal habit stays complete for today (they already journaled).
+## Task 1 — Fix the malformed share URL
 
-No limit on how many notes per day. All prior notes for today live in Journey; the HeartNotes page always shows only the *current, active* one (or empty state).
+**Symptom:** clicking the Share icon on `/devotional` copies
+`https://www.gracenotesdaily.com/devotional/2026-07-05Psalm 138:8`
+(the verse reference is glued onto the date with no separator).
 
-## UI
+**Diagnosis approach:** The visible code in `devotional-view.tsx` builds the URL from `${BASE_URL}/devotional/${date}` and passes `verseRef` only as share *text* — so on paper the URL should be clean. That means either (a) the `date` prop reaching `DevotionalView` already contains the verse ref, (b) `devotional.servedDate` (used by `/devotional/index` loader) is malformed upstream, or (c) another share path is in play. First step in build mode is to add a `console.log("[share] url =", url)` right before `navigator.share` / `clipboard.writeText`, reproduce, and pinpoint the exact source. Fix at the source, not by string-stripping downstream.
 
-On the submitted-note view in `src/routes/heart-notes.tsx`, add a subtle text-style button in the header row next to the delete icon:
+**Target URL format after fix:**
+`https://www.gracenotesdaily.com/library/devotional/YYYY-MM-DD`
+(the new path from Task 2 — even though the redirect from the old path won't be in place until Task 2 lands, we generate the new URL now; Task 2 makes both paths resolve).
 
-```
-[ + New note ]        (trash icon)
-```
+**Files likely touched:** `src/components/devotional-view.tsx`, possibly `src/lib/ai.functions.ts` if `servedDate` is contaminated, possibly `src/routes/devotional.index.tsx` / `devotional.$date.tsx` if `date` is being polluted before it reaches the view.
 
-- Ghost/text style, `text-foreground/60 hover:text-grace`, small (`text-xs`), Lucide `Plus` icon at `w-3.5 h-3.5`.
-- Sits inline with the existing Title / Edit / Delete controls — not a big CTA.
-- On click: archive current → reset local state to the empty composer. No modal, no confirm (the note isn't lost, it's on Journey).
+**Verification:** log the URL, click each entry point (native share, Copy link) on both `/devotional` and `/devotional/YYYY-MM-DD`, confirm clipboard contains the clean URL.
 
-## Data model change
+---
 
-Migration on the live `tkoebo` project (the real backend, per CLAUDE.md):
+## Task 2 — Merge devotionals into the library
 
-```sql
-ALTER TABLE public.heart_notes
-  ADD COLUMN IF NOT EXISTS superseded_at timestamptz;
+### New URL map
 
--- Drop the one-per-day constraint (name TBD from pg_constraint; likely heart_notes_user_id_date_key)
-ALTER TABLE public.heart_notes
-  DROP CONSTRAINT IF EXISTS heart_notes_user_id_date_key;
+| Path | Behaviour |
+|---|---|
+| `/library` | Hub (canonical unchanged) |
+| `/library/devotional` | Devotional archive index — paginated list of all past devotionals (newest first) |
+| `/library/devotional/YYYY-MM-DD` | Single devotional one-pager (canonical for each devotional) |
+| `/devotional` | 301 → `/library/devotional` |
+| `/devotional/YYYY-MM-DD` | 301 → `/library/devotional/YYYY-MM-DD` |
+| `/library/$slug` | Unchanged (essays, letters, Foundations) |
 
--- Enforce: at most one ACTIVE note per (user, date)
-CREATE UNIQUE INDEX IF NOT EXISTS heart_notes_active_per_day
-  ON public.heart_notes (user_id, date)
-  WHERE superseded_at IS NULL;
+Today's devotional is reached from the hub hero and from any prev/next arrow — it does not have a separate `/today` route.
 
-CREATE INDEX IF NOT EXISTS heart_notes_user_superseded
-  ON public.heart_notes (user_id, superseded_at);
-```
+### `/library` hub layout (top to bottom)
 
-The partial unique index keeps "one active per day" (so today's editable note stays a single upsert target) while allowing unlimited archived rows per day.
+1. **Hero — Today's devotional.** Full-width card, gold "Today's devotional" eyebrow, title, verse reference, one-line lede, warm "Read today's devotional" CTA → `/library/devotional/{today}`. If today's devotional hasn't generated yet, fall back to yesterday's with a subtle "Yesterday's reflection" label (mirrors the existing fallback pattern in `getOrCreateSharedDevotional`).
+2. **Foundations series.** Existing 3-part series section, unchanged.
+3. **All Letters, most recent first.** Existing essays/letters, ordered by `publishedAt` desc — no filter chips at the top of this section (keep the flow calm).
+4. **Recent devotionals strip.** Small horizontal strip of the last ~7 devotionals as compact cards (date + title + verse ref). The primary CTA under the strip is **"Browse all devotionals" → `/library/devotional`** (the archive index) — this is the main entry point into the archive, not the individual cards.
+5. **Guides section.** The existing filter chips + full article grid stay at the bottom as the browse/filter surface for the library's evergreen writing.
 
-## Code changes
+Reading room feel throughout: existing tokens (`--grace`, `--gold`, `.glass-parchment`), Fraunces display, Nunito body, existing card components. No new colours, no new borders, no new patterns.
 
-**`src/routes/heart-notes.tsx`**
-- Initial load: filter `.is("superseded_at", null)` when fetching today's note.
-- Upsert: `onConflict` still `user_id,date` — works against the partial unique index for the active row.
-- New `archiveAndReset()`: `UPDATE heart_notes SET superseded_at = now() WHERE id = rowId`, then clear `rowId / submitted / response / title / text` so the composer re-renders. Do **not** call `markComplete("journal")` again (already marked earlier today).
-- Add the small "+ New note" button in the submitted-view header, next to the delete button.
+### `/library/devotional` — archive index (new page)
 
-**`src/routes/journey.tsx`**
-- Change the heart-notes query (line 96-101) from `.lt("date", today)` to: include rows where `date < today` **OR** `superseded_at IS NOT NULL`. Simplest: fetch `date, superseded_at` and filter client-side, or use two queries `.or("date.lt." + today + ",superseded_at.not.is.null")`.
-- Entry title/date still uses `date` — an archived note from today will show today's date, which is what we want.
-- Order by `superseded_at desc nulls last, date desc, created_at desc` so today's most recently archived note appears first.
+- Reverse-chronological list of every devotional, grouped by month heading ("July 2026", "June 2026", …). Each row: date, title, verse ref, one-line takeaway snippet. Row links to the dated one-pager.
+- Pagination: ~20 rows per page (or "load more"). Not a calendar. A tiny month/year jump control in the header sidebar lets the user skip to a specific month without a full calendar UI.
+- Uses `.glass-parchment` reading surface, calm typography, no chrome.
+- Public, indexable, own `head()` (title "Daily Devotionals — GraceNotes Daily", description, canonical `/library/devotional`).
 
-**`src/integrations/supabase/types.ts`**
-- Add `superseded_at: string | null` to `heart_notes` Row/Insert/Update types (hand-maintained clone, per prior convention).
+### `/library/devotional/YYYY-MM-DD` — the one-pager
 
-**`CLAUDE.md` §11**
-- Log the change under a new dated entry; move the item off the "planned, not built" list.
+The existing `DevotionalView` component stays exactly as-is for the reading area. We only change the shell around it.
 
-## Not changing
+**Top bar (new — minimal signpost):**
+- GraceNotes Daily wordmark → `/`
+- "Library" link → `/library`
+- Right side (auth-aware):
+  - Signed out: "Join GraceNotes Daily" → `/signup`
+  - Signed in: "Go Home" → `/home`
+- Renders signed-out state during SSR, upgrades on hydration once `useAuth` resolves. Brief flicker is acceptable and preferable to blocking SSR.
 
-- Habit auto-mark rule (§4): submitting *any* heart note marks the habit; archiving doesn't touch it.
-- AI title/response generation flow.
-- Journey card layout, expansion behavior, or edit/delete on archived notes (they still edit/delete the same way; delete removes the row entirely).
-- Prayers, streak, badges, sidebar, or any other page.
+**Content area:** unchanged (`DevotionalView` verse block, title, body, related scripture, takeaway, NIV notice).
 
-## Verification
+**Below content — prev/next:**
+- Prev arrow: visible whenever an earlier devotional exists.
+- Next arrow: visible only when viewing a past devotional AND a later one exists; hidden on today's.
+- **Both arrows query the nearest existing devotional (not date-1 / date+1)**, so historical gaps and any missed cron days are handled gracefully.
+- Arrows are `<Link>` to the same route with a different `date` param — TanStack re-runs the loader, swaps content, updates head/OG. This is a client-side navigation, not a hard reload.
 
-1. Apply migration, confirm partial unique index exists and old constraint is gone.
-2. Write a note → submit → click "+ New note" → composer reappears empty.
-3. Open Journey → the archived note shows under Heart Notes, dated today, with its title/body/AI reply.
-4. Write another note same day → repeat; Journey now shows two entries for today.
-5. Refresh HeartNotes page → only the current active (or empty state) shows.
-6. Editing title on the active note still works; deleting the active note works and removes only that row.
+**Below prev/next — soft closing section:**
+- Signed out: *"There is more where this came from."* + `[Explore the Library]` `[Join GraceNotes Daily]`
+- Signed in: *"Keep reading."* + `[Explore the Library]` `[Go Home]`
+- Existing warm/unhurried tone. No marketing language.
+
+### SEO + infra
+
+- **301 redirects** from `/devotional` and `/devotional/YYYY-MM-DD` via TanStack `redirect({ statusCode: 301 })` in `beforeLoad` (same pattern used today by `/daily-devotional`).
+- **Canonical URLs** point at the new `/library/devotional/...` path for every dated devotional; the archive index canonical is `/library/devotional`; the hub canonical stays `/library`.
+- **Sitemap update** (`public/sitemap.xml`): add `/library/devotional` (weekly, 0.8); replace `/devotional` with the new path (still 0.9, daily). Dated archive URLs remain outside the sitemap for now (that's the separate follow-up already noted in CLAUDE.md §11). Old `/devotional` sitemap entries removed.
+- **robots.txt:** allow `/library/devotional` and `/library/devotional/*` (currently no rule needed since Allow: / is default; just make sure no accidental Disallow blocks them).
+- **Head tags** on the dated page unchanged in shape — `devotionalHead()` already emits per-devotional title, description, OG image, Article + Breadcrumb JSON-LD. We only update the `devotionalUrl()` helper to build the new path so `og:url` and canonical point at `/library/devotional/YYYY-MM-DD`.
+- **Breadcrumb JSON-LD** updated: Home → Library → Devotionals → *devotional title*.
+- Temporary ranking dip is expected while Google re-crawls the 301s. 301 preserves equity; no code we can write shortcuts that timeline.
+
+### Technical notes (for the technical reader)
+
+- **New routes:**
+  - `src/routes/library.devotional.index.tsx` — archive index, public loader queries `daily_devotionals` (date desc, paginated).
+  - `src/routes/library.devotional.$date.tsx` — one-pager. Loader reuses `getStoredSharedDevotional` (read-only, `notFound()` when missing — matches the PM5 policy). Wraps `DevotionalView` in the new top-bar + prev/next + soft-CTA shell.
+  - `src/routes/devotional.index.tsx` — replaced body with `beforeLoad: () => throw redirect({ to: "/library/devotional", statusCode: 301 })`.
+  - `src/routes/devotional.$date.tsx` — replaced body with `beforeLoad: () => throw redirect({ to: "/library/devotional/$date", params: { date }, statusCode: 301 })`.
+- **Prev/next lookup:** two small server fns (public, no auth) — `getPrevDevotionalDate(date)` / `getNextDevotionalDate(date)` — each does `select date from daily_devotionals where date < $1 order by date desc limit 1` (and mirror for next). Called in the route loader; results passed as loader data. Alternative: one combined `getNeighbourDates(date)` fn to save a round-trip.
+- **`devotionalUrl()` in `src/components/devotional-view.tsx`:** update to return `${BASE_URL}/library/devotional/${dateISO}`. This is what fixes Task 1's target URL once Task 1's root-cause fix is in.
+- **`daily_devotionals` archive query** in the archive index loader: `select date, title, verse_ref, takeaway from daily_devotionals order by date desc limit N offset M`. Public read is already allowed by RLS (per CLAUDE.md §11 2026-06-22 migration).
+- **Auth-aware CTAs:** use existing `useAuth()` hook on the client; render signed-out variant server-side; swap on hydration.
+- **Sitemap** is a static file today (`public/sitemap.xml`) — one-line edits. A dynamic sitemap that includes every dated devotional URL remains a separate follow-up (already tracked).
+
+### What we're not touching
+
+- `DevotionalView` reading area, `.glass-parchment`, tokens, fonts, imagery policy.
+- The devotional generation pipeline (`getOrCreateSharedDevotional`, cron, verse grounding).
+- Library filter chips / tag system on the guides section.
+- Any authenticated app routes (Home, HeartNotes, Journey, Prayers, Listen, Settings).
+- The Foundations series and its existing article pages.
+
+### Rollout order
+
+1. Task 1 fix (share URL root cause) + log verification.
+2. New routes (`library.devotional.index.tsx`, `library.devotional.$date.tsx`) + shared shell components.
+3. `devotionalUrl()` swap → new path.
+4. Hub redesign (`library.index.tsx`): hero, Recent devotionals strip, section reorder.
+5. Old-path redirects (`devotional.index.tsx`, `devotional.$date.tsx`).
+6. Sitemap update.
+7. Manual verification: share URL, prev/next across a missing-day gap, redirects, signed-in vs signed-out top bar and closing section, hub hero fallback when today's devotional isn't generated yet.
+

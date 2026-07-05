@@ -6,7 +6,10 @@ import { ArticleCard } from "@/components/article-card";
 import { ArticleCardCompact, SeeAllTile } from "@/components/article-card-compact";
 import { DoveMark } from "@/components/dove-mark";
 import { BackHomeButton } from "@/components/back-home-cta";
+import { Icon } from "@/components/icon";
 import { useAuth } from "@/hooks/use-auth";
+import { BookOpen, ArrowRight } from "lucide-react";
+import { listDevotionals, type DevotionalListItem } from "@/lib/ai-stubs";
 import {
   Sheet,
   SheetContent,
@@ -35,6 +38,18 @@ export const Route = createFileRoute("/library/")({
     }
     return {};
   },
+  // Loader fetches recent devotionals for the hero + recent strip. Kept small
+  // (8 rows) so a single query covers both. Failure is non-fatal: the hub
+  // still renders without the devotional sections.
+  loader: async (): Promise<{ recentDevotionals: DevotionalListItem[] }> => {
+    try {
+      const res = await listDevotionals({ data: { limit: 8, offset: 0 } });
+      return { recentDevotionals: res.items };
+    } catch (err) {
+      console.error("[library] failed to load recent devotionals:", err);
+      return { recentDevotionals: [] };
+    }
+  },
   head: () => ({
     meta: [
       { title: "Notes & Letters — GraceNotes Daily" },
@@ -61,6 +76,8 @@ export const Route = createFileRoute("/library/")({
 function LibraryHub() {
   const { session, loading } = useAuth();
   const isLoggedIn = !loading && !!session;
+  const { recentDevotionals } = Route.useLoaderData();
+  const todayDevotional = recentDevotionals[0];
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/library/" });
   const activeTag: LibraryTag | "All" = search.tag ?? "All";
@@ -186,6 +203,40 @@ function LibraryHub() {
           Unhurried thoughts on prayer, journaling, and the quiet work of walking with God.
         </p>
       </section>
+
+      {/* Today's devotional — featured hero. New: devotionals now live in the
+          library, and today's reflection earns the top slot. Falls back
+          silently if the day-ahead cron hasn't landed a row yet. */}
+      {todayDevotional && isAll && (
+        <section className="px-6 pb-10 sm:pb-12 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <Link
+              to="/library/devotional/$date"
+              params={{ date: todayDevotional.date }}
+              className="group block glass-parchment rounded-3xl p-6 sm:p-8 md:p-10 transition hover:shadow-lg"
+            >
+              <div className="flex items-center gap-2 text-gold text-[11px] uppercase tracking-[0.2em] mb-3">
+                <Icon icon={BookOpen} size="sm" tone="inherit" /> Today's devotional
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-grace leading-tight mb-3 group-hover:text-grace-deep transition">
+                {todayDevotional.title}
+              </h2>
+              <p className="text-grace/70 text-sm font-semibold tracking-wide mb-3">
+                {todayDevotional.verseRef}
+              </p>
+              {todayDevotional.takeaway && (
+                <p className="text-foreground/75 leading-relaxed max-w-[64ch] mb-4 line-clamp-2 sm:line-clamp-none">
+                  {todayDevotional.takeaway}
+                </p>
+              )}
+              <span className="inline-flex items-center gap-1.5 text-gold font-semibold text-sm">
+                Read today's devotional
+                <ArrowRight className="w-4 h-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Foundations teaser — quick numbered list so readers can jump in
           without scrolling all the way down to the Foundations row. */}
@@ -418,6 +469,57 @@ function LibraryHub() {
           )}
         </div>
       </section>
+
+      {/* Recent devotionals strip — primary entry point to the archive.
+          Small horizontal cards, then a warm CTA to the full archive index. */}
+      {recentDevotionals.length > 0 && isAll && (
+        <section className="px-6 pb-10 sm:pb-12 pt-2 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold mb-2">
+                  Daily Devotionals
+                </p>
+                <h2 className="font-display text-xl sm:text-2xl md:text-[1.7rem] text-white drop-shadow leading-tight">
+                  Recent readings
+                </h2>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {recentDevotionals.slice(0, 6).map((d: DevotionalListItem) => (
+                <Link
+                  key={d.date}
+                  to="/library/devotional/$date"
+                  params={{ date: d.date }}
+                  className="group glass-parchment rounded-2xl p-4 sm:p-5 flex flex-col gap-1.5 transition hover:shadow-lg"
+                >
+                  <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
+                    {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      timeZone: "UTC",
+                    })}
+                  </span>
+                  <h3 className="font-display text-lg text-grace leading-snug group-hover:text-grace-deep transition line-clamp-2">
+                    {d.title}
+                  </h3>
+                  <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <Link
+                to="/library/devotional"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gold text-gold-foreground font-semibold text-sm hover:scale-[1.02] transition"
+              >
+                Browse all devotionals
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ============ FREE GUIDES (mobile + desktop) ============
           Foundations already appears at the top of the page as a teaser

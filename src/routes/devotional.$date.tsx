@@ -1,29 +1,13 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { getStoredDevotional } from "@/lib/ai-stubs";
-import { DevotionalView, devotionalHead } from "@/components/devotional-view";
-import type { DevotionalResult } from "@/lib/ai.functions";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-function isValidDate(s: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s + "T12:00:00Z"));
-}
-
+// Legacy dated path - 301 to the new /library/devotional/$date URL so every
+// shared link and indexed URL resolves without loss.
 export const Route = createFileRoute("/devotional/$date")({
-  // Archive URLs are READ-ONLY: they serve the stored row or 404. They never
-  // trigger generation (so crawlers can't mint devotionals for arbitrary
-  // dates) and never show a placeholder - a dated page simply doesn't exist
-  // until its devotional does. Generation lives in the cron and the today
-  // paths (in-app + /devotional index).
-  loader: async ({ params }): Promise<{ devotional: DevotionalResult; date: string }> => {
-    if (!isValidDate(params.date)) throw notFound();
-    const devotional = await getStoredDevotional(params.date);
-    if (!devotional) throw notFound();
-    return { devotional, date: params.date };
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: "/library/devotional/$date",
+      params: { date: params.date },
+      statusCode: 301,
+    });
   },
-  head: ({ loaderData }) => devotionalHead(loaderData?.devotional ?? undefined, loaderData?.date),
-  component: DevotionalDateRoute,
 });
-
-function DevotionalDateRoute() {
-  const { devotional, date } = Route.useLoaderData();
-  return <DevotionalView devotional={devotional} date={date} />;
-}

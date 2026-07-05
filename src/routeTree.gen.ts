@@ -40,6 +40,8 @@ import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
 import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
 import { Route as BlogBuildingGracenotesDailyRouteImport } from './routes/blog.building-gracenotes-daily'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as LibraryDevotionalIndexRouteImport } from './routes/library.devotional.index'
+import { Route as LibraryDevotionalDateRouteImport } from './routes/library.devotional.$date'
 import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -201,6 +203,16 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryDevotionalIndexRoute = LibraryDevotionalIndexRouteImport.update({
+  id: '/library/devotional/',
+  path: '/library/devotional/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryDevotionalDateRoute = LibraryDevotionalDateRouteImport.update({
+  id: '/library/devotional/$date',
+  path: '/library/devotional/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRiscReceiverRoute = ApiRiscReceiverRouteImport.update({
   id: '/api/risc/receiver',
   path: '/api/risc/receiver',
@@ -256,6 +268,8 @@ export interface FileRoutesByFullPath {
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
+  '/library/devotional/$date': typeof LibraryDevotionalDateRoute
+  '/library/devotional/': typeof LibraryDevotionalIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -293,6 +307,8 @@ export interface FileRoutesByTo {
   '/devotional': typeof DevotionalIndexRoute
   '/library': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
+  '/library/devotional/$date': typeof LibraryDevotionalDateRoute
+  '/library/devotional': typeof LibraryDevotionalIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -331,6 +347,8 @@ export interface FileRoutesById {
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
+  '/library/devotional/$date': typeof LibraryDevotionalDateRoute
+  '/library/devotional/': typeof LibraryDevotionalIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -370,6 +388,8 @@ export interface FileRouteTypes {
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
+    | '/library/devotional/$date'
+    | '/library/devotional/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -407,6 +427,8 @@ export interface FileRouteTypes {
     | '/devotional'
     | '/library'
     | '/api/risc/receiver'
+    | '/library/devotional/$date'
+    | '/library/devotional'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -444,6 +466,8 @@ export interface FileRouteTypes {
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
+    | '/library/devotional/$date'
+    | '/library/devotional/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -482,6 +506,8 @@ export interface RootRouteChildren {
   DevotionalIndexRoute: typeof DevotionalIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   ApiRiscReceiverRoute: typeof ApiRiscReceiverRoute
+  LibraryDevotionalDateRoute: typeof LibraryDevotionalDateRoute
+  LibraryDevotionalIndexRoute: typeof LibraryDevotionalIndexRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -706,6 +732,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/devotional/': {
+      id: '/library/devotional/'
+      path: '/library/devotional'
+      fullPath: '/library/devotional/'
+      preLoaderRoute: typeof LibraryDevotionalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/devotional/$date': {
+      id: '/library/devotional/$date'
+      path: '/library/devotional/$date'
+      fullPath: '/library/devotional/$date'
+      preLoaderRoute: typeof LibraryDevotionalDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/risc/receiver': {
       id: '/api/risc/receiver'
       path: '/api/risc/receiver'
@@ -770,6 +810,8 @@ const rootRouteChildren: RootRouteChildren = {
   DevotionalIndexRoute: DevotionalIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   ApiRiscReceiverRoute: ApiRiscReceiverRoute,
+  LibraryDevotionalDateRoute: LibraryDevotionalDateRoute,
+  LibraryDevotionalIndexRoute: LibraryDevotionalIndexRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
@@ -777,3 +819,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
