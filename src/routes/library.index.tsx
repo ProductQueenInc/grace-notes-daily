@@ -280,53 +280,10 @@ function LibraryHub() {
         </section>
       )}
 
-      {/* Latest essay — featured. Compact on mobile (no excerpt), full on desktop. */}
-      {latest && isAll && (
-        <section className="px-6 pb-10 sm:pb-12 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-baseline justify-between mb-3 sm:mb-4">
-              <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold">
-                Latest letter
-              </p>
-            </div>
-            <Link
-              to="/library/$slug"
-              params={{ slug: latest.slug }}
-              className="group glass-parchment rounded-3xl overflow-hidden grid md:grid-cols-2 transition hover:shadow-lg"
-            >
-              <div className="aspect-[16/10] md:aspect-auto overflow-hidden bg-grace-haze">
-                <img
-                  src={latest.cover}
-                  alt=""
-                  loading="lazy"
-                  width={1600}
-                  height={1000}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-              <div className="p-5 sm:p-8 md:p-10 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-2 sm:mb-3 text-[11px] sm:text-xs">
-                  {latest.tags[0] && (
-                    <span className="text-foreground/60 uppercase tracking-wider">
-                      {latest.tags[0]}
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-display text-2xl sm:text-3xl md:text-4xl text-grace leading-tight mb-2 sm:mb-3 group-hover:text-grace-deep transition">
-                  {latest.title}
-                </h3>
-                {/* Excerpt is hidden on mobile to keep the card compact. */}
-                <p className="hidden sm:block text-foreground/75 leading-relaxed mb-4">
-                  {latest.excerpt}
-                </p>
-                <p className="text-foreground/50 text-xs">
-                  {latest.readMinutes} min read
-                </p>
-              </div>
-            </Link>
-          </div>
-        </section>
-      )}
+      {/* Latest letter section intentionally removed — most recent essay
+          appears first in the All Letters row below (newest-first sort). */}
+
+
 
       {/* Tag filter chips */}
       <section id="all-essays" className="px-6 pb-4 sm:pb-6 relative z-10 scroll-mt-24">
