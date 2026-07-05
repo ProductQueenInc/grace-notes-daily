@@ -4,6 +4,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2, Sparkles } from "lucide-react";
 import { generousAnsweredConfetti, subtleConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
@@ -358,9 +359,9 @@ function Prayers() {
         )}
       </section>
 
-      {celebrating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up">
+      {celebrating && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 overflow-y-auto py-6">
+          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up my-auto">
             <div className="gradient-grace text-white px-6 py-4 flex items-center justify-between">
               <span className="font-semibold flex items-center gap-2">Celebrate this Answer!</span>
               <button onClick={() => setCelebrating(null)}><X className="w-5 h-5" /></button>
@@ -378,12 +379,13 @@ function Prayers() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up">
+      {editing && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 overflow-y-auto py-6">
+          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up my-auto">
             <div className="gradient-grace text-white px-6 py-4 flex items-center justify-between">
               <span className="font-semibold flex items-center gap-2"><Pencil className="w-4 h-4" /> Edit Prayer</span>
               <button onClick={() => setEditing(null)}><X className="w-5 h-5" /></button>
@@ -400,7 +402,8 @@ function Prayers() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
