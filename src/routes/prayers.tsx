@@ -4,6 +4,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2, Sparkles } from "lucide-react";
 import { generousAnsweredConfetti, subtleConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
