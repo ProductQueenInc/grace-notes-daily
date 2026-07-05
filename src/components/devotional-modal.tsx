@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import { X, BookOpen, Heart, Check, RefreshCw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSharedDevotional } from "@/lib/ai-stubs";
@@ -7,7 +8,7 @@ import { toast } from "sonner";
 import { ReadingSurface } from "@/components/reading-surface";
 import { Icon } from "@/components/icon";
 import { useHabits } from "@/hooks/use-habits";
-import { isoForDate } from "@/lib/today";
+import { localTodayISO, isoForDate } from "@/lib/today";
 
 function formatDisplayDate(iso: string): string {
   return new Date(iso + "T12:00:00").toLocaleDateString("en-US", {
@@ -17,31 +18,63 @@ function formatDisplayDate(iso: string): string {
   });
 }
 
-export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
-  const { habits } = useHabits();
-  const received = habits.devotional;
-  const today = isoForDate(new Date());
-  // Always display today's date — never trust what the server or AI returns for
-  // the date field, which can be stale from cache or hallucinated by the model.
-  const todayDisplay = formatDisplayDate(today);
+function previousDayISO(iso: string): string {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() - 1);
+  return isoForDate(d);
+}
 
-  // The devotional is now SHARED (same for everyone, keyed by date). Shares the
+export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; onClose: () => void; onReceived?: () => void }) {
+  // DATE ANCHOR: freeze the devotional's date at the moment the modal opens.
+  // If the user leaves the modal open across midnight, they are still reading
+  // (and marking) THAT day's devotional — content, date label, and check
+  // state all stay tied to this one date. Reopening re-anchors to the new day.
+  const [devotionalDate, setDevotionalDate] = useState(localTodayISO);
+  useEffect(() => {
+    if (open) setDevotionalDate(localTodayISO());
+  }, [open]);
+
+  // Habit state scoped to the devotional's own date — never the wall-clock
+  // date at click time. Marking here can only affect devotionalDate's row.
+  const { habits, markComplete } = useHabits(devotionalDate);
+  const received = habits.devotional;
+  // Display the anchored date — never what the server or AI returns for the
+  // date field, which can be stale from cache or hallucinated by the model.
+  const dateDisplay = formatDisplayDate(devotionalDate);
+
+  // The devotional is SHARED (same for everyone, keyed by date). Shares the
   // cache key with home.tsx prefetch - opens instantly if warmed.
   const { data, isError, refetch, isFetching } = useQuery({
-    queryKey: ["devotional", today],
-    queryFn: () => getSharedDevotional(today),
+    queryKey: ["devotional", devotionalDate],
+    queryFn: () => getSharedDevotional(devotionalDate),
     enabled: open,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
+    // If the server had to fall back to a previous day's devotional, retry
+    // quietly in the background until the real one exists, then stop.
+    refetchInterval: (query) => (query.state.data?.isFallback ? 60_000 : false),
   });
+
+  // Quiet label when showing a fallback: "Yesterday's reflection" when it is
+  // literally yesterday's, otherwise the served devotional's own date. Never
+  // label a past reflection with today's date.
+  const dateLabel = data?.isFallback
+    ? data.servedDate === previousDayISO(devotionalDate)
+      ? "Yesterday's reflection"
+      : formatDisplayDate(data.servedDate ?? devotionalDate)
+    : dateDisplay;
 
   if (!open || typeof document === "undefined") return null;
 
   function receive() {
     softGoldConfetti();
     toast.success("Received. His word is alive in you.");
+    // Mark via the date-anchored hook (writes to devotionalDate's row).
+    // Other useHabits instances (home card, rhythm circles) sync via the
+    // date-stamped "gn:habits-change" event and ignore non-matching dates.
+    markComplete("devotional");
     onReceived?.();
     setTimeout(onClose, 700);
   }
@@ -88,7 +121,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
             </div>
 
             <h2 className="font-display text-3xl md:text-4xl text-grace mb-1">{data.title}</h2>
-            <p className="text-xs text-foreground/55 uppercase tracking-[0.18em] mb-6">{todayDisplay}</p>
+            <p className="text-xs text-foreground/55 uppercase tracking-[0.18em] mb-6">{dateLabel}</p>
 
             <div className="space-y-4 text-foreground/85 leading-relaxed max-w-[64ch]">
               {data.body.map((p, i) => <p key={i}>{p}</p>)}
@@ -114,7 +147,8 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
 
             {received ? (
               <div className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
-                <Icon icon={Check} size="sm" tone="inherit" /> Received today
+                <Icon icon={Check} size="sm" tone="inherit" />{" "}
+                {devotionalDate === localTodayISO() ? "Received today" : "Received"}
               </div>
             ) : (
               <button

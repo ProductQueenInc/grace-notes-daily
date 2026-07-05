@@ -15,7 +15,9 @@ export const Route = createFileRoute("/devotional/")({
     const date = todayISO();
     try {
       const devotional = await getSharedDevotional(date);
-      return { devotional, date };
+      // If a fallback was served, anchor the page (head tags, share URL) to
+      // the devotional actually shown, not the date that failed to generate.
+      return { devotional, date: devotional.servedDate ?? date };
     } catch (err) {
       console.error("[devotional/index] generation failed:", err);
       return { devotional: null, date };

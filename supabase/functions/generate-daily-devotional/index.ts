@@ -82,6 +82,34 @@ Restraint over reassurance. One true sentence beats three soothing ones.
 
 Read-aloud test: if a thoughtful pastor would not actually say the sentence to someone they love, cut it.`
 
+// Devotional openings only. Mirrors OPENING_RULE in src/lib/ai.functions.ts -
+// keep both in sync (edge functions can't import from src/, see CLAUDE.md §5/§9).
+const OPENING_RULE = `
+OPENING RULE: Never open with "The [adjective] thing about [X] is [Y]" or a close variant ("What's strange about X is...", "There's something hard about X...", "Here's the difficult part about X..."). This construction has become a tic. Banning the exact words is not enough - the underlying shape (name a quality of the topic, then explain it) must not repeat either, even worded differently.
+
+Vary the entry point every time. Rotate across these approaches instead of settling into one:
+- a scene already in motion, no setup
+- direct address to the reader mid-action ("you" doing something specific)
+- a flat statement with no framing at all
+- a small first-person confession
+- a single sharp, unexplained image
+- a remembered or overheard line
+
+Never signal that a sentence is coming ("Here's the truth:", "Consider this:", "The truth about X is..."). Just say the thing.
+
+NEGATIVE EXAMPLES - do not open like these, or in this shape with different words:
+"The strange thing about waiting is that it teaches you what you actually believe."
+"The hard part about forgiveness is that it rarely feels like relief."
+"What's difficult about rest is how much it resembles doing nothing."
+
+POSITIVE EXAMPLES - different entry points, shown to illustrate range of shape, not to be reused verbatim:
+"The line at the pharmacy hasn't moved in ten minutes, and neither have you."
+"You have checked your phone four times since you sat down to read this."
+"Waiting rearranges you before you notice it happening."
+"I have prayed the same prayer for three years and nothing has changed."
+"A kettle, left on the stove past its whistle."
+`
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -163,6 +191,8 @@ Be biblically grounded. Be specific. Never preachy. Never generic.
 Write it deep enough to matter, but general enough that a reader who is not personally in this theme today could send it to someone in their life who is walking through it. Do not assume the reader's circumstances.
 Don't reference time of day or what part of the day this is being read.
 
+${OPENING_RULE}
+
 GENDER RULE: Never use gendered pronouns for the reader. Use "you" and "your". If third-person is unavoidable, use "they" or "them".
 STRUCTURE RULE: No three-part parallel structure, no rhetorical triplets, no rule-of-threes. Vary sentence shape and length.
 
@@ -211,7 +241,10 @@ Respond with valid JSON only - no markdown, no code fences:
         related,
         takeaway,
       },
-      { onConflict: 'date' },
+      // ignoreDuplicates: if a device's on-demand fallback inserted this date's
+      // row while we were generating, keep theirs (first writer wins) instead
+      // of replacing content users may already be reading.
+      { onConflict: 'date', ignoreDuplicates: true },
     )
 
     return new Response(

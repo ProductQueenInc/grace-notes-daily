@@ -1,7 +1,6 @@
 import type { Profile } from "@/hooks/use-auth";
 import {
   getOrCreateGraceNote,
-  getOrCreateDevotional,
   getOrCreateSharedDevotional,
   callRespondToHeartNote,
   callRespondToDailyMessage,
@@ -22,14 +21,6 @@ export async function generateGraceNote(
   const profile = typeof profileOrName === "string" || !profileOrName ? null : profileOrName;
   return getOrCreateGraceNote({
     data: { ...buildAIProfile(profile), clientDate: localTodayISO() },
-  });
-}
-
-export async function generateDevotional(
-  profile?: Profile | null,
-): Promise<DevotionalResult> {
-  return getOrCreateDevotional({
-    data: { ...buildAIProfile(profile ?? null), clientDate: localTodayISO() },
   });
 }
 

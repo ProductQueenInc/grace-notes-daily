@@ -14,14 +14,20 @@ import type { HabitState } from "@/hooks/use-habits";
 export function useStreak() {
   const [streak, setStreak] = useState(0);
   const [liveTodayQualifies, setLiveTodayQualifies] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     const onHabitsChange = (e: Event) => {
-      const detail = (e as CustomEvent<{ state?: HabitState }>).detail;
-      if (detail?.state) {
+      const detail = (e as CustomEvent<{ date?: string; state?: HabitState }>).detail;
+      if (!detail?.state) return;
+      // Events are date-stamped (use-habits). Only a mark for TODAY makes
+      // today qualify live — marking a past day's devotional must not.
+      if (detail.date === isoForDate(new Date())) {
         const { devotional, dailyMessage, journal } = detail.state;
         setLiveTodayQualifies(!!(devotional || dailyMessage || journal));
       }
+      // Any mark (today or a past day) can add a newly qualifying day.
+      setRefreshTick((t) => t + 1);
     };
     window.addEventListener("gn:habits-change", onHabitsChange);
     return () => window.removeEventListener("gn:habits-change", onHabitsChange);
@@ -49,7 +55,7 @@ export function useStreak() {
           setStreak(qualifying.size);
         });
     });
-  }, [liveTodayQualifies]);
+  }, [liveTodayQualifies, refreshTick]);
 
   return streak;
 }

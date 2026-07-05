@@ -12,7 +12,10 @@ export const Route = createFileRoute("/devotional/$date")({
     if (!isValidDate(params.date)) throw notFound();
     try {
       const devotional = await getSharedDevotional(params.date);
-      return { devotional, date: params.date };
+      // A dated archive URL must only ever show that date's devotional. If
+      // the server fell back to a different day's content, treat it as not
+      // ready ("being prepared" card) rather than mislabeling the content.
+      return { devotional: devotional.isFallback ? null : devotional, date: params.date };
     } catch (err) {
       console.error("[devotional/$date] generation failed:", err);
       return { devotional: null, date: params.date };

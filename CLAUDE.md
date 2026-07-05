@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-06-28**.
+Last updated: **2026-07-05**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -54,12 +54,14 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Email infra (auth emails + transactional queue + suppression) | `email_*` tables, `src/routes/lovable/email/*` |
 | Sidebar + AppShell + PlayerDock | `src/components/app-sidebar.tsx`, `app-shell.tsx`, `player-dock.tsx` |
 | Listen feature: tracks loaded from Supabase `tracks` table, private `listen-audio` bucket with signed URLs, auto-play next track on end, shuffle mode | `src/routes/listen.tsx`, `src/hooks/use-audio-player.ts`, `src/routes/__root.tsx` (GlobalPlayer) |
-| SEO landing pages (6 routes + 3 content guides), share bar, llms.txt, expanded sitemap | `src/routes/quiet-time-app.tsx` and siblings, `content/*`, `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx`, `public/llms.txt`, `public/sitemap.xml` |
+| SEO landing pages (6 routes + 3 content guides), share bar, llms.txt, expanded sitemap. **16 of 18 sitemap pages indexed as of 2026-06-29** (the 2 pending are `/devotional` and `/blog/building-gracenotes-daily`, added 2026-06-28/29 — expect indexing within days). robots.txt blocks auth, legacy redirects, and all authenticated app routes. | `src/routes/quiet-time-app.tsx` and siblings, `content/*`, `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx`, `public/llms.txt`, `public/sitemap.xml`, `public/robots.txt` |
+| Founder blog post — `blog.building-gracenotes-daily.tsx`, full article with Article + BreadcrumbList JSON-LD, sectioned long-read layout with eyebrow labels. In sitemap with `priority=0.8`. | `src/routes/blog.building-gracenotes-daily.tsx`, `src/content/blog/building-gracenotes-daily.md` |
+| Public shared devotional page + archive — `/devotional` (today) and `/devotional/$date` (archive). Each dated URL is an independently indexable Article page with OG + JSON-LD. The daily cron creates one per day; these are the SEO flywheel. **Dated archive pages are NOT yet in sitemap — next step: dynamic/server-generated sitemap.** | `src/routes/devotional.index.tsx`, `src/routes/devotional.$date.tsx`, `src/components/devotional-view.tsx` |
 | PWA manifest + theme-color + Apple PWA meta | `public/manifest.json`, `src/routes/__root.tsx` |
 | Tally feedback button (all pages) | `src/components/feedback-dialog.tsx`, loaded in `__root.tsx` |
 | v2 schema applied (verses, crisis_lines, user_verse_log, daily_grace_notes, chat_sessions, chat_flags, RPCs `select_verse_for_user` and `increment_session_message_count`) | Live DB as of 2026-06-09 |
 | `chat-reply` edge function (3-tier safety + streaming SSE) — DB now backs it | `supabase/functions/chat-reply/index.ts` |
-| `generate-daily-devotional` edge function — day-ahead cron for shared devotional; pg_cron `0 22 * * *` (job id 3, active). Idempotent. Same prompt as `getOrCreateSharedDevotional`. | `supabase/functions/generate-daily-devotional/index.ts` |
+| `generate-daily-devotional` edge function — day-ahead cron for shared devotional; pg_cron `0 9 * * *` (job id 3, active). Idempotent. Same prompt as `getOrCreateSharedDevotional`. ⚠️ **Every run failed until 2026-07-05** (vault secrets missing — see §11 PM4); still failing until the owner adds the `email_queue_service_role_key` vault secret. | `supabase/functions/generate-daily-devotional/index.ts` |
 | `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5). Cron scheduled in `cron.job` (daily 01:00 UTC, active). `daily_grace_notes` will fill after the first overnight run. | `supabase/functions/generate-daily-grace-notes/index.ts` |
 | PWA icons (192, 512, apple-touch-180) wired into manifest + `__root.tsx`. Master `icon-source.png` is 1254×1254 (verified). | `public/icons/`, `public/manifest.json` |
 | `crisis_lines` seeded with 51 countries (verified 51 rows). | Live DB |
@@ -242,7 +244,84 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
-<<<<<<< Updated upstream
+### 2026-07-05 (PM4) — Production audit: devotional persistence broken since 06-22, both crons never ran; fallback strategy shipped; cron moved to 09:00 UTC
+
+Following up the two-devices divergence fix with a live-DB audit revealed the divergence was not an edge-case race. Persistence of the shared devotional has never worked in production:
+
+- **`daily_devotionals` has 0 rows.** Every devotional view since 2026-06-22 generated fresh content per device, and the upsert failed silently every time (its error was never checked). Cause not yet confirmed from outside the worker: unique constraint on `date`, GRANTs, RLS, and PostgREST visibility all verified fine, and the same admin client successfully writes `daily_content` daily (latest row 2026-07-05; last per-user devotional cache 2026-06-10, confirming prod switched to the shared path ~06-22). The new code checks and logs the persist error, so the first publish will surface the real cause in worker logs.
+- **Both pg_cron jobs have failed on every single run** (job 1 `generate-daily-grace-notes`: 36/36 failed; job 3 `generate-daily-devotional`: all runs failed): **`vault.secrets` is empty** — the `email_queue_service_role_key` and `SUPABASE_URL` secrets the cron commands read do not exist, so `net.http_post` receives NULL url + token. The §2 claims about active crons were never true in practice. Also check whether the email queue relies on the same missing secret.
+- **Fixed now:** created the `SUPABASE_URL` vault secret (public value). ⚠️ **Owner action required:** add the service-role key in the Supabase SQL editor: `select vault.create_secret('<service-role-key>', 'email_queue_service_role_key');` — until then both crons keep failing.
+- **Cron rescheduled** from `0 22 * * *` to `0 9 * * *` (still generates tomorrow-UTC). The row now exists ~1h before UTC+14 reaches its local midnight, so no device anywhere starts a new local day before its devotional exists — the on-demand generation path becomes a true rarity.
+- **Fallback strategy implemented** (owner decision: a devotional opened as part of a morning ritual must never be an empty "try again" box). `getOrCreateSharedDevotional` resolution order is now: stored row → generate + persist (first-writer-wins + read-back) → most recent stored devotional, flagged `isFallback` + `servedDate` → locally generated content (absolute last resort, logged loudly) → error. Clients: modal + home queries add a 60s `refetchInterval` while `isFallback` (stops once the real row lands); the modal shows a quiet "Yesterday's reflection" label (or the served date's own date) instead of mislabeling with today's; `/devotional/$date` treats a fallback as "being prepared" (a dated URL never shows another day's content); `/devotional` index anchors head tags + share URL to `servedDate`.
+- `DevotionalResult` gains optional `isFallback` + `servedDate` fields. `tsc --noEmit` clean on all changed files.
+- ⚠️ **To reach production:** publish via Lovable AND redeploy the `generate-daily-devotional` edge function (`ignoreDuplicates` + `OPENING_RULE` changes are still local-only).
+
+### 2026-07-05 (PM2) — Devotional prompt: banned the "The [adjective] thing about X is Y" opening tic
+
+Cindy flagged that nearly every devotional opened with a sentence shaped like "The [adjective] thing about [X] is [Y]" (e.g. "The strange thing about waiting is..."). The body content was fine; the intros had converged on one template and made every devotional feel the same. Root cause: both devotional prompts instructed "Open with a small concrete tension" with no guidance on *how*, so the model defaulted to its go-to construction for stating a tension.
+
+- **New `OPENING_RULE` constant** (`src/lib/ai.functions.ts`, near `NO_OVER_FAMILIARITY`): explicitly bans the "The [adjective] thing about X is Y" construction and close variants, and bans the underlying shape (name a quality of the topic, then explain it) even when reworded. Gives six alternative entry points to rotate across (scene in motion, direct address, flat statement, first-person confession, sharp image, remembered line), plus negative and positive examples.
+- Wired into `generateSharedDevotionalRaw` (shared devotional, the one actually live). *(Was also wired into the per-user `generateDevotionalRaw` at first pass, but that generator was dead code — see the following entry, which removes it.)*
+- **`supabase/functions/generate-daily-devotional/index.ts`:** same `OPENING_RULE` block inlined (edge functions can't import from `src/`) and wired into the cron's prompt, per the §5/§9 policy that this prompt must stay in sync with `generateSharedDevotionalRaw`. ⚠️ Redeploy this edge function for the change to take effect.
+- Grace-note prompt (`generateGraceNoteRaw`) was not touched — it already has its own opening bans (e.g. "Never open with 'I notice.'") and a different 2-4 sentence shape; the reported repetition was specific to devotionals.
+- `tsc --noEmit`: no new errors in `ai.functions.ts`.
+
+### 2026-07-05 (PM3) — Removed dead per-user devotional code
+
+Cindy flagged that we don't ship per-user devotionals anymore and asked whether the prior entry was wrong to reference `generateDevotionalRaw` as merely "unwired." It was accurate but stale: since 2026-06-22, no route or component has called the per-user devotional path — only `getSharedDevotional` is used (`devotional-modal.tsx`, `home.tsx`, `devotional.index.tsx`, `devotional.$date.tsx`). The per-user function was disconnected dead code, not deleted. Removed it outright so the codebase matches reality.
+
+- **`src/lib/ai.functions.ts`:** deleted `generateDevotionalRaw` (the per-user devotional generator, including its own copy of the `OPENING_RULE`-wired prompt) and the `getOrCreateDevotional` server function (cache read/write, verse grounding via `select_verse_for_user`, `user_verse_log` insert).
+- **`src/lib/ai-stubs.ts`:** deleted the `generateDevotional` wrapper and its `getOrCreateDevotional` import. `getSharedDevotional` (shared devotional) is untouched and remains the only devotional path.
+- Kept: `DevotionalResult` type, `sanitizeDevotional`, `postureFromPhase`, `phaseDesc`/`voiceDesc`/`seasonLine` — all still used by the grace note generator and/or the shared devotional path.
+- `tsc --noEmit`: no errors in either changed file (one pre-existing, unrelated error remains in `article-card-compact.tsx`).
+- §1/§12 didn't name the per-user generator specifically (they just say "devotional" generically, which still describes the shared path), so no wording change was needed there.
+
+### 2026-07-05 (PM) — Shared devotional divergence fix: fallback is now first-writer-wins + read-back
+
+Bug report: two devices on the same account saw different devotionals on the same day. Root cause: `getOrCreateSharedDevotional` (`src/lib/ai.functions.ts`), generation branch. When the day's row didn't exist yet, each device generated its own devotional, **returned its own generation**, and the final `upsert({ onConflict: "date" })` blindly let the last writer overwrite the first. With `staleTime: Infinity` + `gcTime: 24h` on the client queries, each device kept its divergent copy all day. The race fires nightly for local timezones at/east of UTC+3 (their midnight arrives before the 22:00 UTC day-ahead cron creates the row) — it was the normal path, not an edge case.
+
+- **`src/lib/ai.functions.ts` (`getOrCreateSharedDevotional`):** persist now uses `{ onConflict: "date", ignoreDuplicates: true }` (INSERT … ON CONFLICT DO NOTHING → first insert wins), then **re-selects the row and returns the persisted content**, never the local generation. Every device converges on the one stored devotional. If persist fails and nothing can be re-read, the fn throws (loaders/queries already have retry + "being prepared" states) instead of returning content no other device will ever see.
+- **`supabase/functions/generate-daily-devotional/index.ts`:** cron upsert also switched to `ignoreDuplicates: true` so a row created by a device's on-demand fallback during the cron's generation window is kept, not replaced mid-read. ⚠️ Redeploy this edge function for the change to take effect.
+- **Known remaining divergence (not changed, by design/decision needed):** the public `/devotional` index route anchors "today" to **UTC** (`devotional.index.tsx`), while home + modal use the client's **local** date. Near midnight the public page and the in-app view can show different days. Recommended follow-up: move the pg_cron schedule from `0 22 * * *` to ~`0 9 * * *` (still generating tomorrow-UTC) so the row exists before the earliest timezone (UTC+14) reaches its local midnight — that makes the on-demand fallback a true rarity.
+- Also resolved leftover git merge-conflict markers in this file's §11 (the 2026-06-28 and 2026-06-29 entries were wrapped in `<<<<<<<`/`>>>>>>>`; both sides kept, ordered newest-first).
+- `tsc --noEmit`: no errors in changed files.
+
+### 2026-07-05 — Date-scoped devotional check state (midnight-crossing fix)
+
+Bug: "I Receive This" stamped the habit row with the wall-clock date at click time. A user who left yesterday's devotional open past midnight and then tapped receive marked TODAY's row — today's devotional showed as checked. Compounding it, `useHabits` fetched once at mount and never rolled over at local midnight, and DB-mode hook instances didn't sync (no `gn:habits-change` listener in that branch).
+
+- **`src/hooks/use-habits.ts` rewritten date-scoped:** `useHabits(date?)` — pass a local `YYYY-MM-DD` to anchor the hook to that specific day; omit it for a rolling local today that re-anchors at midnight (30s interval + focus/visibilitychange). `markComplete` stamps the hook's anchored date, never "now" (DB upsert and the localStorage fallback, now keyed `gn:habits:<date>`). The `gn:habits-change` event detail is now `{ date, state }` and listeners (both DB and local modes) only apply updates matching their own date — marking yesterday cannot flip today's circles. Hook also returns `date`.
+- **`src/components/devotional-modal.tsx`:** freezes `devotionalDate` at the moment the modal opens (re-anchors on reopen); the query key, date label, check state, and the mark itself are all tied to that one date via `useHabits(devotionalDate)`. The modal now calls `markComplete("devotional")` itself. Label shows "Received" (not "Received today") when anchored to a past date.
+- **`src/routes/home.tsx`:** removed `onReceived={() => markComplete("devotional")}` — that hook is rolling-today-scoped and was the wrong date across midnight. Home syncs via the date-stamped event. (`onReceived` prop remains optional on the modal for future use.)
+- **`src/hooks/use-streak.ts`:** listener now checks `detail.date === today` before letting a mark qualify "today" live; any mark (including a past day) triggers a DB refetch so newly qualifying days are counted.
+- Habit auto-mark rule (§4) unchanged: only real actions mark habits. `tsc --noEmit` clean for all four changed files (pre-existing unrelated errors remain).
+
+### 2026-06-29 (PM) — SEO audit + robots.txt tightened
+
+Google Search Console confirmed **16 of 18 sitemap pages indexed**. The 2 still pending (`/devotional`, `/blog/building-gracenotes-daily`) were added 2026-06-28/29 and are in the crawl queue.
+
+- **robots.txt updated** (`public/robots.txt`): added `Disallow` for `/login`, `/signup`, `/reset-password`, `/auth`, `/christian-journaling`, `/prayer-journaling`, `/daily-devotional`. The last three are legacy 301 redirect routes (they redirect to `/library/$slug`) that were showing up as "Page with redirect" in GSC — blocking them stops Google wasting crawl budget on dead-end URLs. Auth pages had no noindex tag and were appearing as "Discovered - currently not indexed."
+- **Next SEO priority (not yet done):** build a dynamic/server-generated sitemap that includes `/devotional/YYYY-MM-DD` archive pages. Each dated devotional is an independently indexable Article page with OG + JSON-LD already in place — the infrastructure is ready, they just aren't being submitted to Google. This is the highest-leverage SEO action remaining.
+
+### 2026-06-29 — Cross-Account Protection (RISC) implementation
+
+Google RISC lets Google notify GraceNotes when a user's Google account is compromised. When triggered, the app revokes the user's Supabase sessions immediately.
+
+**New files:**
+- `src/lib/risc-jwt.ts` — fetches Google's RISC JWKS (via `.well-known/risc-configuration`) and verifies incoming SET JWTs using `jose` (Workers-compatible).
+- `src/lib/risc-events.server.ts` — maps RISC event types to Supabase admin actions: `sessions-revoked`, `account-credential-change-required`, and `account-hijacking-detected` → `auth.admin.signOut(userId, 'global')`; `account-disabled` and `account-purged` → sign out + 100-year ban.
+- `src/routes/api/risc/receiver.ts` — the RISC endpoint. GET handles Google's challenge-echo verification. POST receives SET JWTs, verifies them, and dispatches events. Always returns 202 to prevent Google retries on processing errors.
+- `scripts/register-risc.ts` — one-time registration script. Run with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_CLIENT_ID` set. Uses a service-account JWT to call `https://risc.googleapis.com/v1beta/stream:update`.
+
+**New dependency:** `jose` (JWKS + JWT verify; Workers-compatible).
+
+**New env var required:** `GOOGLE_CLIENT_ID` — add as a Cloudflare Worker secret (`wrangler secret put GOOGLE_CLIENT_ID`). This is the OAuth client ID used by Google sign-in.
+
+**To activate:**
+1. Add `GOOGLE_CLIENT_ID` secret to Cloudflare dashboard.
+2. Deploy to production (via Lovable → Publish).
+3. Run `scripts/register-risc.ts` once with the service account JSON to register the endpoint URL with Google.
+
 ### 2026-06-28 (PM) — Day-ahead devotional cron + graceful error state
 
 **Task 1 — Day-ahead generation (`supabase/functions/generate-daily-devotional/index.ts`):**
@@ -273,26 +352,6 @@ The devotional is now **shared** (one per day for everyone), grounded, and publi
 - `routeTree.gen.ts` regenerated to include the two new routes.
 - Type-checked clean (only the pre-existing missing-dep errors remain).
 - **Follow-ups (kept on the list):** (1) a-day-ahead cron generation + lightweight human review (currently the first view of a date generates it on demand); (2) graceful error state if generation fails on a public hit; (3) add the devotional archive to `sitemap.xml`; (4) the Listen fixes (Media Session lock-screen controls + pause/resume restart bug).
-=======
-### 2026-06-29 — Cross-Account Protection (RISC) implementation
-
-Google RISC lets Google notify GraceNotes when a user's Google account is compromised. When triggered, the app revokes the user's Supabase sessions immediately.
-
-**New files:**
-- `src/lib/risc-jwt.ts` — fetches Google's RISC JWKS (via `.well-known/risc-configuration`) and verifies incoming SET JWTs using `jose` (Workers-compatible).
-- `src/lib/risc-events.server.ts` — maps RISC event types to Supabase admin actions: `sessions-revoked`, `account-credential-change-required`, and `account-hijacking-detected` → `auth.admin.signOut(userId, 'global')`; `account-disabled` and `account-purged` → sign out + 100-year ban.
-- `src/routes/api/risc/receiver.ts` — the RISC endpoint. GET handles Google's challenge-echo verification. POST receives SET JWTs, verifies them, and dispatches events. Always returns 202 to prevent Google retries on processing errors.
-- `scripts/register-risc.ts` — one-time registration script. Run with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_CLIENT_ID` set. Uses a service-account JWT to call `https://risc.googleapis.com/v1beta/stream:update`.
-
-**New dependency:** `jose` (JWKS + JWT verify; Workers-compatible).
-
-**New env var required:** `GOOGLE_CLIENT_ID` — add as a Cloudflare Worker secret (`wrangler secret put GOOGLE_CLIENT_ID`). This is the OAuth client ID used by Google sign-in.
-
-**To activate:**
-1. Add `GOOGLE_CLIENT_ID` secret to Cloudflare dashboard.
-2. Deploy to production (via Lovable → Publish).
-3. Run `scripts/register-risc.ts` once with the service account JSON to register the endpoint URL with Google.
->>>>>>> Stashed changes
 
 ### 2026-06-22 (PM) — Verse grounding: grace note + devotional now use verified NIV from the `verses` table
 

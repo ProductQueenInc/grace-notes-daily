@@ -7,5 +7,12 @@ Disallow: /journey
 Disallow: /listen
 Disallow: /settings
 Disallow: /onboarding
+Disallow: /login
+Disallow: /signup
+Disallow: /reset-password
+Disallow: /auth
+Disallow: /christian-journaling
+Disallow: /prayer-journaling
+Disallow: /daily-devotional
 
 Sitemap: https://www.gracenotesdaily.com/sitemap.xml

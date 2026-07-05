@@ -72,6 +72,9 @@ function Home() {
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
     retry: 2,
+    // If the server served a previous day's devotional as a fallback, retry
+    // quietly in the background until today's real one exists, then stop.
+    refetchInterval: (query) => (query.state.data?.isFallback ? 60_000 : false),
   });
 
 
@@ -303,10 +306,14 @@ function Home() {
         </p>
       </section>
 
+      {/* The modal marks the devotional habit itself, scoped to the devotional's
+          own date (see DevotionalModal). Do NOT mark from here — this hook is
+          anchored to the rolling today, which is the wrong date if the modal
+          was left open across midnight. Home's state syncs via the
+          date-stamped gn:habits-change event. */}
       <DevotionalModal
         open={devotionalOpen}
         onClose={() => setDevotionalOpen(false)}
-        onReceived={() => markComplete("devotional")}
       />
     </TooltipProvider>
   );

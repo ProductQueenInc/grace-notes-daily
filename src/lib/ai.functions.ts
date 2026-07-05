@@ -97,6 +97,12 @@ export type DevotionalResult = {
   body: string[];
   related: { ref: string; text: string }[];
   takeaway: string;
+  // Present only when the requested date's devotional could not be generated
+  // or persisted and the most recent stored devotional was served instead
+  // (see the fallback branch in getOrCreateSharedDevotional). servedDate is
+  // the YYYY-MM-DD of the row actually returned.
+  isFallback?: boolean;
+  servedDate?: string;
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -168,6 +174,35 @@ EXAMPLE OF WHAT NOT TO WRITE (too performative, breaks every rule above):
 
 EXAMPLE OF WHAT TO WRITE INSTEAD (warm, specific, restrained):
 "Today doesn't need to be impressive. The light is enough. Your breath is enough. The work in front of you, however small, is held."
+`;
+
+// Devotional openings only. Applied to the shared devotional generator.
+// Bans the "The [adjective] thing about X is Y" tic and gives concrete,
+// varied alternatives so openings stop converging on one shape.
+const OPENING_RULE = `
+OPENING RULE: Never open with "The [adjective] thing about [X] is [Y]" or a close variant ("What's strange about X is...", "There's something hard about X...", "Here's the difficult part about X..."). This construction has become a tic. Banning the exact words is not enough - the underlying shape (name a quality of the topic, then explain it) must not repeat either, even worded differently.
+
+Vary the entry point every time. Rotate across these approaches instead of settling into one:
+- a scene already in motion, no setup
+- direct address to the reader mid-action ("you" doing something specific)
+- a flat statement with no framing at all
+- a small first-person confession
+- a single sharp, unexplained image
+- a remembered or overheard line
+
+Never signal that a sentence is coming ("Here's the truth:", "Consider this:", "The truth about X is..."). Just say the thing.
+
+NEGATIVE EXAMPLES - do not open like these, or in this shape with different words:
+"The strange thing about waiting is that it teaches you what you actually believe."
+"The hard part about forgiveness is that it rarely feels like relief."
+"What's difficult about rest is how much it resembles doing nothing."
+
+POSITIVE EXAMPLES - different entry points, shown to illustrate range of shape, not to be reused verbatim:
+"The line at the pharmacy hasn't moved in ten minutes, and neither have you."
+"You have checked your phone four times since you sat down to read this."
+"Waiting rearranges you before you notice it happening."
+"I have prayed the same prayer for three years and nothing has changed."
+"A kettle, left on the stove past its whistle."
 `;
 
 function sanitizeGraceNote(r: GraceNoteResult): GraceNoteResult {
@@ -313,90 +348,6 @@ Respond with valid JSON only - no markdown, no code fences:
   };
 }
 
-async function generateDevotionalRaw(
-  p: AIProfile,
-  verse: { text: string; reference: string },
-  related: { ref: string; text: string }[],
-): Promise<DevotionalResult> {
-  const client = anthropic();
-  // Use the client's local date if supplied so the date in the devotional
-  // matches the user's actual calendar day, not the server's UTC clock.
-  const today = p.clientDate
-    ? new Date(p.clientDate + "T12:00:00").toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-
-  const relatedBlock = related.length
-    ? `\nRelated passages (already shown to the reader; do not restate their full text in the body):\n${related.map((r) => `- ${r.ref}: ${r.text}`).join("\n")}\n`
-    : "";
-
-  const system = `Write today's devotional. The reader is a Christian ${phaseDesc(p.faithPhase)}.
-Voice: ${voiceDesc(p.voice)}.${seasonLine(p.seasons)}
-
-The verse for today has already been chosen and will be shown to the reader. Build the devotional around it. Do NOT introduce, quote, or invent any other scripture beyond this verse and the related passages listed below.
-Verse of the day: "${verse.text}" - ${verse.reference}${relatedBlock}
-
-Third-person teaching voice (not a letter from God). One unified spiritual thought, not assembled parts.
-Open with a small concrete tension - move through biblical insight - land on one practical thing to do or hold today.
-Be biblically grounded. Be specific. Never preachy. Never generic.
-Don't reference time of day or what part of the day this is being read.
-
-NAME RULE: Never use the reader's name anywhere in the devotional body. Do not open with the reader's name. Do not write about the reader in third-person by name ("Tatiana stands at..."). Use "you" and "your" for direct address throughout. The name exists only for context; it belongs in no sentence of the devotional.
-
-GENDER RULE: Never use gendered pronouns (he, she, him, her, his, hers) to refer to the reader. Use "you" and "your" for direct address. If third-person reference is unavoidable, use "they" or "them." We do not know the reader's gender and must never assume it.
-
-STRUCTURE RULE: No three-part parallel structure. No rhetorical triplets ("X… Y… Z…"). No rule-of-threes in any sentence or paragraph. Variety in sentence shape and length signals a human voice; uniformity signals a template.
-
-${NO_OVER_FAMILIARITY}
-${NO_EM_DASH_RULE}
-
-Respond with valid JSON only - no markdown, no code fences:
-{
-  "title": "short evocative title - not generic",
-  "body": ["paragraph 1", "paragraph 2", "paragraph 3"],
-  "takeaway": "2 sentences, concrete and specific. Something to actually do or hold today."
-}`;
-
-  const msg = await client.messages.create({
-    model: "claude-haiku-4-5",
-    max_tokens: 900,
-    temperature: 0.7,
-    system,
-    messages: [{ role: "user", content: "Write today's devotional." }],
-  } as Parameters<typeof client.messages.create>[0]);
-
-
-
-  const block = (msg as Anthropic.Message).content[0];
-  const raw = block.type === "text" ? block.text : "";
-  // Throw on empty or unparseable response so the caller does NOT cache the
-  // fallback as real content. The next request will try again fresh.
-  if (!raw.trim()) throw new Error("Devotional: AI returned empty response");
-  const parsed = parseJSON<{ title?: string; body?: string[]; takeaway?: string } | null>(raw, null);
-  if (!parsed?.title || !parsed?.body?.length) {
-    throw new Error("Devotional: AI returned invalid JSON — will retry on next request");
-  }
-  // Verse + related passages are grounded from the curated NIV `verses` table,
-  // never written by the model. The date is server-computed.
-  const result: DevotionalResult = {
-    title: parsed.title,
-    verseOfDay: verse.text,
-    verseRef: verse.reference,
-    date: today,
-    body: parsed.body,
-    related,
-    takeaway: parsed.takeaway ?? "",
-  };
-  return sanitizeDevotional(result);
-}
-
 // ── Server Function: Get or Create Grace Note (cached per user per day) ───────
 // Single RPC. Auth + cache read + generate + cache write all happen server-side.
 
@@ -462,92 +413,6 @@ export const getOrCreateGraceNote = createServerFn({ method: "POST" })
       return result;
     } catch (err) {
       logAudit(userId, "getOrCreateGraceNote", "error", { error_msg: err instanceof Error ? err.message : String(err) })
-      throw err
-    }
-  });
-
-// ── Server Function: Get or Create Devotional (cached per user per day) ───────
-
-export const getOrCreateDevotional = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => AIProfileSchema.parse(data))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const date = data.clientDate ?? todayISO();
-
-    const { data: cached } = await supabase
-      .from("daily_content")
-      .select("devotional")
-      .eq("user_id", userId)
-      .eq("date", date)
-      .maybeSingle();
-
-    if (cached?.devotional) {
-      // Always stamp the correct display date regardless of when the cache was
-      // written — prevents stale dates from old cached devotionals showing up.
-      const devotional = cached.devotional as DevotionalResult;
-      const displayDate = data.clientDate
-        ? new Date(data.clientDate + "T12:00:00").toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          });
-      logAudit(userId, "getOrCreateDevotional", "cached")
-      return { ...devotional, date: displayDate };
-    }
-
-    // Ground the verse + related passages from the curated NIV `verses` table.
-    const posture = postureFromPhase(data.faithPhase);
-    let main: { verse_id: number; text: string; reference: string; theme: string } | null = null;
-    try {
-      const { data: vrows } = await admin.rpc("select_verse_for_user", {
-        p_user_id: userId,
-        p_posture: posture,
-        p_segment: data.faithPhase,
-      });
-      const row = (Array.isArray(vrows) ? vrows[0] : null) as
-        { verse_id: number; reference: string; verse_text: string; theme: string } | null;
-      if (row) main = { verse_id: row.verse_id, text: row.verse_text, reference: row.reference, theme: row.theme };
-    } catch {
-      /* fall through to the any-active fallback below */
-    }
-    if (!main) {
-      const { data: anyV } = await admin
-        .from("verses")
-        .select("id, reference, text, theme")
-        .eq("is_active", true)
-        .limit(1);
-      const row = (anyV as { id: number; reference: string; text: string; theme: string }[] | null)?.[0];
-      if (row) main = { verse_id: row.id, text: row.text, reference: row.reference, theme: row.theme };
-    }
-    if (!main) throw new Error("Devotional: no active verse available to ground from the verses table");
-
-    const { data: relRows } = await admin
-      .from("verses")
-      .select("reference, text")
-      .eq("is_active", true)
-      .eq("theme", main.theme)
-      .neq("id", main.verse_id)
-      .limit(3);
-    const related = ((relRows as { reference: string; text: string }[] | null) ?? [])
-      .map((r) => ({ ref: r.reference, text: r.text }));
-
-    try {
-      const result = await generateDevotionalRaw(data, { text: main.text, reference: main.reference }, related);
-      await supabase.from("daily_content").upsert({ user_id: userId, date, devotional: result });
-      void admin
-        .from("user_verse_log")
-        .insert({ user_id: userId, verse_id: main.verse_id })
-        .then(() => {}, () => {});
-      logAudit(userId, "getOrCreateDevotional", "success")
-      return result;
-    } catch (err) {
-      logAudit(userId, "getOrCreateDevotional", "error", { error_msg: err instanceof Error ? err.message : String(err) })
       throw err
     }
   });
@@ -815,6 +680,8 @@ Be biblically grounded. Be specific. Never preachy. Never generic.
 Write it deep enough to matter, but general enough that a reader who is not personally in this theme today could send it to someone in their life who is walking through it. Do not assume the reader's circumstances.
 Don't reference time of day or what part of the day this is being read.
 
+${OPENING_RULE}
+
 GENDER RULE: Never use gendered pronouns for the reader. Use "you" and "your". If third-person is unavoidable, use "they" or "them".
 STRUCTURE RULE: No three-part parallel structure, no rhetorical triplets, no rule-of-threes. Vary sentence shape and length.
 
@@ -846,93 +713,158 @@ Respond with valid JSON only - no markdown, no code fences:
   return { title: parsed.title, body: parsed.body, takeaway: parsed.takeaway ?? "" };
 }
 
+type SharedDevotionalRow = {
+  verse_text: string; verse_reference: string; title: string;
+  body: string[] | null; related: { ref: string; text: string }[] | null; takeaway: string | null;
+};
+
+function sharedRowToResult(row: SharedDevotionalRow, dateDisplay: string): DevotionalResult {
+  return sanitizeDevotional({
+    title: row.title,
+    verseOfDay: row.verse_text,
+    verseRef: row.verse_reference,
+    date: dateDisplay,
+    body: row.body ?? [],
+    related: row.related ?? [],
+    takeaway: row.takeaway ?? "",
+  });
+}
+
 export const getOrCreateSharedDevotional = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => SharedDevotionalInputSchema.parse(data))
   .handler(async ({ data }): Promise<DevotionalResult> => {
     const date = data.date;
     const dateDisplay = devotionalDisplayDate(date);
 
-    // 1. Return the cached shared devotional if today's row already exists.
+    // 1. Return the stored shared devotional if the row already exists.
     const { data: existing } = await admin
       .from("daily_devotionals")
       .select("theme, verse_text, verse_reference, title, body, related, takeaway")
       .eq("date", date)
       .maybeSingle();
-    if (existing) {
-      const row = existing as {
-        verse_text: string; verse_reference: string; title: string;
-        body: string[] | null; related: { ref: string; text: string }[] | null; takeaway: string | null;
-      };
-      return sanitizeDevotional({
-        title: row.title,
-        verseOfDay: row.verse_text,
-        verseRef: row.verse_reference,
+    if (existing) return sharedRowToResult(existing as SharedDevotionalRow, dateDisplay);
+
+    // Kept so the fallback branch can serve the local generation as an
+    // absolute last resort (generation succeeded but nothing could be
+    // persisted or re-read, and the table has no previous row either).
+    let generated: DevotionalResult | null = null;
+
+    try {
+      // 2. Otherwise generate it. Weekday theme + grounded verse (8-occurrence
+      //    no-repeat per theme) + up to 3 related passages from the same theme.
+      const themeName = themeForDate(date);
+      const { data: poolRows } = await admin
+        .from("verses")
+        .select("id, reference, text")
+        .eq("is_active", true)
+        .eq("theme", themeName);
+      const pool = (poolRows as { id: number; reference: string; text: string }[] | null) ?? [];
+      if (!pool.length) throw new Error(`Shared devotional: no active verses for theme ${themeName}`);
+
+      const { data: recentRows } = await admin
+        .from("daily_devotionals")
+        .select("verse_id")
+        .eq("theme", themeName)
+        .order("date", { ascending: false })
+        .limit(8);
+      const recent = new Set(
+        ((recentRows as { verse_id: number | null }[] | null) ?? []).map((r) => r.verse_id),
+      );
+      const fresh = pool.filter((v) => !recent.has(v.id));
+      const candidates = fresh.length ? fresh : pool;
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      const related = pool
+        .filter((v) => v.id !== chosen.id)
+        .slice(0, 3)
+        .map((v) => ({ ref: v.reference, text: v.text }));
+
+      const gen = await generateSharedDevotionalRaw(
+        themeName,
+        { text: chosen.text, reference: chosen.reference },
+        related,
+      );
+
+      const result = sanitizeDevotional({
+        title: gen.title,
+        verseOfDay: chosen.text,
+        verseRef: chosen.reference,
         date: dateDisplay,
-        body: row.body ?? [],
-        related: row.related ?? [],
-        takeaway: row.takeaway ?? "",
+        body: gen.body,
+        related,
+        takeaway: gen.takeaway,
       });
+      generated = result;
+
+      // 3. Persist first-writer-wins, then return the PERSISTED row.
+      // Two devices can race into this generation branch for the same date
+      // (common for local timezones at/east of UTC+3, whose midnight arrives
+      // before the 22:00 UTC day-ahead cron). A blind upsert let each device
+      // display its own generation while the last write silently overwrote the
+      // first - same account, two different devotionals. ignoreDuplicates makes
+      // this INSERT ... ON CONFLICT DO NOTHING (first insert wins), and the
+      // re-select guarantees every caller returns the one stored devotional.
+      const { error: persistError } = await admin.from("daily_devotionals").upsert(
+        {
+          date,
+          theme: themeName,
+          verse_id: chosen.id,
+          verse_text: chosen.text,
+          verse_reference: chosen.reference,
+          title: result.title,
+          body: result.body,
+          related: result.related,
+          takeaway: result.takeaway,
+        },
+        { onConflict: "date", ignoreDuplicates: true },
+      );
+
+      const { data: persisted } = await admin
+        .from("daily_devotionals")
+        .select("verse_text, verse_reference, title, body, related, takeaway")
+        .eq("date", date)
+        .maybeSingle();
+      if (persisted) return sharedRowToResult(persisted as SharedDevotionalRow, dateDisplay);
+
+      // Nothing persisted and nothing to re-read: fall through to the
+      // last-good fallback below rather than returning content no other
+      // device will ever see.
+      throw new Error(
+        `Shared devotional: persist failed - ${persistError?.message ?? "row missing after insert"}`,
+      );
+    } catch (err) {
+      // 4. FALLBACK: the devotional is opened intentionally, often as part of
+      // a morning ritual. An empty "try again" screen at that moment is a
+      // worse experience than briefly seeing the most recent reflection. So
+      // serve the last successfully stored devotional, flagged (isFallback +
+      // servedDate) so clients can label it quietly and retry in the
+      // background. Every device falls back to the SAME stored row, so this
+      // path cannot reintroduce divergence. Only rethrow when there is
+      // nothing at all to serve.
+      const { data: lastGood } = await admin
+        .from("daily_devotionals")
+        .select("date, verse_text, verse_reference, title, body, related, takeaway")
+        .lt("date", date)
+        .order("date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastGood) {
+        console.error("[shared-devotional] generation/persist failed; serving most recent devotional:", err);
+        const row = lastGood as SharedDevotionalRow & { date: string };
+        return {
+          ...sharedRowToResult(row, devotionalDisplayDate(row.date)),
+          isFallback: true,
+          servedDate: row.date,
+        };
+      }
+      // Absolute last resort: table is empty AND persist failed, but we do
+      // have a locally generated devotional. Serve it (possibly divergent
+      // across devices) rather than an empty screen - and log loudly so the
+      // persist failure is visible in worker logs.
+      if (generated) {
+        console.error("[shared-devotional] persist failed with no stored fallback; serving local generation:", err);
+        return generated;
+      }
+      throw err;
     }
-
-    // 2. Otherwise generate it. Weekday theme + grounded verse (8-occurrence
-    //    no-repeat per theme) + up to 3 related passages from the same theme.
-    const themeName = themeForDate(date);
-    const { data: poolRows } = await admin
-      .from("verses")
-      .select("id, reference, text")
-      .eq("is_active", true)
-      .eq("theme", themeName);
-    const pool = (poolRows as { id: number; reference: string; text: string }[] | null) ?? [];
-    if (!pool.length) throw new Error(`Shared devotional: no active verses for theme ${themeName}`);
-
-    const { data: recentRows } = await admin
-      .from("daily_devotionals")
-      .select("verse_id")
-      .eq("theme", themeName)
-      .order("date", { ascending: false })
-      .limit(8);
-    const recent = new Set(
-      ((recentRows as { verse_id: number | null }[] | null) ?? []).map((r) => r.verse_id),
-    );
-    const fresh = pool.filter((v) => !recent.has(v.id));
-    const candidates = fresh.length ? fresh : pool;
-    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-    const related = pool
-      .filter((v) => v.id !== chosen.id)
-      .slice(0, 3)
-      .map((v) => ({ ref: v.reference, text: v.text }));
-
-    const gen = await generateSharedDevotionalRaw(
-      themeName,
-      { text: chosen.text, reference: chosen.reference },
-      related,
-    );
-
-    const result = sanitizeDevotional({
-      title: gen.title,
-      verseOfDay: chosen.text,
-      verseRef: chosen.reference,
-      date: dateDisplay,
-      body: gen.body,
-      related,
-      takeaway: gen.takeaway,
-    });
-
-    await admin.from("daily_devotionals").upsert(
-      {
-        date,
-        theme: themeName,
-        verse_id: chosen.id,
-        verse_text: chosen.text,
-        verse_reference: chosen.reference,
-        title: result.title,
-        body: result.body,
-        related: result.related,
-        takeaway: result.takeaway,
-      },
-      { onConflict: "date" },
-    );
-
-    return result;
   });
 
