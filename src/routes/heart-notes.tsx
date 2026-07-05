@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { respondToHeartNote, summarizeHeartNote } from "@/lib/ai-stubs";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { BookHeart, Send, Pencil, Trash2, Check, X } from "lucide-react";
+import { BookHeart, Send, Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import { localTodayISO } from "@/lib/today";
 import {
   AlertDialog,
