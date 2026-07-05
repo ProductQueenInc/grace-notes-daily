@@ -38,6 +38,18 @@ export const Route = createFileRoute("/library/")({
     }
     return {};
   },
+  // Loader fetches recent devotionals for the hero + recent strip. Kept small
+  // (8 rows) so a single query covers both. Failure is non-fatal: the hub
+  // still renders without the devotional sections.
+  loader: async (): Promise<{ recentDevotionals: DevotionalListItem[] }> => {
+    try {
+      const res = await listDevotionals({ data: { limit: 8, offset: 0 } });
+      return { recentDevotionals: res.items };
+    } catch (err) {
+      console.error("[library] failed to load recent devotionals:", err);
+      return { recentDevotionals: [] };
+    }
+  },
   head: () => ({
     meta: [
       { title: "Notes & Letters — GraceNotes Daily" },
