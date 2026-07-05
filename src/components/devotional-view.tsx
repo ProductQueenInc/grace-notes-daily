@@ -152,16 +152,18 @@ function TopBar({ isLoggedIn, onShare }: { isLoggedIn: boolean; onShare?: () => 
 function Masthead({ date }: { date: string }) {
   return (
     <header className="w-full max-w-3xl mx-auto text-center mb-10 md:mb-12">
-      <p className="uppercase tracking-[0.2em] text-grace/60 text-xs font-bold mb-3">
-        {formatLongDate(date)}
-      </p>
-      <h1 className="font-display text-grace text-5xl md:text-6xl font-bold tracking-tight mb-2">
-        GraceNotes Daily
-      </h1>
-      <div className="flex items-center justify-center gap-4">
-        <div className="h-px w-8 bg-gold"></div>
-        <p className="font-display italic text-grace/80 text-lg">Daily Devotional</p>
-        <div className="h-px w-8 bg-gold"></div>
+      <div className="glass-parchment rounded-sm shadow-xl px-6 py-8 md:px-10 md:py-10 inline-block">
+        <p className="uppercase tracking-[0.2em] text-grace/60 text-xs font-bold mb-3">
+          {formatLongDate(date)}
+        </p>
+        <h1 className="font-display text-grace text-5xl md:text-6xl font-bold tracking-tight mb-2">
+          GraceNotes Daily
+        </h1>
+        <div className="flex items-center justify-center gap-4">
+          <div className="h-px w-8 bg-gold"></div>
+          <p className="font-display italic text-grace/80 text-lg">Daily Devotional</p>
+          <div className="h-px w-8 bg-gold"></div>
+        </div>
       </div>
     </header>
   );
