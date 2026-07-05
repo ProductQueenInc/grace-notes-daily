@@ -431,9 +431,9 @@ function Prayers() {
         open={!!sharingPrayer}
         ctx={sharingPrayer ? { type: "answered_prayer", prayer_id: sharingPrayer.id, prayer_text: sharingPrayer.text, answered_date: sharingPrayer.answeredAt } : null}
         heading={{
-          eyebrow: "Answered prayer",
-          title: "Praise God with someone",
-          subtitle: "A quiet testimony can carry further than you think.",
+          eyebrow: "Prayer answered",
+          title: "Mark the moment",
+          subtitle: "A small record of what He did.",
         }}
         onClose={() => setSharingPrayer(null)}
         onDismiss={() => sharingPrayer && dismissAnsweredPrayerShare(sharingPrayer.id)}
