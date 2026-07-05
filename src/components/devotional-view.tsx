@@ -303,8 +303,8 @@ export function DevotionalView({
 
           {/* Closing */}
           <footer className="mt-16 pt-12 border-t border-gold/20 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 border border-grace/15 rounded-full mb-6 text-grace">
-              <Icon icon={Shield} size="md" tone="inherit" />
+            <div className="mb-6 flex justify-center">
+              <DoveMark variant="medallion" className="w-14 h-14" alt="GraceNotes Daily" />
             </div>
             <h4 className="font-display text-grace text-xl font-bold mb-2">
               {isLoggedIn ? "Keep walking with GraceNotes" : "Walk deeper with GraceNotes"}
