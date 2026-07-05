@@ -164,9 +164,19 @@ function Home() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <button onClick={() => setShowVerse((v) => !v)} className="shrink-0 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
-                  {showVerse ? "Hide Verse" : "Show Verse"}
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setGraceShareOpen(true)}
+                    disabled={!graceNote}
+                    aria-label="Share this grace note"
+                    className="text-xs bg-white/10 hover:bg-white/20 text-white p-2 min-h-9 min-w-9 rounded-full flex items-center justify-center disabled:opacity-40"
+                  >
+                    <Icon icon={Share2} size="sm" tone="inherit" />
+                  </button>
+                  <button onClick={() => setShowVerse((v) => !v)} className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
+                    {showVerse ? "Hide Verse" : "Show Verse"}
+                  </button>
+                </div>
               </div>
               <div className="p-4 sm:p-6">
                 {!graceNote ? (
