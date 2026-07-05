@@ -264,7 +264,7 @@ export function DevotionalView({
           <TitleCard date={date} title="Today's devotional is being prepared" />
           <NavStrip />
           <div className="bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-10 md:p-14 rounded-b-sm border-x border-b border-stone-200/50 text-center">
-            <Icon icon={BookOpen} size="lg" tone="inherit" className="mx-auto mb-4 text-grace/50" />
+            <Icon icon={BookOpen} size="nav" tone="inherit" className="mx-auto mb-4 text-grace/50" />
             <p className="text-stone-600 leading-relaxed mb-6 max-w-md mx-auto">
               Something interrupted the preparation of today's reading. Try refreshing in a
               moment - it should be ready shortly.
