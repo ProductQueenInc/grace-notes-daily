@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { respondToHeartNote, summarizeHeartNote } from "@/lib/ai-stubs";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { BookHeart, Send, Pencil, Trash2, Check, X } from "lucide-react";
+import { BookHeart, Send, Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import { localTodayISO } from "@/lib/today";
 import {
   AlertDialog,
@@ -55,6 +55,7 @@ function HeartNotes() {
       .select("id, body, ai_response, summary")
       .eq("user_id", user.id)
       .eq("date", todayISO())
+      .is("superseded_at", null)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
@@ -128,6 +129,24 @@ function HeartNotes() {
     setTitle(null);
     setText("");
     setConfirmDelete(false);
+  }
+
+  async function archiveAndReset() {
+    // Move today's active note to Journey by stamping superseded_at, then
+    // clear local state so the composer re-renders empty. The journal habit
+    // stays complete for today — the user already journaled.
+    if (supabaseConfigured && user && rowId) {
+      await supabase
+        .from("heart_notes")
+        .update({ superseded_at: new Date().toISOString() })
+        .eq("id", rowId);
+    }
+    setRowId(null);
+    setSubmitted(null);
+    setResponse(null);
+    setTitle(null);
+    setText("");
+    setEditingTitle(false);
   }
 
   return (
@@ -206,13 +225,24 @@ function HeartNotes() {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => setConfirmDelete(true)}
-                  aria-label="Delete heart note"
-                  className="p-2 rounded-full hover:bg-destructive/10 text-foreground/60 hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={archiveAndReset}
+                    disabled={loading}
+                    aria-label="Start a new Heart Note"
+                    title="Archive this note to your Journey and start a new one"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-foreground/60 hover:text-grace hover:bg-grace/5 disabled:opacity-40"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> New note
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    aria-label="Delete heart note"
+                    className="p-2 rounded-full hover:bg-destructive/10 text-foreground/60 hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <p className="text-xs uppercase tracking-wider text-foreground/55 mb-2">Your note</p>
               <p className="text-foreground/85 whitespace-pre-wrap">{submitted}</p>
