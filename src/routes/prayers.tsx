@@ -195,22 +195,23 @@ function Prayers() {
   async function submitThanks() {
     if (!celebrating) return;
     const answeredAt = new Date().toLocaleDateString("en-US");
+    const target = celebrating;
 
     setItems((s) =>
-      s.map((x) => (x.id === celebrating.id ? { ...x, answeredAt, thanksgiving: thanksgivingText } : x)),
+      s.map((x) => (x.id === target.id ? { ...x, answeredAt, thanksgiving: thanksgivingText } : x)),
     );
 
     if (supabaseConfigured && user) {
       await supabase
         .from("prayers")
         .update({ answered: true, answered_at: new Date().toISOString() })
-        .eq("id", celebrating.id)
+        .eq("id", target.id)
         .eq("user_id", user.id);
 
       if (thanksgivingText.trim()) {
         await supabase
           .from("thanksgivings")
-          .insert({ user_id: user.id, prayer_id: celebrating.id, content: thanksgivingText.trim() });
+          .insert({ user_id: user.id, prayer_id: target.id, content: thanksgivingText.trim() });
       }
     }
 
@@ -218,6 +219,8 @@ function Prayers() {
     toast.success("Thanksgiving received. Praise be");
     setCelebrating(null);
     setThanksgivingText("");
+    // Morph into the share prompt (one-shot per prayer).
+    setTimeout(() => setSharingPrayer({ ...target, answeredAt, thanksgiving: thanksgivingText }), 350);
   }
 
   return (
