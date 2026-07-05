@@ -6,15 +6,60 @@ This document hands the **backend + AI wiring** of GraceNotes Daily over to whoe
 
 ---
 
+## 0. AUDIT HOOK — read this section before anything else
+
+GraceNotes Daily is a soft, devotional companion web app (Calm-inspired UX, distinctly Christian voice; tone: *soft, held, seen, welcome - never pushy*) built on TanStack Start + Cloudflare Worker (deployed via Lovable) with a Supabase backend, where users receive a daily AI grace note in God's first-person voice, read a shared daily devotional, chat, journal Heart Notes, track prayers, and build a grace-based show-up streak.
+
+**Mandates (in order):**
+
+1. `git fetch origin && git status -sb` — this folder has been 34 commits behind Lovable's pushes before. Sync before trusting anything.
+2. **Read `roadmap.md` before writing any code.** Check the current stage's gates; do not start later-stage work.
+3. **Load the relevant skills from `.claude/skills/` before beginning any task** (loading order by task type below). Skills are verified knowledge; do not work from guesswork.
+
+**The three-tool boundary (hard rules, not guidelines):**
+
+- **Canva** designs share-card templates and exports static assets. Nothing else.
+- **Lovable** builds share UI, parameterizes approved Canva exports, calls the backend API, and deploys the app. Lovable does NOT generate images, own routing decisions, or own attribution.
+- **Backend** owns the render pipeline, the API contract, CDN image hosting, deep links, PLG attribution, share-event schema, and server-side personalization. Contract of record: `.claude/skills/gracenotes-canva-lovable-backend-contract/`.
+
+**Settled URL invariants (live in production, verified 2026-07-05):**
+
+- `gracenotesdaily.com/library` — content hub for all writing.
+- `gracenotesdaily.com/library/devotional/YYYY-MM-DD` — individual devotionals (canonical deep-link target).
+- Legacy `/devotional[/YYYY-MM-DD]` 301s to the library URLs, served server-side by SSR (`src/routes/devotional.*.tsx`).
+
+**Five things that must never be broken:**
+
+1. The habit auto-mark rule: habits complete only via the real action, never a checkbox click (§4).
+2. Scripture grounding: the model never writes Bible text; verses come only from the curated NIV `verses` table.
+3. The chat crisis-safety tiers in `chat-reply` (crisis keyword → country hotline → session close).
+4. The public devotional pages + their 301 chain (the SEO/PLG flywheel), including the read-only rule: dated archive URLs never generate content.
+5. The no-em-dash rule and the locked frontend surfaces (§10a) — including `navigator.share` calls passing `{ title, url }` only, never `text`.
+
+**Skill loading order by task type** (all under `.claude/skills/`):
+
+| Task | Load first |
+|---|---|
+| "I am fixing a bug" | `gracenotes-debugging-playbook` → `gracenotes-failure-archaeology` → `gracenotes-validation-and-qa` |
+| "I am adding a new feature" | `gracenotes-architecture-contract` → `gracenotes-change-control` → `faithapp-domain-reference` (if user-facing) → `gracenotes-validation-and-qa` |
+| "I am working on the sharing architecture" | `gracenotes-canva-lovable-backend-contract` → `gracenotes-sharing-architecture-campaign` → `gracenotes-proof-and-analysis-toolkit` |
+| "I am working on the Lovable integration" | `gracenotes-canva-lovable-backend-contract` → `gracenotes-change-control` → `gracenotes-architecture-contract` |
+| "I am preparing for App Store submission" | `gracenotes-build-and-env` → `gracenotes-run-and-operate` → `gracenotes-validation-and-qa` (deep-link matrix) |
+| Deploying / operating / cron issues | `gracenotes-run-and-operate` → `gracenotes-config-and-flags` → `gracenotes-diagnostics-and-tooling` |
+| Writing docs or user-facing copy | `gracenotes-docs-and-writing` (+ the `gracenotes-voice` user skill for brand content) |
+| Strategy / "what should we build" | `roadmap.md` → `gracenotes-research-frontier` → `faithapp-domain-reference` |
+
+---
+
 ## TL;DR — Where we are today
 
 - **Frontend**: complete and stable. Don't touch design tokens, sidebar, AppShell, NatureBackground, PageHeader, PlayerDock, icon wrapper, onboarding step structure, habit auto-mark rule, or imagery policy.
 - **Auth**: live. Email/password + Google OAuth (login + signup buttons + `/auth/callback`). Email PII is hardened.
-- **AI app logic**: TanStack `createServerFn` in `src/lib/ai.functions.ts` — grace note, devotional, heart note, daily-chat (legacy non-streaming). All sanitized for em-dashes. The grace-note system prompt at **`src/lib/ai.functions.ts:160`** is the canonical voice and the single source of truth (see §5).
+- **AI app logic**: TanStack `createServerFn` in `src/lib/ai.functions.ts` — grace note, devotional, heart note, daily-chat (legacy non-streaming). All sanitized for em-dashes. The grace-note system prompt in **`src/lib/ai.functions.ts` (the `system` constant in `generateGraceNoteRaw`, ~line 257)** is the canonical voice and the single source of truth (see §5).
 - **Backend storage**: the v2 schema (`verses`, `crisis_lines`, `user_verse_log`, `daily_grace_notes`, `chat_sessions`, `chat_flags`) is live with proper RLS + GRANTs.
 - **Edge functions**: `chat-reply` (chat safety + streaming SSE) and `generate-daily-grace-notes` (overnight cron) are deployed and now fully wired — `crisis_lines` seeded (51 countries) and pg_cron scheduled (daily 01:00 UTC).
 - **PWA icons**: shipped and verified. Master `icon-source.png` is **1254×1254** (larger than the 1024 minimum, safe to downscale for App Store / Play Store when native build lands).
-- **What's NOT done yet**: verses library is still unused (cron lets the model pick its own verse); no push notifications; no native (Capacitor) build.
+- **What's NOT done yet** (corrected 2026-07-05): no push notifications; no native (Capacitor) build (targeted <3 months); no share-card / PLG sharing system (the roadmap.md "Now" project); no analytics instrumentation (PostHog decided, not built); dated devotional archive pages not yet in a dynamic sitemap. (Stale claim removed: verse grounding from the `verses` table HAS been live since 2026-06-22.)
 
 > **Checkpoint:** "MVP UI + v2 backend live + cron + crisis lines seeded" — this version is the rollback target.
 
@@ -27,7 +72,7 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 
 - Product name: **GraceNotes Daily** (one word: "GraceNotes")
 - Stack: TanStack Start v1 + Vite 7 + React 19 + Tailwind v4
-- Hosting: Cloudflare Worker (edge) for the app; Supabase Edge Functions (Deno) for the two cron/streaming endpoints. See `<server-runtime>` rules in §7.
+- Hosting: Cloudflare Worker (edge) for the app; Supabase Edge Functions (Deno) for the three cron/streaming endpoints. See `<server-runtime>` rules in §7.
 - Backend: **Lovable Cloud** (Supabase under the hood). Credentials live in `.env`:
   - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
   - Server-only secrets (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `LOVABLE_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `EMAIL_HOOK_SECRET`) live in Supabase secrets.
@@ -56,16 +101,17 @@ GraceNotes Daily is a soft, devotional companion web app (Calm-inspired visual U
 | Listen feature: tracks loaded from Supabase `tracks` table, private `listen-audio` bucket with signed URLs, auto-play next track on end, shuffle mode | `src/routes/listen.tsx`, `src/hooks/use-audio-player.ts`, `src/routes/__root.tsx` (GlobalPlayer) |
 | SEO landing pages (6 routes + 3 content guides), share bar, llms.txt, expanded sitemap. **16 of 18 sitemap pages indexed as of 2026-06-29** (the 2 pending are `/devotional` and `/blog/building-gracenotes-daily`, added 2026-06-28/29 — expect indexing within days). robots.txt blocks auth, legacy redirects, and all authenticated app routes. | `src/routes/quiet-time-app.tsx` and siblings, `content/*`, `src/components/share-bar.tsx`, `download-guide-modal.tsx`, `site-footer.tsx`, `public/llms.txt`, `public/sitemap.xml`, `public/robots.txt` |
 | Founder blog post — `blog.building-gracenotes-daily.tsx`, full article with Article + BreadcrumbList JSON-LD, sectioned long-read layout with eyebrow labels. In sitemap with `priority=0.8`. | `src/routes/blog.building-gracenotes-daily.tsx`, `src/content/blog/building-gracenotes-daily.md` |
-| Public shared devotional page + archive — `/devotional` (today) and `/devotional/$date` (archive). Each dated URL is an independently indexable Article page with OG + JSON-LD. The daily cron creates one per day; these are the SEO flywheel. **Dated archive pages are NOT yet in sitemap — next step: dynamic/server-generated sitemap.** | `src/routes/devotional.index.tsx`, `src/routes/devotional.$date.tsx`, `src/components/devotional-view.tsx` |
+| Public shared devotional page + archive — **moved 2026-07-05 (by Lovable) to `/library/devotional` (paginated archive index) and `/library/devotional/$date`**. Legacy `/devotional[/$date]` routes now 301 to the library URLs (SSR-served, verified with curl). Share URLs use the library path (`devotionalUrl()` in `devotional-view.tsx`); prev/next arrows skip gaps via `getDevotionalNeighbours`. Each dated URL is an independently indexable Article page with OG + JSON-LD. **Dated archive pages are NOT yet in sitemap — next step: dynamic/server-generated sitemap.** | `src/routes/library.devotional.index.tsx`, `src/routes/library.devotional.$date.tsx`, `src/routes/devotional.index.tsx` (301), `src/routes/devotional.$date.tsx` (301), `src/lib/devotional-archive.functions.ts`, `src/components/devotional-view.tsx` |
 | PWA manifest + theme-color + Apple PWA meta | `public/manifest.json`, `src/routes/__root.tsx` |
 | Tally feedback button (all pages) | `src/components/feedback-dialog.tsx`, loaded in `__root.tsx` |
 | v2 schema applied (verses, crisis_lines, user_verse_log, daily_grace_notes, chat_sessions, chat_flags, RPCs `select_verse_for_user` and `increment_session_message_count`) | Live DB as of 2026-06-09 |
+| AI devotional cover images (2026-07-05, Lovable) — one reverent nature image per devotional date via Lovable AI Gateway (`google/gemini-3.1-flash-image`); stored in PRIVATE bucket `devotional-covers`; served via public proxy `/api/public/devotional-cover/YYYY-MM-DD.png` with immutable cache headers; used as library/archive thumbnails + og:image (falls back to `/og/daily-devotional.png`). `daily_devotionals.cover_image_url` added by migration 20260705125116. | `src/lib/devotional-cover.server.ts`, `src/routes/api/public/devotional-cover.$date.ts`, `src/lib/ai.functions.ts`, `supabase/functions/generate-daily-devotional/index.ts` |
 | `chat-reply` edge function (3-tier safety + streaming SSE) — DB now backs it | `supabase/functions/chat-reply/index.ts` |
-| `generate-daily-devotional` edge function — day-ahead cron for shared devotional; pg_cron `0 9 * * *` (job id 3, active). Idempotent. Same prompt as `getOrCreateSharedDevotional`. ⚠️ **Every run failed until 2026-07-05** (vault secrets missing — see §11 PM4); still failing until the owner adds the `email_queue_service_role_key` vault secret. | `supabase/functions/generate-daily-devotional/index.ts` |
-| `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5). Cron scheduled in `cron.job` (daily 01:00 UTC, active). `daily_grace_notes` will fill after the first overnight run. | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| `generate-daily-devotional` edge function — day-ahead cron for shared devotional; pg_cron `0 9 * * *` (job id 3, active). Idempotent. Same prompt as `getOrCreateSharedDevotional`. **Confirmed working as of 2026-07-05 PM6** — verified live: `daily_devotionals` has rows for both 2026-07-05 and 2026-07-06. | `supabase/functions/generate-daily-devotional/index.ts` |
+| `generate-daily-grace-notes` edge function — DB now backs it; uses the **canonical** prompt (§5). Cron scheduled in `cron.job` (daily 01:00 UTC, active, job id 1). **Confirmed working as of 2026-07-05 PM6** — verified live: all 8 onboarded users have a `daily_grace_notes` row for 2026-07-06. | `supabase/functions/generate-daily-grace-notes/index.ts` |
 | PWA icons (192, 512, apple-touch-180) wired into manifest + `__root.tsx`. Master `icon-source.png` is 1254×1254 (verified). | `public/icons/`, `public/manifest.json` |
 | `crisis_lines` seeded with 51 countries (verified 51 rows). | Live DB |
-| pg_cron `generate-daily-grace-notes` scheduled `0 1 * * *`, uses `vault.decrypted_secrets.email_queue_service_role_key` for the Bearer token. | `cron.job` |
+| pg_cron jobs 1 (`generate-daily-grace-notes`) and 3 (`generate-daily-devotional`) both use the identical `vault.decrypted_secrets` pattern (`SUPABASE_URL` + `email_queue_service_role_key`) for the Bearer token — see §11 PM6 for the fix that made job 1 match job 3. | `cron.job` |
 
 ### ⏳ Built but inactive until a one-time action is taken
 
@@ -84,9 +130,10 @@ _(None blocking. The verses library remains unseeded by choice — see "Not star
 ### Server-side split
 
 App-internal logic → TanStack `createServerFn` in `src/lib/*.functions.ts`.
-Two Supabase **Edge Functions** because they need provider-side hosting (cron + streaming SSE):
+Three Supabase **Edge Functions** because they need provider-side hosting (cron + streaming SSE):
 - `supabase/functions/chat-reply` — JWT-validated, 3-tier safety, streams SSE.
 - `supabase/functions/generate-daily-grace-notes` — service-role bearer required, writes `daily_grace_notes`.
+- `supabase/functions/generate-daily-devotional` — service-role bearer required, day-ahead shared devotional, writes `daily_devotionals`.
 
 Don't add more edge functions unless cron or streaming forces it.
 
@@ -146,13 +193,15 @@ Badge tiers (`src/lib/badges.ts`): `none → copper (1/3) → silver (2/3) → g
 
 ## 5. The daily grace-note prompt (single source of truth)
 
-**Canonical location:** `src/lib/ai.functions.ts`, the `system` constant inside `generateGraceNoteRaw` (line ~160).
+**Canonical location:** `src/lib/ai.functions.ts`, the `system` constant inside `generateGraceNoteRaw` (function at ~line 251, `system` at ~line 257; corrected 2026-07-05 — was stale "line ~160").
 
 This prompt is used by:
 1. **On-demand / fallback** — when `use-daily-grace-note.ts` doesn't find a row in `daily_grace_notes` for today, it calls `generateGraceNote` (in `ai-stubs.ts` → `ai.functions.ts`) and gets a fresh one.
-2. **Overnight cron** — `supabase/functions/generate-daily-grace-notes/index.ts` carries an **inlined copy** of the same prompt text (edge functions can't `import` from `src/`). Both paths use **`claude-haiku-4-5`**, temp `0.7`, `max_tokens: 400`, JSON-only output `{ message, verse, signed }`, and the `stripEmDashes` sanitizer.
+2. **Overnight cron** — `supabase/functions/generate-daily-grace-notes/index.ts` carries an **inlined copy** of the same prompt text (edge functions can't `import` from `src/`). Both paths use **`claude-sonnet-4-5`**, temp `0.9`, `max_tokens: 400` (verified in code 2026-07-05; this doc previously said haiku/0.7 — stale), JSON output `{ message, chatPrompt }`, and the `stripEmDashes` sanitizer. (The shared devotional and chat safety paths still use `claude-haiku-4-5`.)
 
 **If you change the prompt, change it in both files.** The cron file has a header comment reminding you of this.
+
+**The same sync rule now covers three prompt pairs (2026-07-05 PM8):** (1) the grace-note prompt (`ai.functions.ts` ↔ `generate-daily-grace-notes`), (2) the shared-devotional prompt (`ai.functions.ts` ↔ `generate-daily-devotional`), and (3) the cover-image prompt `buildCoverPrompt` (`src/lib/devotional-cover.server.ts` ↔ inlined copy in `generate-daily-devotional`).
 
 As of 2026-06-22 the verse is **grounded from the curated NIV `verses` table** (via the `select_verse_for_user` RPC), not written by the model. The prompt receives the chosen verse as fixed text and tells the model to (a) write a 2-4 sentence note in God's first-person voice that *earns* the given verse without quoting it, (b) follow the anti-saccharine guardrails and the no-em-dash rule. The model returns `{ message, chatPrompt }`; the `verse` field is set server-side from the DB. Worked examples are included in the prompt body.
 
@@ -244,7 +293,18 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
-### 2026-07-05 (PM6) — AI-generated cover images per devotional + Library "Latest letter" removed
+### 2026-07-05 (PM9) — Synced 55 Lovable commits (devotional covers + UI revamp), reconciled CLAUDE.md, skills/roadmap updated, pushed
+
+- **Synced.** Local `main` reset onto `origin/main` (55 new Lovable commits: AI devotional cover images, devotional page redesign, archive grid restructure, masthead fixes, archive `listDevotionals` limit raised to 500, migration adding `daily_devotionals.cover_image_url`).
+- **CLAUDE.md reconciled.** Lovable's session had based its CLAUDE.md edit on a stale copy: it deleted the PM6 cron-fix entry (replacing it with its own "PM6" cover entry), deleted the PM5 heading, and reverted the §2 cron rows to pre-fix "still failing" text. Restored: PM4-PM7 history, accurate §2 cron rows, §0 audit hook. Lovable's cover entry kept in full as PM8.
+- **New pattern of record (from PM8, now generalized):** public storage buckets are blocked by workspace policy → serve public assets from a PRIVATE bucket through a public SSR proxy route with immutable cache headers (`/api/public/devotional-cover/$date` precedent). The share-card CDN strategy in `.claude/skills/gracenotes-sharing-architecture-campaign` and the contract skill updated to use this same pattern (`/api/public/share-card/...`).
+- **§5 prompt-sync policy now has THREE pairs:** grace-note prompt, devotional prompt, and `buildCoverPrompt` (`src/lib/devotional-cover.server.ts` ↔ inlined copy in `generate-daily-devotional/index.ts`).
+- **Skills updated:** architecture contract (cover pipeline, bucket policy, third prompt pair), campaign (CDN section), contract (image_url shape), config (LOVABLE_API_KEY + AI Gateway), run/operate (cron backfill mode), validation (og:image now per-date cover), debugging playbook (cover 404 row).
+- **Canva exports:** Cindy reports the share-card designs are done, but they are NOT in this repo/connected folder (searched by naming convention). Stage 1 gate G-S1 stays open until the 16 files + slot maps are placed where the build can read them and approved.
+
+### 2026-07-05 (PM8) — AI-generated cover images per devotional + Library "Latest letter" removed
+
+*(Committed by a Lovable session as "PM6"; renumbered to PM8 during the PM9 reconciliation. That commit had also overwritten the real PM6 cron-fix entry and reverted the §2 cron rows to stale "still failing" text - both restored below/above.)*
 
 Two changes for the Library surface:
 
@@ -272,7 +332,31 @@ Two changes for the Library surface:
 
 Note on published-URL timing: the `cover_image_url` values point at `https://www.gracenotesdaily.com/api/public/devotional-cover/<date>.png`, which requires the new proxy route to be live. Publish the app to activate the URLs. Crawler previews (Twitter/Facebook debugger) cache aggressively — a changed cover will not appear in shared links until the platform re-fetches.
 
+### 2026-07-05 (PM7) — Stewardship handover: repo synced, Lovable's library-URL migration documented, skill library + roadmap + audit hook added
 
+Principal-engineer handover session (Claude, with Cindy). No app-code changes; docs, skills, and repo hygiene only.
+
+- **Repo synced.** The local folder was 34 commits behind `origin/main` (all Lovable work) and 2 ahead (the PM6 doc commits). Removed a stale `.git/index.lock`, fetched, and rebased the 2 doc commits onto `origin/main`. Not yet pushed at time of writing.
+- **Documented Lovable's 2026-07-05 migration (Lovable never logged it here):** devotionals moved to `/library/devotional` + `/library/devotional/$date`; legacy `/devotional[/$date]` 301 via SSR `beforeLoad` (verified server-side with a non-JS fetch); **share URL bug fixed** (commit `af598b7`) — `navigator.share` was passing `text` (verse ref), which some share targets concatenate onto the URL producing e.g. `.../2026-07-05Psalm 138:8`; fix passes `{ title, url }` only. Also new: `devotional-archive.functions.ts` (read-only list/neighbours/latest), archive pagination, heart_notes `superseded_at` migration, `daily_devotionals` schema recreated via migration 20260705074501, last-7-devotionals backfill (`ead356e`).
+- **Added `.claude/skills/`** — 15 verified skills (architecture contract, change control, build/env, run/operate, validation, debugging playbook, failure archaeology, config, diagnostics, faith-app domain, Canva/Lovable/backend contract, docs/writing, sharing campaign, proof toolkit, research frontier).
+- **Added `roadmap.md`** — stage-gated plan for the PLG sharing system (Canva → backend → contract freeze → Lovable → validation) + Next/Later. Sequencing rules: backend gates Lovable; Canva approval gates parameterization.
+- **CLAUDE.md restructured:** new §0 AUDIT HOOK (mandates, tool boundary, URL invariants, five never-break rules, skill loading order); stale §2 devotional-route row corrected. All prior content and this changelog preserved.
+- **Decisions taken with Cindy today:** share-card renderer = self-hosted Satori/resvg on a Supabase edge function; analytics = PostHog (new GraceNotes project) with Supabase `share_events` as source of truth; deep links = custom Universal Links / App Links (no vendor; FDL is dead); native Capacitor build targeted <3 months.
+
+### 2026-07-05 (PM6) — Both crons confirmed working: job 1 rewritten to use vault secrets, stale service_role key replaced
+
+Follow-up to PM4. Cindy added the `email_queue_service_role_key` vault secret, then asked to redeploy `generate-daily-devotional` (done — version 2, includes the PM2 `OPENING_RULE` fix) and re-test both crons.
+
+- **Discovered job 1 (`generate-daily-grace-notes`) never actually used vault secrets**, contrary to what §2/§11 previously claimed. Its live `cron.job.command` referenced `current_setting('app.supabase_url')` / `current_setting('app.service_role_key')` — Postgres config parameters that were never set (confirmed both `null`). This is why it failed with `unrecognized configuration parameter`, a completely different error from job 3's vault-secret issue. Rewrote job 1's command via `cron.alter_job` to the same `vault.decrypted_secrets` pattern as job 3 (both now byte-for-byte identical apart from the function path).
+- **First re-test still failed with 401** on both jobs, even after the vault secret existed. Decoded the vault-stored JWT's payload (without exposing the signed token) and confirmed the claims were correct (`role: service_role`, `ref: tkoebogweygaabndrsvl`) — so the key was stale or its signature no longer matched the project's current JWT secret, not a copy-paste-the-wrong-key-type mistake.
+- Cindy supplied a fresh `service_role` key from Supabase → Project Settings → API. Updated the `email_queue_service_role_key` vault secret (id `fd60d577-ea86-4394-888e-a0a320a630cb`) with it.
+- **Re-tested both by directly invoking the same `net.http_post` the cron uses:**
+  - `generate-daily-devotional`: 200. `daily_devotionals` now has rows for both 2026-07-05 and 2026-07-06.
+  - `generate-daily-grace-notes`: the test call itself hit `net.http_post`'s default 5000ms timeout (this function loops over every onboarded user, one Claude call each, so it routinely runs longer than 5s) — but the function completed in the background regardless. Confirmed via table state: all 8 onboarded users have a `daily_grace_notes` row for 2026-07-06.
+- **Fixed the noisy timeout:** bumped job 1's `net.http_post` call to `timeout_milliseconds := 30000` (was defaulting to 5000ms) via `cron.alter_job`. 8 onboarded users comfortably finishes within 30s; revisit this number if the user base grows enough that a full run regularly exceeds it. Job 3 (`generate-daily-devotional`) didn't need this — it only generates one shared devotional per run, not one per user.
+- No code files changed this entry — this was live DB/cron configuration only (`cron.job`, `vault.secrets`), done via the Supabase MCP, not a commit.
+
+### 2026-07-05 (PM5) — Dated devotional archive URLs now 404 until the row exists (read-only route)
 
 Owner decision: a dated archive page shouldn't exist publicly until its devotional is ready — no "being prepared" empty state on `/devotional/$date`.
 
@@ -413,7 +497,7 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 - **Bible translation standardised on NIV** (owner decision 2026-06-22):
   - Replaced the Settings translation *picker* (ESV/NIV/NKJV/KJV/MSG — it was decorative; generation never used it) with a fixed **NIV attribution notice** in `src/routes/settings.tsx`. `profiles.translation` stays (defaults `"NIV"`).
   - **Verbatim NIV pass (2026-06-22):** read all verses against the NIV; **no wording deviations found** (no paraphrases, wrong translations, or bad references). Cleaned duplicates: 4 verses my Grief seed had re-added (Isaiah 41:10, John 14:27, Psalm 23:4, Psalm 30:5) were swapped for distinct comfort verses (Psalm 46:1, 2 Corinthians 1:3-4, Psalm 73:26, Isaiah 49:13), and the pre-existing duplicate Psalm 118:24 (id 78) was set `is_active=false`. Now **123 active verses, 0 duplicate references**. Owner decisions applied 2026-06-22: (a) divine name is title-case **"Lord" everywhere** (normalized the lone "LORD" in Psalm 34:18); (b) **all em/en dashes swapped** for a spaced hyphen (hard rule) - verified 0 remaining in the `verses` table.
-  - ⚠️ **Open risk:** the grace-note and devotional generators currently let the model *write* the verse text, so NIV accuracy is **not** guaranteed there. To truly guarantee "verified NIV everywhere," the generators must be switched to **ground the verse from the `verses` table** (already the planned Phase 1/3 work) rather than letting the model produce scripture.
+  - ⚠️ **Open risk:** the grace-note and devotional generators currently let the model *write* the verse text, so NIV accuracy is **not** guaranteed there. To truly guarantee "verified NIV everywhere," the generators must be switched to **ground the verse from the `verses` table** (already the planned Phase 1/3 work) rather than letting the model produce scripture. **[RESOLVED same day — the "2026-06-22 (PM)" entry above shipped verse grounding for both generators. Kept for history; do not treat as open. Annotated 2026-07-05.]**
   - ⚠️ **Licensing:** NIV is copyright Biblica. The Settings notice carries the required attribution. App-scale daily distribution may exceed the gratis use limit (≈500 verses, under 25% of the work, not a whole book); confirm NIV terms / secure Biblica permission before public launch. (Not legal advice.)
 
 **Decisions / plan still to build (sequenced):**
@@ -471,7 +555,7 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 - Discovered the v2 migration files (`20260529000001_gracenotes_v2_step1_schema.sql`, `20260529000002_gracenotes_v2_cron.sql`) had never been applied to the live DB. The two edge functions and `use-daily-grace-note.ts` were failing at runtime against missing tables/RPCs.
 - Applied the v2 schema migration with proper `GRANT`s, RLS policies, and `REVOKE`s on the SECURITY DEFINER functions so they're service-role-only.
 - Made `daily_grace_notes.verse_id` nullable so the cron can store model-picked verses.
-- Rewrote `supabase/functions/generate-daily-grace-notes/index.ts` to use the **canonical** grace-note prompt (inlined from `src/lib/ai.functions.ts:160`), `claude-haiku-4-5`, and the `stripEmDashes` sanitizer. Dropped the dependency on `select_verse_for_user` / `user_verse_log` so it's a clean parallel to the on-demand fallback.
+- Rewrote `supabase/functions/generate-daily-grace-notes/index.ts` to use the **canonical** grace-note prompt (inlined from `src/lib/ai.functions.ts:160`), `claude-haiku-4-5`, and the `stripEmDashes` sanitizer. Dropped the dependency on `select_verse_for_user` / `user_verse_log` so it's a clean parallel to the on-demand fallback. **[Superseded 2026-06-22: the cron was re-grounded on the `verses` table via the RPC — see that entry. Verse grounding is a never-break rule (§0). Annotated 2026-07-05.]**
 - Pending: seed `crisis_lines`, wire pg_cron schedule (see §2 actions).
 
 ### 2026-06-05 — Google OAuth, SEO expansion, chat safety + cron edge functions
@@ -527,6 +611,13 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 | RISC event handlers | `src/lib/risc-events.server.ts` |
 | RISC receiver endpoint | `src/routes/api/risc/receiver.ts` |
 | RISC registration script | `scripts/register-risc.ts` |
+| Devotional cover generator (canonical cover prompt) | `src/lib/devotional-cover.server.ts` |
+| Devotional cover public proxy route | `src/routes/api/public/devotional-cover.$date.ts` |
+| Devotional archive server fns (list/neighbours/latest, read-only) | `src/lib/devotional-archive.functions.ts` |
+| Devotional archive routes (canonical) | `src/routes/library.devotional.index.tsx`, `library.devotional.$date.tsx` |
+| Legacy devotional 301 routes | `src/routes/devotional.index.tsx`, `devotional.$date.tsx` |
+| Roadmap (read before coding) | `roadmap.md` |
+| Skill library (verified ops knowledge) | `.claude/skills/*/SKILL.md` |
 | Crisis lines seed | `scripts/seed_crisis_lines.js`, `gracenotes_crisis_lines.json` |
 | Verses library seed (unused for now) | `scripts/seed_verses.js`, `gracenotes_verse_library.json` |
 | Routes | `src/routes/*.tsx` |
