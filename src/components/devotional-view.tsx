@@ -134,14 +134,14 @@ function TopBar({ isLoggedIn, onShare }: { isLoggedIn: boolean; onShare?: () => 
             to="/home"
             className="bg-grace text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-grace-deep transition-all"
           >
-            Go home
+            Go Home
           </Link>
         ) : (
           <Link
             to="/signup"
             className="bg-grace text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-grace-deep transition-all"
           >
-            Join the Circle
+            Begin Today
           </Link>
         )}
       </div>
