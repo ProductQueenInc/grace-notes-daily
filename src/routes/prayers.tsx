@@ -359,9 +359,9 @@ function Prayers() {
         )}
       </section>
 
-      {celebrating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up">
+      {celebrating && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 overflow-y-auto py-6">
+          <div className="bg-background w-full max-w-md rounded-3xl overflow-hidden shadow-2xl fade-up my-auto">
             <div className="gradient-grace text-white px-6 py-4 flex items-center justify-between">
               <span className="font-semibold flex items-center gap-2">Celebrate this Answer!</span>
               <button onClick={() => setCelebrating(null)}><X className="w-5 h-5" /></button>
@@ -379,7 +379,8 @@ function Prayers() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {editing && (
