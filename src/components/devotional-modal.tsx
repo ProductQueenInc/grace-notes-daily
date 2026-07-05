@@ -71,17 +71,24 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
       : formatDisplayDate(data.servedDate ?? devotionalDate)
     : dateDisplay;
 
+  // Post-receive share prompt state. One-shot per devotional date — after
+  // the user dismisses (or shares), reopening the modal that same day
+  // never shows it again.
+  const [shareOpen, setShareOpen] = useState(false);
+
   if (!open || typeof document === "undefined") return null;
 
   function receive() {
     softGoldConfetti();
     toast.success("Received. His word is alive in you.");
-    // Mark via the date-anchored hook (writes to devotionalDate's row).
-    // Other useHabits instances (home card, rhythm circles) sync via the
-    // date-stamped "gn:habits-change" event and ignore non-matching dates.
     markComplete("devotional");
     onReceived?.();
-    setTimeout(onClose, 700);
+    if (!devotionalShareDismissed(devotionalDate)) {
+      // Small beat lets the confetti + toast breathe before the sheet opens.
+      setTimeout(() => setShareOpen(true), 650);
+    } else {
+      setTimeout(onClose, 700);
+    }
   }
 
   return createPortal(
