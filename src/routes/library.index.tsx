@@ -443,20 +443,36 @@ function LibraryHub() {
                   key={d.date}
                   to="/library/devotional/$date"
                   params={{ date: d.date }}
-                  className="group glass-parchment rounded-2xl p-4 sm:p-5 flex flex-col gap-1.5 transition hover:shadow-lg"
+                  className="group glass-parchment rounded-2xl overflow-hidden flex flex-col transition hover:shadow-lg"
                 >
-                  <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
-                    {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      timeZone: "UTC",
-                    })}
-                  </span>
-                  <h3 className="font-display text-lg text-grace leading-snug group-hover:text-grace-deep transition line-clamp-2">
-                    {d.title}
-                  </h3>
-                  <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                  <div className="aspect-[16/10] overflow-hidden bg-grace-haze/40 relative">
+                    {d.coverImageUrl ? (
+                      <img
+                        src={d.coverImageUrl}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-grace-haze/40 to-grace/10">
+                        <DoveMark variant="medallion" className="w-12 h-12 opacity-60" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 sm:p-5 flex flex-col gap-1.5">
+                    <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
+                      {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
+                    </span>
+                    <h3 className="font-display text-lg text-grace leading-snug group-hover:text-grace-deep transition line-clamp-2">
+                      {d.title}
+                    </h3>
+                    <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                  </div>
                 </Link>
               ))}
             </div>
