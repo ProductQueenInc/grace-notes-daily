@@ -208,26 +208,29 @@ export function DevotionalView({
 
   if (!devotional) {
     return (
-      <div className="min-h-screen w-full bg-[#f8faf7] selection:bg-gold/30 py-8 md:py-12 px-4">
-        <TopBar isLoggedIn={isLoggedIn} />
-        <Masthead date={date} />
-        <main className="w-full max-w-3xl mx-auto glass-parchment rounded-sm p-8 md:p-16 text-center shadow-xl">
-          <Icon icon={BookOpen} size="md" tone="inherit" className="mx-auto mb-4 text-grace/50" />
-          <h2 className="font-display text-2xl text-grace mb-3">
-            Today's devotional is being prepared
-          </h2>
-          <p className="text-foreground/70 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-            Something interrupted the preparation of today's reading. Try refreshing in a
-            moment - it should be ready shortly.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-grace/30 text-grace text-sm font-semibold hover:bg-grace/5 transition"
-          >
-            <Icon icon={RefreshCw} size="sm" tone="inherit" /> Try again
-          </button>
-        </main>
-      </div>
+      <>
+        <NatureBackground />
+        <div className="min-h-screen w-full selection:bg-gold/30 py-8 md:py-12 px-4">
+          <TopBar isLoggedIn={isLoggedIn} />
+          <Masthead date={date} />
+          <main className="w-full max-w-3xl mx-auto glass-parchment rounded-sm p-8 md:p-16 text-center shadow-2xl">
+            <Icon icon={BookOpen} size="md" tone="inherit" className="mx-auto mb-4 text-grace/50" />
+            <h2 className="font-display text-2xl text-grace mb-3">
+              Today's devotional is being prepared
+            </h2>
+            <p className="text-foreground/70 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+              Something interrupted the preparation of today's reading. Try refreshing in a
+              moment - it should be ready shortly.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-grace/30 text-grace text-sm font-semibold hover:bg-grace/5 transition"
+            >
+              <Icon icon={RefreshCw} size="sm" tone="inherit" /> Try again
+            </button>
+          </main>
+        </div>
+      </>
     );
   }
 
