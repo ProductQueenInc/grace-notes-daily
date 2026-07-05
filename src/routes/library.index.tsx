@@ -6,7 +6,10 @@ import { ArticleCard } from "@/components/article-card";
 import { ArticleCardCompact, SeeAllTile } from "@/components/article-card-compact";
 import { DoveMark } from "@/components/dove-mark";
 import { BackHomeButton } from "@/components/back-home-cta";
+import { Icon } from "@/components/icon";
 import { useAuth } from "@/hooks/use-auth";
+import { BookOpen, ArrowRight } from "lucide-react";
+import { listDevotionals, type DevotionalListItem } from "@/lib/ai-stubs";
 import {
   Sheet,
   SheetContent,
