@@ -204,6 +204,40 @@ function LibraryHub() {
         </p>
       </section>
 
+      {/* Today's devotional — featured hero. New: devotionals now live in the
+          library, and today's reflection earns the top slot. Falls back
+          silently if the day-ahead cron hasn't landed a row yet. */}
+      {todayDevotional && isAll && (
+        <section className="px-6 pb-10 sm:pb-12 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <Link
+              to="/library/devotional/$date"
+              params={{ date: todayDevotional.date }}
+              className="group block glass-parchment rounded-3xl p-6 sm:p-8 md:p-10 transition hover:shadow-lg"
+            >
+              <div className="flex items-center gap-2 text-gold text-[11px] uppercase tracking-[0.2em] mb-3">
+                <Icon icon={BookOpen} size="sm" tone="inherit" /> Today's devotional
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-grace leading-tight mb-3 group-hover:text-grace-deep transition">
+                {todayDevotional.title}
+              </h2>
+              <p className="text-grace/70 text-sm font-semibold tracking-wide mb-3">
+                {todayDevotional.verseRef}
+              </p>
+              {todayDevotional.takeaway && (
+                <p className="text-foreground/75 leading-relaxed max-w-[64ch] mb-4 line-clamp-2 sm:line-clamp-none">
+                  {todayDevotional.takeaway}
+                </p>
+              )}
+              <span className="inline-flex items-center gap-1.5 text-gold font-semibold text-sm">
+                Read today's devotional
+                <ArrowRight className="w-4 h-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </div>
+        </section>
+      )}
+
       {/* Foundations teaser — quick numbered list so readers can jump in
           without scrolling all the way down to the Foundations row. */}
       {seriesArticles.length > 0 && isAll && (
