@@ -54,7 +54,10 @@ export function devotionalHead(devotional?: DevotionalResult, dateISO?: string) 
     return { meta: [{ title: "Daily Devotional | GraceNotes Daily" }] };
   }
   const url = devotionalUrl(dateISO);
-  const ogImage = `${BASE_URL}/og/daily-devotional.png`;
+  // Prefer the per-devotional AI-generated cover; fall back to the shared OG
+  // image only when the row has no cover yet (pre-cover rows still being
+  // backfilled). Both are absolute URLs so crawlers can fetch them.
+  const ogImage = devotional.coverImageUrl || `${BASE_URL}/og/daily-devotional.png`;
   const title = `${devotional.title} | Daily Devotional`;
   const description = `${devotional.verseRef}. ${devotional.takeaway || devotional.verseOfDay}`.slice(0, 200);
 
