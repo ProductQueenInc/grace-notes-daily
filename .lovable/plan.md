@@ -1,123 +1,53 @@
+## Rebuild the devotional page (`DevotionalView`) to match the "Light Liturgical Journal" direction
 
-# GraceNotes Daily — share fix + library/devotional merge
+Scope: **only** `src/components/devotional-view.tsx`. Same data contract, same routes, same head/OG, same share fix, same prev/next server data. This is a presentation-layer rework.
 
-Two tasks, done in order. Task 1 is a small surgical fix. Task 2 is a routing + layout change with 301 redirects and SEO care.
+### Structure (top → bottom, matches the picked prototype exactly)
 
----
+1. **Top bar** — full-width row, bottom border `border-grace/10`, `pb-4 mb-16`, max-width 3xl.
+   - Left: Library link with Lucide `Library` icon + "Library" label (Nunito, semibold, grace).
+   - Right: Share icon-only button (Lucide `Share2`, grace → gold on hover) + solid grace pill "Join GraceNotes" (or "Go home" when signed in). Keeps existing auth-aware branching.
 
-## Task 1 — Fix the malformed share URL
+2. **Masthead** — centered block above the reading surface.
+   - Eyebrow: full date, uppercase, letter-spaced, `text-grace/60` (`Sunday, July 5, 2026`).
+   - `h1` "GraceNotes Daily" in Fraunces, `text-5xl md:text-6xl`, bold, grace.
+   - Sub-line: two 8-wide gold rules flanking italic Fraunces "Daily Devotional".
 
-**Symptom:** clicking the Share icon on `/devotional` copies
-`https://www.gracenotesdaily.com/devotional/2026-07-05Psalm 138:8`
-(the verse reference is glued onto the date with no separator).
+3. **Reader surface** — `max-w-3xl`, `bg-parchment` via existing `.glass-parchment`, subtle gold-tinted border, shadow, `rounded-sm`, `p-8 md:p-16`. Faint handmade-paper texture as an absolute overlay (5% opacity, pointer-events-none). Inside:
+   - **Verse hero** — centered, italic Fraunces `text-2xl md:text-3xl`, reference beneath in uppercase gold Nunito. Bottom border `border-gold/30`, `pb-12 mb-12`. Replaces the current left-rule quote block.
+   - **Body** — Nunito `text-lg leading-relaxed text-grace`, paragraphs mapped from `d.body`, `mb-6` between.
+   - **Related Scripture** (only when `d.related.length > 0`) — inset block: `bg-[--grace-soft]`-equivalent light card, left-border `border-gold`, uppercase eyebrow "Related Scripture", list of `ref` + optional short text. Sits mid-body, not below it.
+   - **Takeaway** — kept as a soft grace-tinted pull quote after the last body paragraph.
+   - **Closing panel** — centered, top border `border-gold/20`, small Lucide `Shield`/`BookOpen` circle mark, Fraunces "Walk deeper with GraceNotes", one line of copy, single outline pill CTA. Auth-aware: signed-in → "Go home"; signed-out → "Join GraceNotes Daily".
+   - NIV attribution line stays at the very bottom, small, muted.
 
-**Diagnosis approach:** The visible code in `devotional-view.tsx` builds the URL from `${BASE_URL}/devotional/${date}` and passes `verseRef` only as share *text* — so on paper the URL should be clean. That means either (a) the `date` prop reaching `DevotionalView` already contains the verse ref, (b) `devotional.servedDate` (used by `/devotional/index` loader) is malformed upstream, or (c) another share path is in play. First step in build mode is to add a `console.log("[share] url =", url)` right before `navigator.share` / `clipboard.writeText`, reproduce, and pinpoint the exact source. Fix at the source, not by string-stripping downstream.
+4. **Prev/Next cards** — grid `md:grid-cols-2 gap-4 mt-8`, max-w-3xl.
+   - Left card: left-aligned, eyebrow "Yesterday", Fraunces title = **actual prev devotional title** (loader already returns `prev` date; wire a small fetch or extend loader — see technical note), formatted date beneath. Border-transparent → `border-gold` on hover.
+   - Right card mirrors right-aligned, "Tomorrow" (or hidden when `next === null`).
+   - Only render each card when a neighbour exists; keep the current graceful hide behavior.
 
-**Target URL format after fix:**
-`https://www.gracenotesdaily.com/library/devotional/YYYY-MM-DD`
-(the new path from Task 2 — even though the redirect from the old path won't be in place until Task 2 lands, we generate the new URL now; Task 2 makes both paths resolve).
+5. **Footer wordmark line** — small centered "GraceNotes Daily" link back to `/`.
 
-**Files likely touched:** `src/components/devotional-view.tsx`, possibly `src/lib/ai.functions.ts` if `servedDate` is contaminated, possibly `src/routes/devotional.index.tsx` / `devotional.$date.tsx` if `date` is being polluted before it reaches the view.
+### Share button (already fixed earlier) — leave the current `onShare` logic intact.
 
-**Verification:** log the URL, click each entry point (native share, Copy link) on both `/devotional` and `/devotional/YYYY-MM-DD`, confirm clipboard contains the clean URL.
+### Empty/error state
+Keep the existing "being prepared" branch when `devotional === null`, but restyle to match the new masthead + parchment reader visual (same top bar, same masthead, single parchment card with `RefreshCw` reload).
 
----
+### Technical notes (for the implementer, not the user)
 
-## Task 2 — Merge devotionals into the library
+- File touched: **`src/components/devotional-view.tsx`** only. No route/loader/head changes; `devotionalHead` stays put and unchanged.
+- Colors: use existing tokens (`text-grace`, `text-gold`, `bg-grace`, `border-gold`, `.glass-parchment`, `bg-grace-soft`, `bg-gold-soft`). Do **not** hardcode hex values from the prototype — the prototype used literals for isolation; the app must use tokens per §3 of CLAUDE.md.
+- Fonts: use existing `font-display` (Fraunces) and default body (Nunito) — do not add a Google Fonts `<link>` from the prototype; both fonts already load in `__root.tsx`.
+- Parchment texture overlay: use an inline SVG data URI or a tiny local asset — do **not** hotlink `transparenttextures.com` (external network dependency, breaks offline/PWA).
+- Prev/Next titles: the current loader returns only `prev`/`next` **dates**. To render titles on the cards, extend `getDevotionalNeighbours` in `src/lib/devotional-archive.functions.ts` to also select `title` for each neighbour, and update the loader return types in `library.devotional.$date.tsx` and `library.devotional.index.tsx` accordingly. Titles fall back to the formatted date if missing.
+- Icons: Lucide via `@/components/icon` wrapper (project rule) — `Library`, `Share2`, `BookOpen`, `RefreshCw`, `ArrowRight`, `ChevronLeft`, `ChevronRight`.
+- Auth-aware CTA: continue using `useAuth()` as today; do not change any auth logic.
+- Accessibility: keep `aria-label`s on icon buttons and prev/next nav; ensure the masthead uses a single `<h1>` (currently the devotional title is `<h1>`; move the page `<h1>` to the masthead's "GraceNotes Daily" and demote the devotional title to `<h2>` — better semantics for the masthead-driven layout).
+- No changes to: routes, loaders (except adding neighbour titles), server functions (except the small select-title extension), head tags, sitemap, or any other page.
 
-### New URL map
+### Out of scope
 
-| Path | Behaviour |
-|---|---|
-| `/library` | Hub (canonical unchanged) |
-| `/library/devotional` | Devotional archive index — paginated list of all past devotionals (newest first) |
-| `/library/devotional/YYYY-MM-DD` | Single devotional one-pager (canonical for each devotional) |
-| `/devotional` | 301 → `/library/devotional` |
-| `/devotional/YYYY-MM-DD` | 301 → `/library/devotional/YYYY-MM-DD` |
-| `/library/$slug` | Unchanged (essays, letters, Foundations) |
-
-Today's devotional is reached from the hub hero and from any prev/next arrow — it does not have a separate `/today` route.
-
-### `/library` hub layout (top to bottom)
-
-1. **Hero — Today's devotional.** Full-width card, gold "Today's devotional" eyebrow, title, verse reference, one-line lede, warm "Read today's devotional" CTA → `/library/devotional/{today}`. If today's devotional hasn't generated yet, fall back to yesterday's with a subtle "Yesterday's reflection" label (mirrors the existing fallback pattern in `getOrCreateSharedDevotional`).
-2. **Foundations series.** Existing 3-part series section, unchanged.
-3. **All Letters, most recent first.** Existing essays/letters, ordered by `publishedAt` desc — no filter chips at the top of this section (keep the flow calm).
-4. **Recent devotionals strip.** Small horizontal strip of the last ~7 devotionals as compact cards (date + title + verse ref). The primary CTA under the strip is **"Browse all devotionals" → `/library/devotional`** (the archive index) — this is the main entry point into the archive, not the individual cards.
-5. **Guides section.** The existing filter chips + full article grid stay at the bottom as the browse/filter surface for the library's evergreen writing.
-
-Reading room feel throughout: existing tokens (`--grace`, `--gold`, `.glass-parchment`), Fraunces display, Nunito body, existing card components. No new colours, no new borders, no new patterns.
-
-### `/library/devotional` — archive index (new page)
-
-- Reverse-chronological list of every devotional, grouped by month heading ("July 2026", "June 2026", …). Each row: date, title, verse ref, one-line takeaway snippet. Row links to the dated one-pager.
-- Pagination: ~20 rows per page (or "load more"). Not a calendar. A tiny month/year jump control in the header sidebar lets the user skip to a specific month without a full calendar UI.
-- Uses `.glass-parchment` reading surface, calm typography, no chrome.
-- Public, indexable, own `head()` (title "Daily Devotionals — GraceNotes Daily", description, canonical `/library/devotional`).
-
-### `/library/devotional/YYYY-MM-DD` — the one-pager
-
-The existing `DevotionalView` component stays exactly as-is for the reading area. We only change the shell around it.
-
-**Top bar (new — minimal signpost):**
-- GraceNotes Daily wordmark → `/`
-- "Library" link → `/library`
-- Right side (auth-aware):
-  - Signed out: "Join GraceNotes Daily" → `/signup`
-  - Signed in: "Go Home" → `/home`
-- Renders signed-out state during SSR, upgrades on hydration once `useAuth` resolves. Brief flicker is acceptable and preferable to blocking SSR.
-
-**Content area:** unchanged (`DevotionalView` verse block, title, body, related scripture, takeaway, NIV notice).
-
-**Below content — prev/next:**
-- Prev arrow: visible whenever an earlier devotional exists.
-- Next arrow: visible only when viewing a past devotional AND a later one exists; hidden on today's.
-- **Both arrows query the nearest existing devotional (not date-1 / date+1)**, so historical gaps and any missed cron days are handled gracefully.
-- Arrows are `<Link>` to the same route with a different `date` param — TanStack re-runs the loader, swaps content, updates head/OG. This is a client-side navigation, not a hard reload.
-
-**Below prev/next — soft closing section:**
-- Signed out: *"There is more where this came from."* + `[Explore the Library]` `[Join GraceNotes Daily]`
-- Signed in: *"Keep reading."* + `[Explore the Library]` `[Go Home]`
-- Existing warm/unhurried tone. No marketing language.
-
-### SEO + infra
-
-- **301 redirects** from `/devotional` and `/devotional/YYYY-MM-DD` via TanStack `redirect({ statusCode: 301 })` in `beforeLoad` (same pattern used today by `/daily-devotional`).
-- **Canonical URLs** point at the new `/library/devotional/...` path for every dated devotional; the archive index canonical is `/library/devotional`; the hub canonical stays `/library`.
-- **Sitemap update** (`public/sitemap.xml`): add `/library/devotional` (weekly, 0.8); replace `/devotional` with the new path (still 0.9, daily). Dated archive URLs remain outside the sitemap for now (that's the separate follow-up already noted in CLAUDE.md §11). Old `/devotional` sitemap entries removed.
-- **robots.txt:** allow `/library/devotional` and `/library/devotional/*` (currently no rule needed since Allow: / is default; just make sure no accidental Disallow blocks them).
-- **Head tags** on the dated page unchanged in shape — `devotionalHead()` already emits per-devotional title, description, OG image, Article + Breadcrumb JSON-LD. We only update the `devotionalUrl()` helper to build the new path so `og:url` and canonical point at `/library/devotional/YYYY-MM-DD`.
-- **Breadcrumb JSON-LD** updated: Home → Library → Devotionals → *devotional title*.
-- Temporary ranking dip is expected while Google re-crawls the 301s. 301 preserves equity; no code we can write shortcuts that timeline.
-
-### Technical notes (for the technical reader)
-
-- **New routes:**
-  - `src/routes/library.devotional.index.tsx` — archive index, public loader queries `daily_devotionals` (date desc, paginated).
-  - `src/routes/library.devotional.$date.tsx` — one-pager. Loader reuses `getStoredSharedDevotional` (read-only, `notFound()` when missing — matches the PM5 policy). Wraps `DevotionalView` in the new top-bar + prev/next + soft-CTA shell.
-  - `src/routes/devotional.index.tsx` — replaced body with `beforeLoad: () => throw redirect({ to: "/library/devotional", statusCode: 301 })`.
-  - `src/routes/devotional.$date.tsx` — replaced body with `beforeLoad: () => throw redirect({ to: "/library/devotional/$date", params: { date }, statusCode: 301 })`.
-- **Prev/next lookup:** two small server fns (public, no auth) — `getPrevDevotionalDate(date)` / `getNextDevotionalDate(date)` — each does `select date from daily_devotionals where date < $1 order by date desc limit 1` (and mirror for next). Called in the route loader; results passed as loader data. Alternative: one combined `getNeighbourDates(date)` fn to save a round-trip.
-- **`devotionalUrl()` in `src/components/devotional-view.tsx`:** update to return `${BASE_URL}/library/devotional/${dateISO}`. This is what fixes Task 1's target URL once Task 1's root-cause fix is in.
-- **`daily_devotionals` archive query** in the archive index loader: `select date, title, verse_ref, takeaway from daily_devotionals order by date desc limit N offset M`. Public read is already allowed by RLS (per CLAUDE.md §11 2026-06-22 migration).
-- **Auth-aware CTAs:** use existing `useAuth()` hook on the client; render signed-out variant server-side; swap on hydration.
-- **Sitemap** is a static file today (`public/sitemap.xml`) — one-line edits. A dynamic sitemap that includes every dated devotional URL remains a separate follow-up (already tracked).
-
-### What we're not touching
-
-- `DevotionalView` reading area, `.glass-parchment`, tokens, fonts, imagery policy.
-- The devotional generation pipeline (`getOrCreateSharedDevotional`, cron, verse grounding).
-- Library filter chips / tag system on the guides section.
-- Any authenticated app routes (Home, HeartNotes, Journey, Prayers, Listen, Settings).
-- The Foundations series and its existing article pages.
-
-### Rollout order
-
-1. Task 1 fix (share URL root cause) + log verification.
-2. New routes (`library.devotional.index.tsx`, `library.devotional.$date.tsx`) + shared shell components.
-3. `devotionalUrl()` swap → new path.
-4. Hub redesign (`library.index.tsx`): hero, Recent devotionals strip, section reorder.
-5. Old-path redirects (`devotional.index.tsx`, `devotional.$date.tsx`).
-6. Sitemap update.
-7. Manual verification: share URL, prev/next across a missing-day gap, redirects, signed-in vs signed-out top bar and closing section, hub hero fallback when today's devotional isn't generated yet.
-
+- No changes to the library hub, archive index, or route architecture.
+- No AI/prompt changes.
+- No cron or DB migrations.
+- No hero image or generated cover art (kept minimal per direction).
