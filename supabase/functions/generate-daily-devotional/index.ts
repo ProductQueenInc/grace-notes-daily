@@ -1,24 +1,20 @@
 // supabase/functions/generate-daily-devotional/index.ts
 // Day-ahead cron: pre-generates the shared daily devotional for a given date
-// (defaults to tomorrow UTC). Safe to call multiple times - skips if a row
-// already exists. Scheduled by pg_cron at 09:00 UTC daily (early enough that
-// the row exists before UTC+14 reaches its local midnight).
+// (defaults to tomorrow UTC) AND its AI-generated nature cover image. Safe
+// to call multiple times - skips text generation if a row already exists,
+// and backfills a missing cover image on that same row when needed.
+// Scheduled by pg_cron at 09:00 UTC daily.
 //
-// To schedule (run once in Supabase SQL editor):
-//   select cron.schedule(
-//     'generate-daily-devotional',
-//     '0 9 * * *',
-//     $$
-//     select net.http_post(
-//       url := '<SUPABASE_PROJECT_URL>/functions/v1/generate-daily-devotional',
-//       headers := '{"Content-Type":"application/json","Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb,
-//       body := '{}'::jsonb
-//     ) as request_id;
-//     $$
-//   );
+// Modes (POST body):
+//   {}                              -> generate tomorrow (default)
+//   { "date": "YYYY-MM-DD" }        -> generate that specific date
+//   { "backfill": true, "limit": N} -> backfill covers for the N oldest rows
+//                                      missing cover_image_url (default 5)
 //
-// PROMPT POLICY: the system prompt below mirrors getOrCreateSharedDevotional
-// in src/lib/ai.functions.ts. If you change one, change the other.
+// PROMPT POLICY: the devotional system prompt below mirrors
+// getOrCreateSharedDevotional in src/lib/ai.functions.ts, and the cover
+// prompt mirrors buildCoverPrompt in src/lib/devotional-cover.server.ts.
+// If you change one, change the other (edge functions can't import from src/).
 
 import Anthropic from 'npm:@anthropic-ai/sdk'
 import { createClient } from 'npm:@supabase/supabase-js'
@@ -28,6 +24,17 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
+
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? ''
+const COVER_BUCKET = 'devotional-covers'
+const IMAGE_MODEL = 'google/gemini-3.1-flash-image'
+const IMAGE_GATEWAY = 'https://ai.gateway.lovable.dev/v1/images/generations'
+// Public proxy that serves cover images from the private bucket.
+// Keep in sync with coverPublicUrl in src/lib/devotional-cover.server.ts and
+// the BASE_URL in src/lib/library.ts.
+const SITE_BASE_URL = 'https://www.gracenotesdaily.com'
+
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -129,12 +136,111 @@ async function isServiceToken(token: string): Promise<boolean> {
   }
 }
 
+// ── Cover image helpers ───────────────────────────────────────────────────
+
+function coverPublicUrl(date: string): string {
+  return `${SITE_BASE_URL}/api/public/devotional-cover/${date}.png`
+}
+
+function buildCoverPrompt(theme: string, title: string, takeaway: string): string {
+  return `A reverent nature photograph that accompanies a Christian devotional titled "${title}" on the theme of ${theme}.
+
+The image should make the viewer feel something aligned with the theme. Use the takeaway only for emotional tone, NOT for literal depiction:
+"${takeaway}"
+
+STYLE: cinematic, painterly natural light, quiet, atmospheric, contemplative. Wide landscape 16:9 orientation. Subjects that stir feeling - a stormy sky for grief, a wide-open calm field for rest, dawn light through mist for hope, a lantern-lit path at night for courage, dew on grass at first light for gratitude, still water for peace, a single tree standing against wind for purpose.
+
+ALLOWED: forests, meadows, mountains, valleys, still water, rivers, oceans, mist, fog, dawn skies, night skies, storms, rain, snow, wildflowers, trees, plants, leaves, moss, stone, open fields, distant paths, gardens.
+
+STRICTLY FORBIDDEN: any human figure or body part (hands, silhouettes, shadows of people), any text or lettering or watermarks, any religious symbols (crosses, doves, chalices, angels, halos), any brand logos, farmed animals or slaughter imagery, weapons, alcohol, cigarettes, vehicles, buildings (except a distant fence, footbridge, or dirt path at most), any commercial or man-made imagery. Do not draw a cross out of tree branches or clouds.`
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+  return bytes
+}
+
+async function generateAndStoreCover(
+  date: string,
+  theme: string,
+  title: string,
+  takeaway: string,
+): Promise<string | null> {
+  if (!LOVABLE_API_KEY) {
+    console.warn('[cover] LOVABLE_API_KEY missing; skipping image generation')
+    return null
+  }
+  try {
+    const res = await fetch(IMAGE_GATEWAY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': LOVABLE_API_KEY },
+      body: JSON.stringify({
+        model: IMAGE_MODEL,
+        messages: [{ role: 'user', content: buildCoverPrompt(theme, title, takeaway) }],
+        modalities: ['image', 'text'],
+      }),
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      console.error(`[cover] gateway ${res.status}:`, text.slice(0, 500))
+      return null
+    }
+    const json = (await res.json()) as { data?: { b64_json?: string }[] }
+    const b64 = json?.data?.[0]?.b64_json
+    if (!b64) {
+      console.error('[cover] gateway returned no b64_json')
+      return null
+    }
+    const bytes = base64ToBytes(b64)
+    const { error } = await supabase.storage
+      .from(COVER_BUCKET)
+      .upload(`${date}.png`, bytes, { contentType: 'image/png', upsert: true, cacheControl: '31536000' })
+    if (error) {
+      console.error(`[cover] upload failed for ${date}:`, error.message)
+      return null
+    }
+    return coverPublicUrl(date)
+  } catch (err) {
+    console.error('[cover] unexpected error:', err)
+    return null
+  }
+}
+
+// ── Backfill mode ──────────────────────────────────────────────────────────
+
+async function runBackfill(limit: number) {
+  const { data: rows, error } = await supabase
+    .from('daily_devotionals')
+    .select('date, theme, title, takeaway')
+    .is('cover_image_url', null)
+    .order('date', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(`backfill query failed: ${error.message}`)
+  const targets = (rows ?? []) as { date: string; theme: string; title: string; takeaway: string | null }[]
+  const results: { date: string; ok: boolean; url?: string }[] = []
+  for (const row of targets) {
+    const url = await generateAndStoreCover(row.date, row.theme, row.title, row.takeaway ?? '')
+    if (url) {
+      const { error: updErr } = await supabase
+        .from('daily_devotionals')
+        .update({ cover_image_url: url })
+        .eq('date', row.date)
+      if (updErr) console.error(`[backfill] update failed for ${row.date}:`, updErr.message)
+    }
+    results.push({ date: row.date, ok: !!url, url: url ?? undefined })
+  }
+  return { processed: results.length, results }
+}
+
+// ── Main handler ───────────────────────────────────────────────────────────
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  // Bearer-token auth (service role only)
   const authHeader = req.headers.get('Authorization') ?? ''
   const token = authHeader.replace(/^Bearer\s+/i, '')
   if (!(await isServiceToken(token))) {
@@ -145,20 +251,40 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Accept optional date override in request body; defaults to tomorrow UTC.
-    let date = tomorrowISO()
-    try {
-      const body = await req.json()
-      if (body?.date && /^\d{4}-\d{2}-\d{2}$/.test(body.date)) date = body.date
-    } catch { /* empty body is fine */ }
+    let bodyIn: { date?: string; backfill?: boolean; limit?: number } = {}
+    try { bodyIn = await req.json() } catch { /* empty body is fine */ }
 
-    // Skip if the row already exists.
+    // Backfill mode: generate covers for existing rows missing cover_image_url.
+    if (bodyIn.backfill) {
+      const limit = Math.min(Math.max(Number(bodyIn.limit ?? 5), 1), 30)
+      const summary = await runBackfill(limit)
+      return new Response(
+        JSON.stringify({ ok: true, mode: 'backfill', ...summary }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // Normal mode: generate a devotional (defaults to tomorrow UTC).
+    let date = tomorrowISO()
+    if (bodyIn.date && /^\d{4}-\d{2}-\d{2}$/.test(bodyIn.date)) date = bodyIn.date
+
+    // Skip text generation if the row already exists, but still backfill the
+    // cover on that row if it doesn't have one yet.
     const { data: existing } = await supabase
       .from('daily_devotionals')
-      .select('date')
+      .select('date, theme, title, takeaway, cover_image_url')
       .eq('date', date)
       .maybeSingle()
     if (existing) {
+      const row = existing as { date: string; theme: string; title: string; takeaway: string | null; cover_image_url: string | null }
+      if (!row.cover_image_url) {
+        const url = await generateAndStoreCover(row.date, row.theme, row.title, row.takeaway ?? '')
+        if (url) await supabase.from('daily_devotionals').update({ cover_image_url: url }).eq('date', row.date)
+        return new Response(
+          JSON.stringify({ ok: true, date, skipped: 'text-exists', cover_generated: !!url }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
       return new Response(
         JSON.stringify({ ok: true, date, skipped: true, reason: 'already exists' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -237,7 +363,6 @@ Respond with valid JSON only - no markdown, no code fences:
     const raw = block.type === 'text' ? block.text : ''
     if (!raw.trim()) throw new Error('AI returned empty response')
 
-    // Strip markdown fences if present.
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
     const parsed = JSON.parse(cleaned) as { title?: string; body?: string[]; takeaway?: string }
     if (!parsed?.title || !Array.isArray(parsed?.body) || !parsed.body.length) {
@@ -248,6 +373,7 @@ Respond with valid JSON only - no markdown, no code fences:
     const body = parsed.body.map((p) => sanitizeText(p))
     const takeaway = sanitizeText(parsed.takeaway ?? '')
 
+    // Persist text first (first-writer-wins).
     const { error: persistError } = await supabase.from('daily_devotionals').upsert(
       {
         date,
@@ -260,15 +386,18 @@ Respond with valid JSON only - no markdown, no code fences:
         related,
         takeaway,
       },
-      // ignoreDuplicates: if a device's on-demand fallback inserted this date's
-      // row while we were generating, keep theirs (first writer wins) instead
-      // of replacing content users may already be reading.
       { onConflict: 'date', ignoreDuplicates: true },
     )
     if (persistError) throw new Error(`persist failed: ${persistError.message}`)
 
+    // Generate cover after text is safely stored. Failure is non-fatal.
+    const coverUrl = await generateAndStoreCover(date, themeName, title, takeaway)
+    if (coverUrl) {
+      await supabase.from('daily_devotionals').update({ cover_image_url: coverUrl }).eq('date', date)
+    }
+
     return new Response(
-      JSON.stringify({ ok: true, date, theme: themeName, title }),
+      JSON.stringify({ ok: true, date, theme: themeName, title, cover_generated: !!coverUrl }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (err) {

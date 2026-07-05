@@ -154,24 +154,40 @@ function DevotionalArchive() {
                       <Link
                         to="/library/devotional/$date"
                         params={{ date: item.date }}
-                        className="block py-4 px-2 -mx-2 rounded-lg hover:bg-grace/5 transition group"
+                        className="flex gap-4 py-4 px-2 -mx-2 rounded-lg hover:bg-grace/5 transition group"
                       >
-                        <div className="flex items-baseline justify-between gap-4 mb-1">
-                          <h3 className="font-display text-lg sm:text-xl text-grace leading-snug group-hover:text-grace-deep transition">
-                            {item.title}
-                          </h3>
-                          <span className="text-foreground/45 text-xs shrink-0 tabular-nums">
-                            {formatLongDate(item.date)}
-                          </span>
+                        <div className="w-20 sm:w-28 aspect-[16/10] shrink-0 overflow-hidden rounded-lg bg-grace-haze/40">
+                          {item.coverImageUrl ? (
+                            <img
+                              src={item.coverImageUrl}
+                              alt=""
+                              loading="lazy"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-grace-haze/40 to-grace/10">
+                              <DoveMark variant="medallion" className="w-8 h-8 opacity-60" />
+                            </div>
+                          )}
                         </div>
-                        <p className="text-grace/70 text-xs font-semibold tracking-wide mb-1">
-                          {item.verseRef}
-                        </p>
-                        {item.takeaway && (
-                          <p className="text-foreground/70 text-sm leading-relaxed line-clamp-2">
-                            {item.takeaway}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between gap-4 mb-1">
+                            <h3 className="font-display text-lg sm:text-xl text-grace leading-snug group-hover:text-grace-deep transition">
+                              {item.title}
+                            </h3>
+                            <span className="text-foreground/45 text-xs shrink-0 tabular-nums">
+                              {formatLongDate(item.date)}
+                            </span>
+                          </div>
+                          <p className="text-grace/70 text-xs font-semibold tracking-wide mb-1">
+                            {item.verseRef}
                           </p>
-                        )}
+                          {item.takeaway && (
+                            <p className="text-foreground/70 text-sm leading-relaxed line-clamp-2">
+                              {item.takeaway}
+                            </p>
+                          )}
+                        </div>
                       </Link>
                     </li>
                   ))}

@@ -97,6 +97,9 @@ export type DevotionalResult = {
   body: string[];
   related: { ref: string; text: string }[];
   takeaway: string;
+  // AI-generated nature cover image (public proxy URL). Null when generation
+  // failed or the row was created before cover images shipped.
+  coverImageUrl?: string | null;
   // Present only when the requested date's devotional could not be generated
   // or persisted and the most recent stored devotional was served instead
   // (see the fallback branch in getOrCreateSharedDevotional). servedDate is
@@ -716,7 +719,14 @@ Respond with valid JSON only - no markdown, no code fences:
 type SharedDevotionalRow = {
   verse_text: string; verse_reference: string; title: string;
   body: string[] | null; related: { ref: string; text: string }[] | null; takeaway: string | null;
+  cover_image_url?: string | null;
 };
+
+// Columns selected everywhere we read a shared devotional. Keep this in sync
+// with SharedDevotionalRow above so sharedRowToResult never sees `undefined`
+// for a column it needs.
+const SHARED_DEVOTIONAL_SELECT =
+  "theme, verse_text, verse_reference, title, body, related, takeaway, cover_image_url";
 
 function sharedRowToResult(row: SharedDevotionalRow, dateDisplay: string): DevotionalResult {
   return sanitizeDevotional({
@@ -727,6 +737,7 @@ function sharedRowToResult(row: SharedDevotionalRow, dateDisplay: string): Devot
     body: row.body ?? [],
     related: row.related ?? [],
     takeaway: row.takeaway ?? "",
+    coverImageUrl: row.cover_image_url ?? null,
   });
 }
 
@@ -739,10 +750,16 @@ export const getOrCreateSharedDevotional = createServerFn({ method: "POST" })
     // 1. Return the stored shared devotional if the row already exists.
     const { data: existing } = await admin
       .from("daily_devotionals")
-      .select("theme, verse_text, verse_reference, title, body, related, takeaway")
+      .select(SHARED_DEVOTIONAL_SELECT)
       .eq("date", date)
       .maybeSingle();
-    if (existing) return sharedRowToResult(existing as SharedDevotionalRow, dateDisplay);
+    if (existing) {
+      const row = existing as SharedDevotionalRow;
+      // Backfill a missing cover in the background - doesn't block the read
+      // and doesn't affect fallback logic. Fire-and-forget.
+      if (!row.cover_image_url) void backfillCoverForRow(date, existing as { theme?: string | null; title?: string | null; takeaway?: string | null });
+      return sharedRowToResult(row, dateDisplay);
+    }
 
     // Kept so the fallback branch can serve the local generation as an
     // absolute last resort (generation succeeded but nothing could be
@@ -820,10 +837,32 @@ export const getOrCreateSharedDevotional = createServerFn({ method: "POST" })
 
       const { data: persisted } = await admin
         .from("daily_devotionals")
-        .select("verse_text, verse_reference, title, body, related, takeaway")
+        .select(SHARED_DEVOTIONAL_SELECT)
         .eq("date", date)
         .maybeSingle();
-      if (persisted) return sharedRowToResult(persisted as SharedDevotionalRow, dateDisplay);
+      if (persisted) {
+        const persistedRow = persisted as SharedDevotionalRow;
+        // Generate the cover image now that the text is stored. First writer
+        // to persist owns cover generation too; a second racer sees a row
+        // and skips this branch entirely. Result: exactly one cover per date.
+        // Cover generation runs sequentially here (not fire-and-forget) so
+        // the returned devotional carries coverImageUrl and shares/OG cards
+        // render immediately without a second round-trip.
+        if (!persistedRow.cover_image_url) {
+          const { generateAndStoreDevotionalCover } = await import("@/lib/devotional-cover.server");
+          const url = await generateAndStoreDevotionalCover({
+            date,
+            theme: themeName,
+            title: result.title,
+            takeaway: result.takeaway,
+          });
+          if (url) {
+            await admin.from("daily_devotionals").update({ cover_image_url: url }).eq("date", date);
+            persistedRow.cover_image_url = url;
+          }
+        }
+        return sharedRowToResult(persistedRow, dateDisplay);
+      }
 
       // Nothing persisted and nothing to re-read: fall through to the
       // last-good fallback below rather than returning content no other
@@ -842,7 +881,7 @@ export const getOrCreateSharedDevotional = createServerFn({ method: "POST" })
       // nothing at all to serve.
       const { data: lastGood } = await admin
         .from("daily_devotionals")
-        .select("date, verse_text, verse_reference, title, body, related, takeaway")
+        .select("date, theme, verse_text, verse_reference, title, body, related, takeaway, cover_image_url")
         .lt("date", date)
         .order("date", { ascending: false })
         .limit(1)
@@ -879,10 +918,33 @@ export const getStoredSharedDevotional = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<DevotionalResult | null> => {
     const { data: existing } = await admin
       .from("daily_devotionals")
-      .select("theme, verse_text, verse_reference, title, body, related, takeaway")
+      .select(SHARED_DEVOTIONAL_SELECT)
       .eq("date", data.date)
       .maybeSingle();
     if (!existing) return null;
-    return sharedRowToResult(existing as SharedDevotionalRow, devotionalDisplayDate(data.date));
+    const row = existing as SharedDevotionalRow;
+    if (!row.cover_image_url) void backfillCoverForRow(data.date, existing as { theme?: string | null; title?: string | null; takeaway?: string | null });
+    return sharedRowToResult(row, devotionalDisplayDate(data.date));
   });
+
+// Fire-and-forget cover backfill for a devotional row that pre-dates the
+// cover-image column (or where the cover generation failed on the original
+// write). Never throws, never blocks the caller.
+async function backfillCoverForRow(
+  date: string,
+  row: { theme?: string | null; title?: string | null; takeaway?: string | null },
+) {
+  try {
+    const { generateAndStoreDevotionalCover } = await import("@/lib/devotional-cover.server");
+    const url = await generateAndStoreDevotionalCover({
+      date,
+      theme: row.theme ?? "Hope",
+      title: row.title ?? "",
+      takeaway: row.takeaway ?? "",
+    });
+    if (url) await admin.from("daily_devotionals").update({ cover_image_url: url }).eq("date", date);
+  } catch (err) {
+    console.error("[shared-devotional] cover backfill failed:", err);
+  }
+}
 

@@ -115,21 +115,16 @@ function LibraryHub() {
     [],
   );
 
-  const latest: LibraryArticle | undefined = useMemo(() => sorted[0], [sorted]);
-
   // Themed mobile rows — one per primary tag with ≥2 articles.
   // Articles MAY appear in more than one category row (no de-duplication).
-  // The "latest" article is still excluded to avoid double-showing it
-  // immediately below its own featured card.
   const themedSections = useMemo(() => {
-    const pool = sorted.filter((a) => a.slug !== latest?.slug);
     const sections: { tag: LibraryTag; items: LibraryArticle[] }[] = [];
     for (const tag of PRIMARY_TAGS) {
-      const items = pool.filter((a) => a.tags.includes(tag)).slice(0, 8);
+      const items = sorted.filter((a) => a.tags.includes(tag)).slice(0, 8);
       if (items.length >= 2) sections.push({ tag, items });
     }
     return sections;
-  }, [sorted, latest]);
+  }, [sorted]);
 
   const filtered = useMemo(() => {
     if (isAll) return sorted;
@@ -285,53 +280,10 @@ function LibraryHub() {
         </section>
       )}
 
-      {/* Latest essay — featured. Compact on mobile (no excerpt), full on desktop. */}
-      {latest && isAll && (
-        <section className="px-6 pb-10 sm:pb-12 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-baseline justify-between mb-3 sm:mb-4">
-              <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold">
-                Latest letter
-              </p>
-            </div>
-            <Link
-              to="/library/$slug"
-              params={{ slug: latest.slug }}
-              className="group glass-parchment rounded-3xl overflow-hidden grid md:grid-cols-2 transition hover:shadow-lg"
-            >
-              <div className="aspect-[16/10] md:aspect-auto overflow-hidden bg-grace-haze">
-                <img
-                  src={latest.cover}
-                  alt=""
-                  loading="lazy"
-                  width={1600}
-                  height={1000}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-              <div className="p-5 sm:p-8 md:p-10 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-2 sm:mb-3 text-[11px] sm:text-xs">
-                  {latest.tags[0] && (
-                    <span className="text-foreground/60 uppercase tracking-wider">
-                      {latest.tags[0]}
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-display text-2xl sm:text-3xl md:text-4xl text-grace leading-tight mb-2 sm:mb-3 group-hover:text-grace-deep transition">
-                  {latest.title}
-                </h3>
-                {/* Excerpt is hidden on mobile to keep the card compact. */}
-                <p className="hidden sm:block text-foreground/75 leading-relaxed mb-4">
-                  {latest.excerpt}
-                </p>
-                <p className="text-foreground/50 text-xs">
-                  {latest.readMinutes} min read
-                </p>
-              </div>
-            </Link>
-          </div>
-        </section>
-      )}
+      {/* Latest letter section intentionally removed — most recent essay
+          appears first in the All Letters row below (newest-first sort). */}
+
+
 
       {/* Tag filter chips */}
       <section id="all-essays" className="px-6 pb-4 sm:pb-6 relative z-10 scroll-mt-24">
@@ -491,20 +443,36 @@ function LibraryHub() {
                   key={d.date}
                   to="/library/devotional/$date"
                   params={{ date: d.date }}
-                  className="group glass-parchment rounded-2xl p-4 sm:p-5 flex flex-col gap-1.5 transition hover:shadow-lg"
+                  className="group glass-parchment rounded-2xl overflow-hidden flex flex-col transition hover:shadow-lg"
                 >
-                  <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
-                    {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      timeZone: "UTC",
-                    })}
-                  </span>
-                  <h3 className="font-display text-lg text-grace leading-snug group-hover:text-grace-deep transition line-clamp-2">
-                    {d.title}
-                  </h3>
-                  <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                  <div className="aspect-[16/10] overflow-hidden bg-grace-haze/40 relative">
+                    {d.coverImageUrl ? (
+                      <img
+                        src={d.coverImageUrl}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-grace-haze/40 to-grace/10">
+                        <DoveMark variant="medallion" className="w-12 h-12 opacity-60" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 sm:p-5 flex flex-col gap-1.5">
+                    <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
+                      {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
+                    </span>
+                    <h3 className="font-display text-lg text-grace leading-snug group-hover:text-grace-deep transition line-clamp-2">
+                      {d.title}
+                    </h3>
+                    <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                  </div>
                 </Link>
               ))}
             </div>
