@@ -328,6 +328,19 @@ function Home() {
         open={devotionalOpen}
         onClose={() => setDevotionalOpen(false)}
       />
+
+      <ShareCardModal
+        open={graceShareOpen}
+        ctx={graceNote ? { type: "grace_note", note_id: today } : null}
+        heading={{
+          eyebrow: "Today's grace note",
+          title: "Share this note",
+          subtitle: "A quiet word for someone who might need it.",
+        }}
+        onClose={() => setGraceShareOpen(false)}
+      />
+
+      <MilestoneWatcher />
     </TooltipProvider>
   );
 }
