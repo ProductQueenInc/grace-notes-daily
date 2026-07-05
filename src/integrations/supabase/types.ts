@@ -394,6 +394,7 @@ export type Database = {
           date: string
           id: string
           summary: string | null
+          superseded_at: string | null
           user_id: string
         }
         Insert: {
@@ -403,6 +404,7 @@ export type Database = {
           date?: string
           id?: string
           summary?: string | null
+          superseded_at?: string | null
           user_id: string
         }
         Update: {
@@ -412,6 +414,7 @@ export type Database = {
           date?: string
           id?: string
           summary?: string | null
+          superseded_at?: string | null
           user_id?: string
         }
         Relationships: [
