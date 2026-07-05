@@ -191,6 +191,7 @@ export type Database = {
       daily_devotionals: {
         Row: {
           body: Json | null
+          cover_image_url: string | null
           date: string
           generated_at: string
           id: string
@@ -204,6 +205,7 @@ export type Database = {
         }
         Insert: {
           body?: Json | null
+          cover_image_url?: string | null
           date: string
           generated_at?: string
           id?: string
@@ -217,6 +219,7 @@ export type Database = {
         }
         Update: {
           body?: Json | null
+          cover_image_url?: string | null
           date?: string
           generated_at?: string
           id?: string
