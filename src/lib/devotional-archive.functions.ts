@@ -19,6 +19,7 @@ export type DevotionalListItem = {
   title: string;
   verseRef: string;
   takeaway: string;
+  coverImageUrl: string | null;
 };
 
 const DateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD");
@@ -67,18 +68,19 @@ export const listDevotionals = createServerFn({ method: "GET" })
     async ({ data }): Promise<{ items: DevotionalListItem[]; total: number }> => {
       const { data: rows, count } = await admin
         .from("daily_devotionals")
-        .select("date, title, verse_reference, takeaway", { count: "exact" })
+        .select("date, title, verse_reference, takeaway, cover_image_url", { count: "exact" })
         .order("date", { ascending: false })
         .range(data.offset, data.offset + data.limit - 1);
       const items: DevotionalListItem[] = (
         (rows as
-          | { date: string; title: string; verse_reference: string; takeaway: string | null }[]
+          | { date: string; title: string; verse_reference: string; takeaway: string | null; cover_image_url: string | null }[]
           | null) ?? []
       ).map((r) => ({
         date: r.date,
         title: r.title,
         verseRef: r.verse_reference,
         takeaway: r.takeaway ?? "",
+        coverImageUrl: r.cover_image_url ?? null,
       }));
       return { items, total: count ?? items.length };
     },
@@ -90,7 +92,7 @@ export const getLatestDevotional = createServerFn({ method: "GET" }).handler(
   async (): Promise<DevotionalListItem | null> => {
     const { data: row } = await admin
       .from("daily_devotionals")
-      .select("date, title, verse_reference, takeaway")
+      .select("date, title, verse_reference, takeaway, cover_image_url")
       .order("date", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -100,12 +102,14 @@ export const getLatestDevotional = createServerFn({ method: "GET" }).handler(
       title: string;
       verse_reference: string;
       takeaway: string | null;
+      cover_image_url: string | null;
     };
     return {
       date: r.date,
       title: r.title,
       verseRef: r.verse_reference,
       takeaway: r.takeaway ?? "",
+      coverImageUrl: r.cover_image_url ?? null,
     };
   },
 );
