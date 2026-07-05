@@ -40,12 +40,24 @@ Division of labor under v1.1: **Canva owns background art + mockups + captions. 
 
 Background selection: renderer picks per share event (rotate or hash by user+date for determinism); devotional cards select from the matching theme dir.
 
-KNOWN GAPS at delivery (resolve at gate G-S1):
+G-S1 DECISIONS (closed 2026-07-05, owner-approved - these are now contract terms):
 
-1. Only 1080x1920 backgrounds exist. 1080x1080 / 1200x628 / 1200x630 variants must be center-cropped from the 1080x1920 art by the renderer (default assumption) OR Canva ships dedicated crops - Cindy to confirm.
-2. No `peace` theme dir, but Tuesday devotionals are themed Peace (weekday themes: Mon Hope, Tue Peace, Wed Grief & Comfort, Thu Gratitude, Fri Courage, Sat Rest, Sun Purpose). Delivered dirs also include 4 themes the weekday rotation doesn't use (identity, joy, surrender, trust). A theme->dir mapping table must be frozen at G-S1 (e.g. peace -> rest or trust).
-3. Naming inconsistencies from export: `grace-note/11.png`, `grace-note-01-note-01.png`, `answered-prayer-09-prayer-08.png`, `devotional-hope-03-hope-06.png`. Normalize to `{type}-{nn}.png` / `devotional-{theme}-{nn}.png` before bucket upload.
-4. Assets live OUTSIDE the repo and outside git. Plan of record: normalize names, then upload once to a private `share-templates` storage bucket the renderer reads (137 MB does not belong in git or the deploy bundle). Originals stay in Canva.
+1. **Size variants: center-crop.** The renderer derives 1080x1080 / 1200x628 / 1200x630 by center-cropping the 1080x1920 art (CSS `object-fit: cover; object-position: center` semantics in Satori). No additional Canva crops.
+2. **Devotional theme→dir mapping (frozen):**
+
+| Weekday theme | Background dir |
+|---|---|
+| Hope (Mon) | `hope/` |
+| **Peace (Tue)** | **`trust/`** (owner decision - no peace dir exists) |
+| Grief & Comfort (Wed) | `grief/` |
+| Gratitude (Thu) | `gratitude/` |
+| Courage (Fri) | `courage/` |
+| Rest (Sat) | `rest/` |
+| Purpose (Sun) | `purpose/` |
+| (reserved, unused by rotation) | `identity/`, `joy/`, `surrender/` |
+
+3. **Names normalized in place (2026-07-05):** `11.png` → `grace-note-11.png`, `grace-note-01-note-01.png` → `grace-note-01.png`, `answered-prayer-09-prayer-08.png` → `answered-prayer-09.png`, `devotional-hope-03-hope-06.png` → `devotional-hope-03.png`. Scheme: `{type}-{nn}.png` / `devotional-{theme}-{nn}.png` (grace-note runs 01-09 + 11; the gap at 10 is harmless).
+4. **Storage:** PRIVATE bucket `share-templates` (created 2026-07-05). Key layout: `backgrounds/<type>/[<theme>/]<file>`, `assets/<file>`, `captions/share-captions.json`. Upload via `scripts/upload_share_templates.js` (service-role key required; idempotent). The renderer reads from this bucket with the service role. Originals remain in the parent folder + Canva; never in git or the deploy bundle.
 
 ## 3. Dynamic fields (names and types are normative)
 

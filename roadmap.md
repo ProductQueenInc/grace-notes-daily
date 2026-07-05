@@ -12,11 +12,13 @@ Terminology: roadmap **STAGES (1-5, gates G-S1/G-S3)** are the project-level seq
 
 Decisions already made (2026-07-05, owner): renderer = self-hosted Satori + resvg on a Supabase Edge Function; analytics = PostHog (new GraceNotes project) with Supabase `share_events` as source of truth; deep links = custom Universal Links / App Links on gracenotesdaily.com (no third-party vendor; Firebase Dynamic Links is a dead product); native Capacitor build is imminent (<3 months), so deep links are designed native-ready from day one.
 
-### STAGE 1 - Canva (happens outside the repo) — status: ASSETS DELIVERED 2026-07-05, G-S1 PENDING 3 DECISIONS
+### STAGE 1 - Canva (happens outside the repo) — status: COMPLETE, G-S1 CLOSED 2026-07-05 (one owner action pending)
 
-Delivered (verified 2026-07-05, located in `grace-notes-daily/public/` in the PARENT folder, one level above the repo): 62 background PNGs, all 1080x1920 (grace-note 10, streak 11, answered-prayer 10, devotional 31 across 10 theme dirs), 3 full design mockups (1080x1080), an answered-prayer confetti SVG, and `share-captions.json` (caption bank, ~10 per type). **The deliverable format is a background-bank model, not the original 16-frame spec below - contract skill §2 amended to v1.1 accordingly.** The original frame list below is kept for reference of the 4 types x 4 sizes the RENDERER must still output.
+Delivered and verified: 62 background PNGs, all 1080x1920 (grace-note 10, streak 11, answered-prayer 10, devotional 31 across 10 theme dirs), 3 design mockups (1080x1080), confetti SVG, `share-captions.json` — in `grace-notes-daily/public/` in the PARENT folder. Deliverable format is the background-bank model per contract skill §2 (v1.1): Canva ships art + mockups + captions; the backend renders all typography. The frame list below remains as the 4 types x 4 sizes the RENDERER outputs.
 
-G-S1 now closes when Cindy confirms three things (then record approval in CLAUDE.md §11): (1) non-1080x1920 sizes are center-cropped from the delivered art vs new Canva crops; (2) the devotional theme→dir mapping (no `peace` dir exists for Tuesday devotionals; extra dirs identity/joy/surrender/trust are unused by the weekday rotation); (3) naming normalization + one-time upload to a private `share-templates` bucket (137 MB stays out of git and the deploy bundle).
+**G-S1 decisions (owner-approved 2026-07-05, recorded in contract skill §2):** sizes center-cropped from the 1080x1920 art; devotional theme→dir mapping frozen with **Peace (Tue) → `trust/`**; filenames normalized in place; assets go to the private `share-templates` bucket (created).
+
+⚠️ **One owner action:** run the one-time upload — `SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/upload_share_templates.js` from the repo root. Stage 2 renderer work is unblocked now; Phase 3 (all 16 implementations) needs the upload done.
 
 - Design all four share card templates, four size variants each (16 frames total).
 - Naming convention (exact): `{template-type}-{width}x{height}.png`

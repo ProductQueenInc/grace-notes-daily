@@ -293,6 +293,16 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-07-05 (PM11) — G-S1 CLOSED: share-asset decisions locked, names normalized, `share-templates` bucket created
+
+Owner decisions (Cindy, this session) resolving the three PM10 open items; recorded as contract terms in the contract skill §2:
+
+- **Peace (Tue) devotionals pull backgrounds from the `trust/` dir** (no peace dir was shipped). Full theme→dir mapping frozen; `identity/`, `joy/`, `surrender/` reserved/unused by the weekday rotation.
+- **Size variants center-crop** from the 1080x1920 art (no new Canva crops).
+- **Filenames normalized in place** in the parent folder: `11.png` → `grace-note-11.png`, `grace-note-01-note-01.png` → `grace-note-01.png`, `answered-prayer-09-prayer-08.png` → `answered-prayer-09.png`, `devotional-hope-03-hope-06.png` → `devotional-hope-03.png`.
+- **Private storage bucket `share-templates` created** (via SQL insert into `storage.buckets`, verified `public:false`). New `scripts/upload_share_templates.js` (same env convention as `seed_verses.js`) uploads all 66 files with key layout `backgrounds/<type>/[<theme>/]<file>`, `assets/<file>`, `captions/share-captions.json`. Idempotent.
+- ⚠️ **Owner action pending:** run the upload once with the service-role key (command in roadmap Stage 1). Roadmap Stage 1 marked COMPLETE / G-S1 CLOSED; Stage 2 unblocked.
+
 ### 2026-07-05 (PM10) — Canva share assets verified + contract amended to v1.1; housekeeping
 
 - **Canva share-card assets located and verified** (Cindy's delivery): `grace-notes-daily/public/` in the PARENT folder (one level above this repo, not in git; 137 MB). Inventory: 62 background PNGs, all 1080x1920 - grace-note (10), streak (11), answered-prayer (10), devotional (31 across 10 theme dirs: courage, gratitude, grief, hope, identity, joy, purpose, rest, surrender, trust); 3 full design mockups at 1080x1080 in `share-assets/` (e.g. glass card over nature art with gold-bar verse callout and gracenotesdaily.com footer); an answered-prayer confetti SVG; `share-captions.json` caption bank (~10 captions per share type, user-editable before sharing).
