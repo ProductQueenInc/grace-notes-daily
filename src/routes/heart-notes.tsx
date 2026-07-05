@@ -55,6 +55,7 @@ function HeartNotes() {
       .select("id, body, ai_response, summary")
       .eq("user_id", user.id)
       .eq("date", todayISO())
+      .is("superseded_at", null)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
