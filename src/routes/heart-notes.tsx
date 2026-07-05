@@ -131,6 +131,24 @@ function HeartNotes() {
     setConfirmDelete(false);
   }
 
+  async function archiveAndReset() {
+    // Move today's active note to Journey by stamping superseded_at, then
+    // clear local state so the composer re-renders empty. The journal habit
+    // stays complete for today — the user already journaled.
+    if (supabaseConfigured && user && rowId) {
+      await supabase
+        .from("heart_notes")
+        .update({ superseded_at: new Date().toISOString() })
+        .eq("id", rowId);
+    }
+    setRowId(null);
+    setSubmitted(null);
+    setResponse(null);
+    setTitle(null);
+    setText("");
+    setEditingTitle(false);
+  }
+
   return (
     <>
       <NatureBackground />
