@@ -158,9 +158,17 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
             </div>
 
             {received ? (
-              <div className="mt-7 w-full md:w-auto md:px-12 md:mx-auto md:flex py-3.5 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
-                <Icon icon={Check} size="sm" tone="inherit" />{" "}
-                {devotionalDate === localTodayISO() ? "Received today" : "Received"}
+              <div className="mt-7 flex flex-col md:flex-row items-stretch md:items-center md:justify-center gap-2">
+                <div className="md:px-8 py-3.5 rounded-full bg-grace-soft text-grace font-semibold flex items-center justify-center gap-2 cursor-default opacity-90">
+                  <Icon icon={Check} size="sm" tone="inherit" />{" "}
+                  {devotionalDate === localTodayISO() ? "Received today" : "Received"}
+                </div>
+                <button
+                  onClick={() => setShareOpen(true)}
+                  className="md:px-6 py-3.5 rounded-full border-2 border-grace text-grace font-semibold flex items-center justify-center gap-2 hover:bg-grace hover:text-white transition"
+                >
+                  <Icon icon={Share2} size="sm" tone="inherit" /> Share
+                </button>
               </div>
             ) : (
               <button
@@ -173,6 +181,22 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
           </div>
         )}
       </ReadingSurface>
+
+      <ShareCardModal
+        open={shareOpen}
+        ctx={{ type: "devotional", date: devotionalDate }}
+        heading={{
+          eyebrow: "Today's devotional",
+          title: "Share it forward",
+          subtitle: "Someone in your life might be sitting with the same thing.",
+        }}
+        onClose={() => {
+          setShareOpen(false);
+          // If the outer modal was auto-closing after receive, honor that.
+          if (received) setTimeout(onClose, 200);
+        }}
+        onDismiss={() => dismissDevotionalShare(devotionalDate)}
+      />
     </div>,
     document.body
   );
