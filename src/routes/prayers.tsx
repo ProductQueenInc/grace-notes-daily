@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ShareCardModal } from "@/components/share-card-modal";
+import { dismissAnsweredPrayerShare } from "@/lib/share-dismissals";
 
 export const Route = createFileRoute("/prayers")({
   head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
