@@ -76,6 +76,8 @@ export const Route = createFileRoute("/library/")({
 function LibraryHub() {
   const { session, loading } = useAuth();
   const isLoggedIn = !loading && !!session;
+  const { recentDevotionals } = Route.useLoaderData();
+  const todayDevotional = recentDevotionals[0];
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/library/" });
   const activeTag: LibraryTag | "All" = search.tag ?? "All";
