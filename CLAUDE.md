@@ -244,7 +244,35 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
-### 2026-07-05 (PM5) — Dated devotional archive URLs now 404 until the row exists (read-only route)
+### 2026-07-05 (PM6) — AI-generated cover images per devotional + Library "Latest letter" removed
+
+Two changes for the Library surface:
+
+1. **Removed the "Latest letter" featured section from `/library`.** The most recent essay already appears first in the All Letters row (newest-first sort), so the featured hero was a duplicate. `library.index.tsx`: deleted the `latest` memo and the whole hero `<section>`; simplified `themedSections` (no longer excludes `latest`).
+
+2. **Every daily devotional now has an AI-generated reverent nature cover image.** One image per date, used as (a) the thumbnail on Library cards + archive rows, and (b) the OG/Twitter share card. Reverent nature landscapes only (per §10b imagery policy) — dawn, night, storms, forests, still water, wide fields. The prompt maps theme + title + takeaway to emotional tone (grief → stormy sky, rest → open calm field, hope → dawn light through mist, etc.).
+
+   - **Schema:** migration added nullable `cover_image_url text` to `public.daily_devotionals`.
+   - **Storage:** private bucket `devotional-covers` (public buckets are blocked by workspace policy). PNGs uploaded at `<YYYY-MM-DD>.png`.
+   - **Proxy route:** `src/routes/api/public/devotional-cover.$date.ts` (public, no auth) downloads from the private bucket and serves the PNG with `Cache-Control: public, max-age=31536000, immutable`. Gives us a stable, crawlable URL without needing public storage.
+   - **Model:** `google/gemini-3.1-flash-image` via Lovable AI Gateway (`/v1/images/generations`, non-streaming). Chosen over `openai/gpt-image-2` because it has fewer moderation blocks on natural imagery.
+   - **Generation paths (both wired, per §5 policy):**
+     - `src/lib/devotional-cover.server.ts` — canonical `buildCoverPrompt` + `generateAndStoreDevotionalCover`.
+     - `src/lib/ai.functions.ts` (`getOrCreateSharedDevotional`) — awaits cover generation after text persistence so the returned `DevotionalResult` carries `coverImageUrl` immediately. Fire-and-forget backfill on reads of existing rows that are missing a cover.
+     - `supabase/functions/generate-daily-devotional/index.ts` — inlined copy of the cover prompt + upload logic (edge functions can't import from `src/`). Cover is generated after text persist. Failure is non-fatal.
+   - **Cron/backfill:** the cron edge function gained a `{"backfill":true,"limit":N}` mode. When called with a specific date whose row already has text but no cover, it fills the cover too (idempotent).
+   - **Backfilled 7 pre-existing rows** (2026-06-29 through 2026-07-05) — verified all now carry `cover_image_url`.
+   - **UI:**
+     - `library.index.tsx` — Recent readings cards now lead with a 16:10 cover thumbnail; DoveMark parchment tile as fallback.
+     - `library.devotional.index.tsx` — archive rows gained a 20-28px cover thumbnail on the left.
+     - `devotional-view.tsx` — `og:image` and `twitter:image` prefer `coverImageUrl` and fall back to `/og/daily-devotional.png` only when absent.
+     - The "Held letter envelope" reading page itself is unchanged (no cover on the reading surface, per prior direction).
+   - **Type changes:** `DevotionalResult` and `DevotionalListItem` gained `coverImageUrl?: string | null`. All SELECT statements against `daily_devotionals` updated to include `cover_image_url`.
+   - **CLAUDE.md sync:** §5 policy now also covers `buildCoverPrompt` — if you change the cover prompt in `devotional-cover.server.ts`, update the inlined copy in `generate-daily-devotional/index.ts`.
+
+Note on published-URL timing: the `cover_image_url` values point at `https://www.gracenotesdaily.com/api/public/devotional-cover/<date>.png`, which requires the new proxy route to be live. Publish the app to activate the URLs. Crawler previews (Twitter/Facebook debugger) cache aggressively — a changed cover will not appear in shared links until the platform re-fetches.
+
+
 
 Owner decision: a dated archive page shouldn't exist publicly until its devotional is ready — no "being prepared" empty state on `/devotional/$date`.
 
