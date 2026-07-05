@@ -46,6 +46,7 @@ import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicDevotionalCoverDateRouteImport } from './routes/api/public/devotional-cover.$date'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -234,6 +235,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDevotionalCoverDateRoute =
+  ApiPublicDevotionalCoverDateRouteImport.update({
+    id: '/api/public/devotional-cover/$date',
+    path: '/api/public/devotional-cover/$date',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
   '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/library/devotional/': typeof LibraryDevotionalIndexRoute
+  '/api/public/devotional-cover/$date': typeof ApiPublicDevotionalCoverDateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -309,6 +317,7 @@ export interface FileRoutesByTo {
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
   '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/library/devotional': typeof LibraryDevotionalIndexRoute
+  '/api/public/devotional-cover/$date': typeof ApiPublicDevotionalCoverDateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -349,6 +358,7 @@ export interface FileRoutesById {
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
   '/library/devotional/$date': typeof LibraryDevotionalDateRoute
   '/library/devotional/': typeof LibraryDevotionalIndexRoute
+  '/api/public/devotional-cover/$date': typeof ApiPublicDevotionalCoverDateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/api/risc/receiver'
     | '/library/devotional/$date'
     | '/library/devotional/'
+    | '/api/public/devotional-cover/$date'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/api/risc/receiver'
     | '/library/devotional/$date'
     | '/library/devotional'
+    | '/api/public/devotional-cover/$date'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -468,6 +480,7 @@ export interface FileRouteTypes {
     | '/api/risc/receiver'
     | '/library/devotional/$date'
     | '/library/devotional/'
+    | '/api/public/devotional-cover/$date'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -508,6 +521,7 @@ export interface RootRouteChildren {
   ApiRiscReceiverRoute: typeof ApiRiscReceiverRoute
   LibraryDevotionalDateRoute: typeof LibraryDevotionalDateRoute
   LibraryDevotionalIndexRoute: typeof LibraryDevotionalIndexRoute
+  ApiPublicDevotionalCoverDateRoute: typeof ApiPublicDevotionalCoverDateRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -774,6 +788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/devotional-cover/$date': {
+      id: '/api/public/devotional-cover/$date'
+      path: '/api/public/devotional-cover/$date'
+      fullPath: '/api/public/devotional-cover/$date'
+      preLoaderRoute: typeof ApiPublicDevotionalCoverDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -812,6 +833,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRiscReceiverRoute: ApiRiscReceiverRoute,
   LibraryDevotionalDateRoute: LibraryDevotionalDateRoute,
   LibraryDevotionalIndexRoute: LibraryDevotionalIndexRoute,
+  ApiPublicDevotionalCoverDateRoute: ApiPublicDevotionalCoverDateRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

@@ -97,6 +97,9 @@ export type DevotionalResult = {
   body: string[];
   related: { ref: string; text: string }[];
   takeaway: string;
+  // AI-generated nature cover image (public proxy URL). Null when generation
+  // failed or the row was created before cover images shipped.
+  coverImageUrl?: string | null;
   // Present only when the requested date's devotional could not be generated
   // or persisted and the most recent stored devotional was served instead
   // (see the fallback branch in getOrCreateSharedDevotional). servedDate is
@@ -716,7 +719,14 @@ Respond with valid JSON only - no markdown, no code fences:
 type SharedDevotionalRow = {
   verse_text: string; verse_reference: string; title: string;
   body: string[] | null; related: { ref: string; text: string }[] | null; takeaway: string | null;
+  cover_image_url?: string | null;
 };
+
+// Columns selected everywhere we read a shared devotional. Keep this in sync
+// with SharedDevotionalRow above so sharedRowToResult never sees `undefined`
+// for a column it needs.
+const SHARED_DEVOTIONAL_SELECT =
+  "theme, verse_text, verse_reference, title, body, related, takeaway, cover_image_url";
 
 function sharedRowToResult(row: SharedDevotionalRow, dateDisplay: string): DevotionalResult {
   return sanitizeDevotional({
@@ -727,6 +737,7 @@ function sharedRowToResult(row: SharedDevotionalRow, dateDisplay: string): Devot
     body: row.body ?? [],
     related: row.related ?? [],
     takeaway: row.takeaway ?? "",
+    coverImageUrl: row.cover_image_url ?? null,
   });
 }
 
