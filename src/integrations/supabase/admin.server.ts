@@ -1,27 +1,29 @@
-// Server-side Supabase admin client pointing at the app's real project
-// (tkoebogweygaabndrsvl). The auto-generated client.server.ts reads
-// Lovable Cloud's injected SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY, which
-// point at a different, empty Lovable-provisioned project — so storage
-// buckets and tables silently 404 from the Cloudflare Worker. This wrapper
-// uses the correct URL + TKOEBO_SERVICE_ROLE_KEY secret instead.
+// Server-side Supabase admin client.
 //
-// Do NOT import client.server.ts from app code — always use this file.
+// Points at the CURRENT Lovable Cloud project via the injected env vars
+// (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY). An earlier version hardcoded
+// this to tkoebogweygaabndrsvl on the assumption that Lovable had switched
+// us to a different project — that turned out to be wrong: the app's data
+// (daily_devotionals rows, devotional-covers bucket, listen-audio bucket,
+// share-cards bucket) all live in the Lovable-injected project, so the
+// hardcode caused every server route to read the wrong DB (returning either
+// stale devotionals from tkoebo or "Bucket not found" for storage).
+//
+// Do NOT import client.server.ts from app code — always use this file, so
+// the "which project?" decision lives in one place.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = 'https://tkoebogweygaabndrsvl.supabase.co';
-
 function createAdmin(): SupabaseClient<Database> {
-  const key =
-    process.env.TKOEBO_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
     const msg =
-      'Missing TKOEBO_SERVICE_ROLE_KEY (service role for tkoebogweygaabndrsvl). Set it in Lovable Cloud secrets.';
+      'Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY on the server. These are injected by Lovable Cloud automatically.';
     console.error(`[Supabase admin] ${msg}`);
     throw new Error(msg);
   }
-  return createClient<Database>(SUPABASE_URL, key, {
+  return createClient<Database>(url, key, {
     auth: {
       storage: undefined,
       persistSession: false,
