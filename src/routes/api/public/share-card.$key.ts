@@ -20,22 +20,41 @@ export const Route = createFileRoute("/api/public/share-card/$key")({
         const key = params.key;
         if (!KEY_RE.test(key)) return new Response("Invalid key", { status: 400 });
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data, error } = await supabaseAdmin.storage.from(BUCKET).download(key);
-        if (error || !data) {
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data, error } = await supabaseAdmin.storage.from(BUCKET).download(key);
+          if (error || !data) {
+            console.error("[share-card-proxy] download failed", {
+              bucket: BUCKET,
+              key,
+              message: error?.message,
+              name: error?.name,
+            });
+            return new Response("Not found", { status: 404 });
+          }
+
+          const buffer = await data.arrayBuffer();
+          return new Response(buffer, {
+            status: 200,
+            headers: {
+              "Content-Type": "image/png",
+              // Content-addressed keys are immutable; template changes bump
+              // TEMPLATE_VERSION in the edge function and produce new keys.
+              "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+            },
+          });
+        } catch (err) {
+          // Catches failures BEFORE the storage call too (e.g. the admin
+          // client's env-var guard throwing), which previously surfaced as
+          // an indistinguishable 404 with no trace of the real cause.
+          console.error("[share-card-proxy] handler threw before/around download", {
+            bucket: BUCKET,
+            key,
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+          });
           return new Response("Not found", { status: 404 });
         }
-
-        const buffer = await data.arrayBuffer();
-        return new Response(buffer, {
-          status: 200,
-          headers: {
-            "Content-Type": "image/png",
-            // Content-addressed keys are immutable; template changes bump
-            // TEMPLATE_VERSION in the edge function and produce new keys.
-            "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
-          },
-        });
       },
     },
   },

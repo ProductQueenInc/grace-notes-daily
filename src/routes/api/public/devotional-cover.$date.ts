@@ -24,24 +24,43 @@ export const Route = createFileRoute("/api/public/devotional-cover/$date")({
         const date = parseDate(params.date);
         if (!date) return new Response("Invalid date", { status: 400 });
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data, error } = await supabaseAdmin.storage
-          .from(BUCKET)
-          .download(`${date}.png`);
-        if (error || !data) {
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data, error } = await supabaseAdmin.storage
+            .from(BUCKET)
+            .download(`${date}.png`);
+          if (error || !data) {
+            console.error("[devotional-cover-proxy] download failed", {
+              bucket: BUCKET,
+              key: `${date}.png`,
+              message: error?.message,
+              name: error?.name,
+            });
+            return new Response("Not found", { status: 404 });
+          }
+
+          const buffer = await data.arrayBuffer();
+          return new Response(buffer, {
+            status: 200,
+            headers: {
+              "Content-Type": "image/png",
+              // Long-lived cache; covers are immutable per date. If we ever
+              // regenerate one, bust the URL by appending a version query.
+              "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+            },
+          });
+        } catch (err) {
+          // Catches failures BEFORE the storage call too (e.g. the admin
+          // client's env-var guard throwing), which previously surfaced as
+          // an indistinguishable 404 with no trace of the real cause.
+          console.error("[devotional-cover-proxy] handler threw before/around download", {
+            bucket: BUCKET,
+            key: `${date}.png`,
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+          });
           return new Response("Not found", { status: 404 });
         }
-
-        const buffer = await data.arrayBuffer();
-        return new Response(buffer, {
-          status: 200,
-          headers: {
-            "Content-Type": "image/png",
-            // Long-lived cache; covers are immutable per date. If we ever
-            // regenerate one, bust the URL by appending a version query.
-            "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
-          },
-        });
       },
     },
   },
