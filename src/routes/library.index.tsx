@@ -502,7 +502,7 @@ function LibraryHub() {
       {/* Recent devotionals strip — primary entry point to the archive.
           Small horizontal cards, then a warm CTA to the full archive index. */}
       {recentDevotionals.length > 0 && isAll && (
-        <section className="px-6 pb-10 sm:pb-12 pt-2 relative z-10">
+        <section className="hidden sm:block px-6 pb-10 sm:pb-12 pt-2 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
               <div>
