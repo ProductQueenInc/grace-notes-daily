@@ -209,7 +209,7 @@ function LibraryHub() {
               <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily devotionals
             </div>
             <div className="flex gap-3 overflow-x-auto px-6 pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {recentDevotionals.slice(0, 7).map((d) => (
+              {recentDevotionals.slice(0, 7).map((d: DevotionalListItem) => (
                 <Link
                   key={d.date}
                   to="/library/devotional/$date"
