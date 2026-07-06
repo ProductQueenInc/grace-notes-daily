@@ -69,7 +69,10 @@ export function ArticleShell({ article }: ArticleShellProps) {
         </div>
       </header>
 
+      {/* Hero */}
+      <section className="px-6 pt-10 sm:pt-14 pb-6 relative z-10 text-center max-w-4xl mx-auto [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
         <div className="text-sm text-white/95 mb-3 flex items-center justify-center gap-2 flex-wrap font-medium">
+
           <Link to="/library" className="hover:text-gold transition">
             Notes &amp; Letters
           </Link>
