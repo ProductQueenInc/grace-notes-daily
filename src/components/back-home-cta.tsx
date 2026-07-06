@@ -11,13 +11,14 @@ export function BackHomeButton({ className = "" }: { className?: string }) {
   return (
     <Link
       to="/home"
-      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow ${className}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow ${className}`}
     >
       <Icon icon={Sun} size="sm" tone="inherit" />
       Back Home
     </Link>
   );
 }
+
 
 /**
  * Bottom-of-page CTA card for signed-in readers.
