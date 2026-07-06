@@ -583,7 +583,7 @@ function LibraryHub() {
                 </h2>
               </div>
             </div>
-            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-3">
+            <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-3">
               <GuideCard
                 to="/free-prayer-toolkit"
                 eyebrow="Guide"
