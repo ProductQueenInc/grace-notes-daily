@@ -172,22 +172,22 @@ function LibraryHub() {
       <NatureBackground />
 
       {/* Sticky page header — CTA stays pinned top-right as user scrolls. */}
-      <header className="sticky top-0 z-30 px-6 py-4 flex items-center justify-between text-white backdrop-blur-md bg-grace-deep/30">
-        <Link to="/" className="flex items-center gap-2">
-          <DoveMark variant="medallion" className="w-9 h-9" />
-          <span className="font-display text-xl sm:text-2xl">GraceNotes Daily</span>
+      <header className="sticky top-0 z-30 px-5 sm:px-6 py-5 sm:py-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-white backdrop-blur-md bg-grace-deep/30">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <DoveMark variant="medallion" className="w-9 h-9 shrink-0" />
+          <span className="font-display text-lg sm:text-2xl truncate whitespace-nowrap">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
           <BackHomeButton />
         ) : (
-          <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
+          <Link to="/signup" className="shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
             Come on in
           </Link>
         )}
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-8 pb-16 sm:pt-10 sm:pb-10 relative z-10 text-center">
+      <section className="px-6 pt-10 sm:pt-14 pb-12 sm:pb-10 relative z-10 text-center">
         <p className="text-gold uppercase tracking-widest text-xs font-semibold mb-3">
           Notes &amp; Letters
         </p>
@@ -198,6 +198,7 @@ function LibraryHub() {
           Unhurried thoughts on prayer, journaling, and the quiet work of walking with God.
         </p>
       </section>
+
 
       {/* Today's devotional — featured hero. New: devotionals now live in the
           library, and today's reflection earns the top slot. Falls back
