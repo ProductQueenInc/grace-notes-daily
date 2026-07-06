@@ -1,135 +1,47 @@
-## Goal
+Four scoped mobile-layout fixes across the Notes & Letters library and its article pages. Frontend/presentation only — no data, no product logic.
 
-Unify the four share triggers under one coherent model:
+## 1. Breathing room around the sticky header (`src/routes/library.index.tsx`)
 
-- **Devotional** → link share (`navigator.share({ title, url })`). Public page carries the meaning.
-- **Grace-note, answered-prayer, milestone** → **image file share** with **auto-copy on Share tap**. Instagram / TikTok / WhatsApp / iMessage all appear as targets. Caption lands on clipboard the moment Share is tapped; user pastes in destination app.
+The sticky header currently sits flush against the top edge and the hero starts too close beneath it.
 
-Also folds in the earlier asks: reframe modal copy to center the user's own walk; shrink devotional Share button to a subtle ghost icon.
+- Bump the sticky header vertical padding from `py-4` → `py-5` on mobile, `sm:py-6` on larger screens.
+- Increase hero top padding: `pt-8` → `pt-10 sm:pt-14` so "Notes & Letters" eyebrow doesn't crowd the header.
+- Do the same treatment on the article page (`src/components/article-shell.tsx`): header `py-5` → `py-5 sm:py-6`, hero `pt-8` → `pt-10 sm:pt-14`.
 
-## 1. Share modal — dual mode (`src/components/share-card-modal.tsx`)
+## 2. Devotional featured card → swipeable carousel of recent readings
 
-Mode derived from context:
+Replace the single "Today's devotional" hero card with a horizontal snap-scroll carousel of the most recent devotionals (today first, then backwards).
 
-```ts
-const mode = ctx.type === "devotional" ? "link" : "image";
-```
+- On mobile (`< sm`): full-width snap cards, one per view, showing cover image + date + title + verse ref + "Read →" CTA. Native swipe, no arrows. Same visual weight as the previous single card.
+- On tablet/desktop (`sm+`): keep a single prominent "Today's devotional" card (current design) since horizontal swipe isn't a natural desktop gesture — the "Recent readings" grid lower on the page already covers browsing.
+- Data source is already available: `recentDevotionals` from the loader (already fetches 8 rows). Reuse it; no new query.
+- Because the carousel already surfaces recent readings on mobile, the separate "Recent readings" grid section below hides on `sm:hidden` to avoid duplication. Desktop keeps both (featured hero + grid) unchanged.
 
-### Capability probe (mount-time, SSR-safe)
+## 3. Foundations row + Free Guides alignment (`src/routes/library.index.tsx`)
 
-```ts
-const [canShareFiles, setCanShareFiles] = useState(false);
-useEffect(() => {
-  if (typeof navigator === "undefined" || !navigator.canShare) return;
-  const probe = new File([""], "probe.png", { type: "image/png" });
-  try { setCanShareFiles(navigator.canShare({ files: [probe] })); } catch {}
-}, []);
-```
+Both blocks sit inside `max-w-6xl mx-auto` with `px-6`, but the section headings and card left edges don't visually align because the eyebrow labels ("FREE GUIDES", "SERIES · FOUNDATIONS") sit at different insets relative to card content padding.
 
-### Link mode (devotional only)
+- Normalize section eyebrow + heading to a shared component style: same left-inset, same eyebrow tracking, same heading size (`text-xl sm:text-2xl`).
+- Ensure Foundations teaser card, Recent readings grid, and Free Guides grid all share identical horizontal padding (`px-6`) and identical inner card padding so their left/right edges line up down the page.
+- Free Guides grid: on mobile stay `grid-cols-1` (current) but tighten gap to `gap-3` so the three cards feel like a set, not floating tiles.
 
-- No caption block. No copy buttons.
-- Single primary button: **Share** → `navigator.share({ title: "GraceNotes Daily", url: data.deep_link })`.
-- Fallback if `navigator.share` unsupported: label swaps to **Copy link** and copies `data.deep_link`.
-- Preserves CLAUDE.md §0 rule #5 invariant (no `text` alongside `url`).
+## 4. Article page hero header alignment (`src/components/article-shell.tsx`)
 
-### Image mode (grace-note, answered-prayer, milestone)
+On iPhone 12 Pro width, "GraceNotes Daily" wraps to two lines and the "Back Home" pill also wraps — the top row looks broken.
 
-Layout:
+- Reduce brand lockup on mobile: `font-display text-2xl` → `text-lg sm:text-2xl`; dove medallion `w-10 h-10` → `w-9 h-9 sm:w-10 sm:h-10`. Add `whitespace-nowrap` to the brand text so it never wraps.
+- Add `whitespace-nowrap` and `shrink-0` to the Back Home button (in `back-home-cta.tsx` if needed, otherwise inline on the wrapper) so the pill stays on one line.
+- Header row uses `grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3` to guarantee the brand shrinks/truncates before the CTA gets squeezed (per the responsive-layout-patterns rule).
+- Hide the "Notes & Letters" middle link at `< sm` (already the case) — no change there.
 
-```
-[ 4:5 image preview ]
+## Files touched
 
-Your caption  ·  tap to copy    📋
-[ tappable card containing the caption text ]
-
-[  ✧  Share  ]        ← primary, gradient-gold
-Caption's already copied — paste when you get there.
-
-Maybe later
-```
-
-**One button. Just "Share".** No "Copy link". No "Share image" vs "Share link". The user doesn't need to think about payload types.
-
-Behavior:
-
-- **Caption block is the copy affordance.** Tapping the entire card runs `navigator.clipboard.writeText(caption)` + toast "Caption copied." Small clipboard icon (top-right of the card) as a visual hint. No separate "Copy caption" button — the block IS the button.
-- **Share button — auto-copy first, then share.** On tap:
-  1. `await navigator.clipboard.writeText(caption)` — silently.
-  2. Fetch `image_url` → wrap as `File` (spinner state on button while fetching, ~200-500KB, same-origin, immutable-cached).
-  3. `await navigator.share({ files: [file], title: "GraceNotes Daily" })` — no `url`, no `text`.
-  4. On the FIRST successful share of the session, toast: *"Caption copied — paste it when you get there."* Persist `gn:share:paste-hint-seen` in localStorage so it appears once, not every share.
-  5. The helper line under the Share button — *"Caption's already copied — paste when you get there."* — is always visible in image mode, so users learn the pattern without being nagged by toasts.
-- **Clipboard write failures are silent.** In-app browsers (Instagram's own, Facebook's, LinkedIn's) can block programmatic clipboard writes. If it throws, we fall through to the share — the caption block is still tappable for manual copy.
-- **Desktop / no canShareFiles:** primary button swaps to **Download image** (anchor with `download` attribute pointing at `image_url`, filename per §2 below). Caption block stays as-is. No Copy link — per your ask.
-- **Errors:**
-  - Image fetch fails → toast "Couldn't prepare the image" + swap primary to Download.
-  - `navigator.share` cancel (AbortError) → silent.
-  - `navigator.share` other error → toast "Couldn't open share sheet" + reveal Download.
-
-### Cleanup
-
-- Remove the editable `<textarea>` and `caption` state — caption is read-only from `data.caption`.
-- Remove the "Copy caption" button — the caption block replaces it.
-- Remove the "Copy link" button entirely from image mode.
-
-## 2. Filename convention for File / Download
-
-Deterministic per share (idempotent re-shares):
-
-- `gracenotes-grace-note-<YYYY-MM-DD>.png`
-- `gracenotes-answered-prayer-<prayer_id>.png`
-- `gracenotes-<tier>-day-rhythm.png`
-
-Devotional never downloads — link mode.
-
-## 3. Reframe modal copy (all four call sites)
-
-Rewrite `heading` props to center the user's walk, not the recipient. No "someone in your life", no "share it forward":
-
-| Trigger | File | Eyebrow | Title | Subtitle |
-|---|---|---|---|---|
-| Devotional | `src/components/devotional-modal.tsx` | Today's devotional | Keep this one close | A quiet way to remember what stirred in you today. |
-| Grace note | `src/routes/home.tsx` | Today's grace note | Hold onto this | Save it where you'll see it again. |
-| Answered prayer | `src/routes/prayers.tsx` | Prayer answered | Mark the moment | A small record of what He did. |
-| Milestone | `src/components/milestone-watcher.tsx` | `${tier}-day rhythm` | `${tier} days of showing up` | A marker for your own walk. |
-
-Drafts — flag any wording you want changed before I ship.
-
-## 4. Shrink the devotional Share button (`src/components/devotional-modal.tsx`)
-
-The received-state row: replace the second pill with a subtle ghost icon.
-
-- Keep **Received today** pill as the emotional anchor.
-- Replace outlined Share pill with 36×36 ghost icon: `Share2` at `size="sm"`, `text-grace/70`, `hover:bg-grace-soft`, `aria-label="Share"`, tooltip "Share".
-- No Share button in the pre-receive state.
-
-Spot-check grace-note trigger in `home.tsx` and answered-prayer trigger in `prayers.tsx` — align to the same ghost-icon treatment.
-
-## 5. QA sweep
-
-- **iOS Safari (current)**: image mode → Instagram, WhatsApp, TikTok, iMessage all appear. Auto-copy toast shows once per install. Devotional → link with OG preview.
-- **Android Chrome (current)**: same.
-- **Desktop Chrome / Safari / Firefox**: `canShareFiles` false → Download image visible; devotional Share works or falls back to Copy link.
-- 375 / 768 / 1280 viewports: caption block wraps cleanly, no overflow; devotional received-row fits on one line at 375px.
-- Milestone auto-open still doesn't race the daily devotional modal.
+- `src/routes/library.index.tsx` — header padding, hero padding, replace single featured devotional card with mobile carousel + desktop-only fallback, align eyebrows/headings, hide Recent readings grid on mobile.
+- `src/components/article-shell.tsx` — header padding, brand lockup sizing, Back Home wrap fix.
+- `src/components/back-home-cta.tsx` — add `whitespace-nowrap shrink-0` to the button if wrapping is coming from inside.
 
 ## Out of scope
 
-- No changes to `src/lib/share.ts` — backend contract already returns `image_url`, `caption`, `deep_link`. No edits needed.
-- No analytics, no dismissal-key changes.
-- No caption refresh button (deferred).
-- No changes to `share-bar.tsx` (SEO landing surface).
-
-## Downsides — the honest list
-
-1. **Two gestures on Instagram / TikTok.** Auto-copy softens it; user still long-presses-paste in the destination app. Ceiling set by Meta/ByteDance.
-2. **Clipboard silently overwrites whatever the user had.** Standard for every creator tool, but worth naming.
-3. **Clipboard write can fail in some in-app browsers.** Instagram's own webview, Facebook's, LinkedIn's — programmatic writes may be blocked. We fall through: caption block stays tappable.
-4. **The "Caption copied" first-share toast is a one-shot teach moment.** Miss it and the user might not know why we copied. Always-visible helper line mitigates but doesn't fully replace it.
-5. **In-app browsers may lack `navigator.share` entirely.** Traffic from inside Instagram/Facebook browsers hits desktop fallback (Download image). Nothing we can do — those webviews strip the API.
-6. **No signal back from destinations.** We can't tell if the paste happened. Standard for all web-share flows.
-7. **Caption is fixed per session — no refresh yet.** Backend rotates 10 sequentially, but a user who doesn't love this one has no in-modal option to swap. Small follow-up if you want it.
-8. **File fetch adds a brief network round-trip before the sheet opens.** ~300ms cold, instant warm. Button spinner covers it.
-9. **The CLAUDE.md invariant stays intact.** Fork B never passes `text`+`url` together, so the 2026-07-05 concatenation bug can't recur. Good.
-10. **Removing "Copy caption" as an explicit button means the caption block must be discoverable as tappable.** We handle this with the clipboard icon + "tap to copy" hint, but it's less obvious than a labeled button. Trade-off for cleaner layout.
+- No data or query changes.
+- No new routes, no new components beyond one small inline `MobileDevotionalCarousel` block inside `library.index.tsx`.
+- No changes to article body typography, share bar, or footer.
