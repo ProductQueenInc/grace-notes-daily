@@ -220,17 +220,18 @@ export function ShareCardModal({
 
         <div className="p-5 space-y-4">
           {/* Image / skeleton */}
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-grace-soft/60 border border-black/5">
+          <div className="mx-auto w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden bg-grace-soft/60 border border-black/5">
             {data && !isFetching ? (
               <img
                 src={data.image_url}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : (
               <div className="w-full h-full animate-pulse bg-gradient-to-br from-grace-soft to-gold-soft/40" />
             )}
           </div>
+
 
           {/* Error state */}
           {isError ? (
@@ -252,8 +253,9 @@ export function ShareCardModal({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60">
-                    Your caption <span className="text-foreground/40 normal-case tracking-normal font-normal">· tap to copy</span>
+                    Your caption
                   </p>
+
                 </div>
                 {data && !isFetching && data.caption ? (
                   <button
