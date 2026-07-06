@@ -81,17 +81,24 @@ function HeartNotes() {
 
     let newId = rowId;
     if (supabaseConfigured && user) {
-      const { data } = await supabase
-        .from("heart_notes")
-        .upsert(
-          { user_id: user.id, date: todayISO(), body, ai_response: r },
-          { onConflict: "user_id,date" },
-        )
-        .select("id")
-        .maybeSingle();
-      if (data?.id) {
-        newId = data.id as string;
-        setRowId(newId);
+      if (newId) {
+        const { data } = await supabase
+          .from("heart_notes")
+          .update({ body, ai_response: r })
+          .eq("id", newId)
+          .select("id")
+          .maybeSingle();
+        if (data?.id) newId = data.id as string;
+      } else {
+        const { data } = await supabase
+          .from("heart_notes")
+          .insert({ user_id: user.id, date: todayISO(), body, ai_response: r })
+          .select("id")
+          .maybeSingle();
+        if (data?.id) {
+          newId = data.id as string;
+          setRowId(newId);
+        }
       }
     }
 
