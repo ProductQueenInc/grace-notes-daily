@@ -29,7 +29,7 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
     const { data: signed, error } = await supabaseAdmin.storage
       .from("listen-audio")
       .createSignedUrl(data.path, data.expiresIn ?? 3600);

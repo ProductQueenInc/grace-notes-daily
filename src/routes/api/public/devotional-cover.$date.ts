@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/public/devotional-cover/$date")({
         if (!date) return new Response("Invalid date", { status: 400 });
 
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
           const { data, error } = await supabaseAdmin.storage
             .from(BUCKET)
             .download(`${date}.png`);

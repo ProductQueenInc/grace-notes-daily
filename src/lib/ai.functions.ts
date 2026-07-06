@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { z } from "zod";
 import { requireTkoebo as requireSupabaseAuth } from "@/lib/auth-tkoebo.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/integrations/supabase/admin.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Generated Database types can lag behind migrations (this is why logAudit casts
