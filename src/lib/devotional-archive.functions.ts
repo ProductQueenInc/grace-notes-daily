@@ -7,7 +7,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/integrations/supabase/admin.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // `daily_devotionals` was added after the generated types were last regenerated,

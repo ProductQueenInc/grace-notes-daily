@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/public/share-card/$key")({
         if (!KEY_RE.test(key)) return new Response("Invalid key", { status: 400 });
 
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
           const { data, error } = await supabaseAdmin.storage.from(BUCKET).download(key);
           if (error || !data) {
             console.error("[share-card-proxy] download failed", {

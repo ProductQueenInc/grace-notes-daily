@@ -12,7 +12,7 @@
 // INLINED copy of the same prompt (edge functions can't import from src/).
 // If you change the prompt here, update the cron too - see CLAUDE.md §5.
 
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/integrations/supabase/admin.server";
 import { BASE_URL } from "@/lib/library";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/images/generations";
