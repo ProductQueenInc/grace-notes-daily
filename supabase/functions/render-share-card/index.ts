@@ -518,9 +518,17 @@ Deno.serve(async (req: Request) => {
     if (!user) return jsonErr(401, "auth_required", "a signed-in user JWT is required for this share type");
 
     if (template === "grace-note") {
-      const { data: gn } = await admin.from("daily_grace_notes")
+      // The overnight cron pre-generates TOMORROW's note before midnight, so
+      // "most recent row" can silently be a different day than what the
+      // client has on screen. The client sends the exact date it's showing;
+      // fall back to most-recent only if no date is supplied (older clients).
+      const requestedDate = typeof body.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.date) ? body.date : null;
+      const gnQuery = admin.from("daily_grace_notes")
         .select("date, grace_note, verse_text, verse_reference")
-        .eq("user_id", user.id).order("date", { ascending: false }).limit(1).maybeSingle();
+        .eq("user_id", user.id);
+      const { data: gn } = requestedDate
+        ? await gnQuery.eq("date", requestedDate).maybeSingle()
+        : await gnQuery.order("date", { ascending: false }).limit(1).maybeSingle();
       if (!gn?.grace_note) return jsonErr(404, "content_not_found", "no grace note for this user yet");
       const note = strip(clamp(gn.grace_note, 320));
       const seed = `grace-note|${user.id}|${gn.date}`;

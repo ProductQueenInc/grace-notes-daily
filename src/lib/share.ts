@@ -61,8 +61,13 @@ const ROUTE: Record<ShareType, string> = {
 function bodyFor(ctx: ShareContext): Record<string, unknown> {
   switch (ctx.type) {
     case "grace_note":
-      // Server fetches today's grace note from the JWT — never send content.
-      return {};
+      // Server fetches the grace note content from the JWT (never send
+      // content) — but the DATE must be sent, because the overnight cron
+      // pre-generates tomorrow's note before midnight. Without a date, the
+      // backend's "most recent row" query returns tomorrow's note instead
+      // of the one currently on screen. note_id is the local YYYY-MM-DD
+      // the client is displaying (see home.tsx).
+      return { date: ctx.note_id };
     case "devotional":
       return ctx.date ? { date: ctx.date } : {};
     case "answered_prayer": {
