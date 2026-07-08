@@ -12,6 +12,7 @@ import {
   Flame,
   ChevronUp,
 } from "lucide-react";
+import { FEATURES } from "@/lib/feature-flags";
 import {
   Sidebar,
   SidebarContent,
