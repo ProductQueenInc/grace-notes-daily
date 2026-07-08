@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Sun,
-  Headphones,
   Compass,
   Menu,
   NotebookPen,
