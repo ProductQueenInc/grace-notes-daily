@@ -11,4 +11,15 @@ export const FEATURES = {
    * Supabase table all remain in the codebase.
    */
   listen: false,
+  /**
+   * Rendered-card preview modal for sharing. When false, the share sheet is
+   * just a link-intent platform chooser (no image, no download, no native
+   * share). When true, the old preview modal returns.
+   */
+  shareImagePreview: false,
+  /**
+   * Editable caption block inside the share modal. Only meaningful when
+   * shareImagePreview is true.
+   */
+  shareCaptions: false,
 } as const;
