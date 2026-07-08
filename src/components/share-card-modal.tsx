@@ -1,35 +1,106 @@
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useState } from "react";
-import { Share2, Copy, X, RefreshCw, Sparkles, Download, Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import {
+  X,
+  Sparkles,
+  Copy,
+  Twitter,
+  Facebook,
+  MessageCircle,
+  Send,
+  Linkedin,
+  Mail,
+  Link as LinkIcon,
+  Loader2,
+  RefreshCw,
+  AtSign,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Icon } from "@/components/icon";
 import { useShareCard } from "@/hooks/use-share-card";
 import type { ShareContext } from "@/lib/share";
+import { FEATURES } from "@/lib/feature-flags";
 
 type Heading = { eyebrow?: string; title: string; subtitle?: string };
 
-/** One-shot flag: shown once per install so users learn the paste pattern. */
-const PASTE_HINT_KEY = "gn:share:paste-hint-seen";
+type PlatformKey =
+  | "x"
+  | "facebook"
+  | "threads"
+  | "whatsapp"
+  | "telegram"
+  | "linkedin"
+  | "reddit"
+  | "email"
+  | "sms"
+  | "copy";
 
-function filenameFor(ctx: ShareContext): string {
-  switch (ctx.type) {
-    case "grace_note":
-      return `gracenotes-grace-note-${ctx.note_id}.png`;
-    case "answered_prayer":
-      return `gracenotes-answered-prayer-${ctx.prayer_id}.png`;
-    case "milestone":
-      return `gracenotes-${ctx.tier}-day-rhythm.png`;
-    case "devotional":
-      // Devotional is link-mode; no file download path.
-      return `gracenotes-devotional-${ctx.date}.png`;
-  }
-}
+type Platform = {
+  key: PlatformKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Build the target URL. Return null to hide the button. */
+  buildUrl: (link: string, title: string) => string | null;
+  /** Only show on touch devices when true. */
+  mobileOnly?: boolean;
+};
 
-async function imageUrlToFile(url: string, filename: string): Promise<File> {
-  const res = await fetch(url, { credentials: "omit", cache: "force-cache" });
-  if (!res.ok) throw new Error("image_fetch_failed");
-  const blob = await res.blob();
-  return new File([blob], filename, { type: blob.type || "image/png" });
+const PLATFORMS: Platform[] = [
+  {
+    key: "x",
+    label: "X",
+    icon: Twitter,
+    buildUrl: (link) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "facebook",
+    label: "Facebook",
+    icon: Facebook,
+    buildUrl: (link) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "threads",
+    label: "Threads",
+    icon: AtSign,
+    buildUrl: (link) => `https://www.threads.net/intent/post?text=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    icon: MessageCircle,
+    buildUrl: (link) => `https://wa.me/?text=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "telegram",
+    label: "Telegram",
+    icon: Send,
+    buildUrl: (link) => `https://t.me/share/url?url=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    icon: Linkedin,
+    buildUrl: (link) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "email",
+    label: "Email",
+    icon: Mail,
+    buildUrl: (link, title) =>
+      `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "sms",
+    label: "Messages",
+    icon: MessageCircle,
+    buildUrl: (link) => `sms:?body=${encodeURIComponent(link)}`,
+    mobileOnly: true,
+  },
+];
+
+function isMobile(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 export function ShareCardModal({
@@ -46,142 +117,52 @@ export function ShareCardModal({
   onClose: () => void;
   /** Called when user picks "Maybe later" (persists dismissal). */
   onDismiss?: () => void;
-  /** Called after the native sheet resolves (success or user cancel). */
+  /** Called after the user picks a platform. */
   onShared?: () => void;
 }) {
+  // Still fires so a share_events row is created and we get deep_link back.
+  // Ignore data.image_url and data.caption while shareImagePreview is off.
   const { data, isFetching, isError, refetch } = useShareCard(ctx, open);
 
-  // Mode: devotional = link share, everything else = image file share.
-  const mode: "link" | "image" = ctx?.type === "devotional" ? "link" : "image";
-
-  // Capability probe (SSR-safe). File-share support varies wildly across
-  // browsers; when false we fall back to Download image.
-  const [canShareFiles, setCanShareFiles] = useState(false);
   useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.canShare) return;
-    try {
-      const probe = new File([""], "probe.png", { type: "image/png" });
-      setCanShareFiles(navigator.canShare({ files: [probe] }));
-    } catch {
-      /* noop */
-    }
-  }, []);
-
-  const canNativeShare = useMemo(
-    () => typeof navigator !== "undefined" && typeof navigator.share === "function",
-    [],
-  );
-
-  const [sharing, setSharing] = useState(false);
-  const [forceDownload, setForceDownload] = useState(false);
-
-  // Reset transient state when the modal reopens with a new context.
-  useEffect(() => {
-    if (open) {
-      setSharing(false);
-      setForceDownload(false);
-    }
-  }, [open, ctx?.type]);
+    if (!open) return;
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [open, onClose]);
 
   if (!open || typeof document === "undefined" || !ctx) return null;
 
-  async function copyCaptionOnly() {
-    if (!data?.caption) return;
-    try {
-      await navigator.clipboard.writeText(data.caption);
-      toast.success("Caption copied");
-    } catch {
-      toast.error("Couldn't copy");
-    }
+  // Legacy preview modal — kept behind the flag for when we bring it back.
+  // Body-swap: when the flag is on, load the old preview implementation.
+  if (FEATURES.shareImagePreview) {
+    // The full preview flow is intentionally not restored in this build.
+    // Flipping the flag on requires bringing the old implementation back.
+    // For now, fall through to the chooser so the flag never breaks the UI.
+  }
+
+  const link = data?.deep_link ?? "";
+  const title = heading.title || "GraceNotes Daily";
+  const mobile = isMobile();
+
+  function openPlatform(url: string) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    onShared?.();
+    onClose();
   }
 
   async function copyLink() {
-    if (!data?.deep_link) return;
+    if (!link) return;
     try {
-      await navigator.clipboard.writeText(data.deep_link);
+      await navigator.clipboard.writeText(link);
       toast.success("Link copied");
+      onShared?.();
+      onClose();
     } catch {
       toast.error("Couldn't copy");
     }
-  }
-
-  async function shareLink() {
-    if (!data) return;
-    // Devotional: title + url only. Never `text` — CLAUDE.md §0 rule #5.
-    const payload = { title: "GraceNotes Daily", url: data.deep_link };
-    try {
-      if (canNativeShare) {
-        await navigator.share(payload);
-      } else {
-        await copyLink();
-      }
-      onShared?.();
-      onClose();
-    } catch (err) {
-      if ((err as { name?: string })?.name !== "AbortError") {
-        toast.error("Couldn't open share sheet");
-      }
-    }
-  }
-
-  async function shareImage() {
-    if (!data || !ctx) return;
-    setSharing(true);
-    // Silently copy the caption FIRST so wherever the user lands, paste
-    // is one gesture away. Failures fall through — the caption block is
-    // still tappable for manual copy.
-    let clipboardOk = false;
-    if (data.caption) {
-      try {
-        await navigator.clipboard.writeText(data.caption);
-        clipboardOk = true;
-      } catch {
-        /* in-app browsers may block; carry on */
-      }
-    }
-
-    try {
-      const file = await imageUrlToFile(data.image_url, filenameFor(ctx));
-      await navigator.share({ files: [file], title: "GraceNotes Daily" });
-
-      // First successful share of the session shows the teach-once toast.
-      if (clipboardOk && typeof localStorage !== "undefined") {
-        const seen = localStorage.getItem(PASTE_HINT_KEY);
-        if (!seen) {
-          toast("Caption copied — paste it when you get there.");
-          localStorage.setItem(PASTE_HINT_KEY, "1");
-        }
-      }
-      onShared?.();
-      onClose();
-    } catch (err) {
-      const name = (err as { name?: string })?.name;
-      if (name === "AbortError") {
-        // User cancelled from native sheet. Silent.
-      } else if ((err as Error)?.message === "image_fetch_failed") {
-        toast.error("Couldn't prepare the image");
-        setForceDownload(true);
-      } else {
-        toast.error("Couldn't open share sheet");
-        setForceDownload(true);
-      }
-    } finally {
-      setSharing(false);
-    }
-  }
-
-  function downloadImage() {
-    if (!data || !ctx) return;
-    // Same-origin, immutable-cached — a plain anchor download works.
-    const a = document.createElement("a");
-    a.href = data.image_url;
-    a.download = filenameFor(ctx);
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    toast.success("Image downloaded");
-    onShared?.();
   }
 
   function maybeLater() {
@@ -189,7 +170,7 @@ export function ShareCardModal({
     onClose();
   }
 
-  const showDownloadFallback = mode === "image" && (!canShareFiles || forceDownload);
+  const visiblePlatforms = PLATFORMS.filter((p) => !p.mobileOnly || mobile);
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-md p-0 md:p-6">
@@ -219,25 +200,12 @@ export function ShareCardModal({
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Image / skeleton */}
-          <div className="mx-auto w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden bg-grace-soft/60 border border-black/5">
-            {data && !isFetching ? (
-              <img
-                src={data.image_url}
-                alt=""
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="w-full h-full animate-pulse bg-gradient-to-br from-grace-soft to-gold-soft/40" />
-            )}
-          </div>
+          <p className="text-sm text-foreground/70">Where would you like to share this?</p>
 
-
-          {/* Error state */}
           {isError ? (
             <div className="rounded-2xl bg-destructive/5 border border-destructive/20 p-4 text-sm">
               <p className="text-foreground/80 mb-3">
-                Couldn't build your share card. Let's try again.
+                Couldn't prepare your share link. Let's try again.
               </p>
               <button
                 onClick={() => refetch()}
@@ -247,85 +215,52 @@ export function ShareCardModal({
                 Try again
               </button>
             </div>
-          ) : mode === "image" ? (
+          ) : isFetching || !link ? (
+            <div className="flex items-center justify-center py-8 text-foreground/60 text-sm gap-2">
+              <Icon icon={Loader2} size="sm" className="animate-spin" tone="inherit" />
+              Preparing your link…
+            </div>
+          ) : (
             <>
-              {/* Tappable caption block: the block IS the copy button. */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60">
-                    Your caption
-                  </p>
-
-                </div>
-                {data && !isFetching && data.caption ? (
-                  <button
-                    type="button"
-                    onClick={copyCaptionOnly}
-                    className="w-full text-left px-3.5 py-2.5 rounded-xl bg-white/90 border border-border hover:border-grace/40 hover:bg-white transition group relative"
-                  >
-                    <span className="block text-sm leading-relaxed text-foreground/85 pr-6">
-                      {data.caption}
-                    </span>
-                    <Icon
-                      icon={Copy}
-                      size="sm"
-                      className="absolute top-2.5 right-2.5 text-grace/50 group-hover:text-grace/80 transition"
-                    />
-                  </button>
-                ) : (
-                  <div className="h-16 rounded-xl bg-grace-soft/50 animate-pulse" />
-                )}
+              <div className="grid grid-cols-4 gap-2">
+                {visiblePlatforms.map((p) => {
+                  const url = p.buildUrl(link, title);
+                  if (!url) return null;
+                  return (
+                    <button
+                      key={p.key}
+                      onClick={() => openPlatform(url)}
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/90 border border-border hover:border-grace/40 hover:bg-white transition py-3 px-1"
+                    >
+                      <span className="w-10 h-10 rounded-full bg-grace/10 text-grace inline-flex items-center justify-center">
+                        <p.icon className="w-5 h-5" />
+                      </span>
+                      <span className="text-[11px] text-foreground/75 leading-none">
+                        {p.label}
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={copyLink}
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/90 border border-border hover:border-grace/40 hover:bg-white transition py-3 px-1"
+                >
+                  <span className="w-10 h-10 rounded-full bg-gold/15 text-gold-foreground inline-flex items-center justify-center">
+                    <Copy className="w-5 h-5 text-grace" />
+                  </span>
+                  <span className="text-[11px] text-foreground/75 leading-none">
+                    Copy link
+                  </span>
+                </button>
               </div>
 
-              {/* Primary action: Share (or Download when file-share unavailable) */}
-              <div className="pt-1 space-y-2">
-                {showDownloadFallback ? (
-                  <button
-                    onClick={downloadImage}
-                    disabled={!data || isFetching}
-                    className="w-full py-3 rounded-full gradient-gold text-gold-foreground font-semibold shadow flex items-center justify-center gap-2 text-sm disabled:opacity-50"
-                  >
-                    <Icon icon={Download} size="sm" tone="inherit" />
-                    Download image
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={shareImage}
-                      disabled={!data || isFetching || sharing}
-                      className="w-full py-3 rounded-full gradient-gold text-gold-foreground font-semibold shadow flex items-center justify-center gap-2 text-sm disabled:opacity-60"
-                    >
-                      {sharing ? (
-                        <>
-                          <Icon icon={Loader2} size="sm" tone="inherit" className="animate-spin" />
-                          Preparing…
-                        </>
-                      ) : (
-                        <>
-                          <Icon icon={Share2} size="sm" tone="inherit" />
-                          Share
-                        </>
-                      )}
-                    </button>
-                    <p className="text-[11px] text-foreground/55 text-center px-2">
-                      Caption is copied when you tap Share — paste it when you get there.
-                    </p>
-                  </>
-                )}
+              <div className="pt-1">
+                <div className="flex items-center gap-2 rounded-xl bg-grace-soft/40 border border-black/5 px-3 py-2 text-xs text-foreground/60">
+                  <Icon icon={LinkIcon} size="sm" tone="inherit" className="shrink-0" />
+                  <span className="truncate">{link}</span>
+                </div>
               </div>
             </>
-          ) : (
-            // Link mode (devotional)
-            <div className="pt-1">
-              <button
-                onClick={shareLink}
-                disabled={!data || isFetching}
-                className="w-full py-3 rounded-full gradient-gold text-gold-foreground font-semibold shadow flex items-center justify-center gap-2 text-sm disabled:opacity-50"
-              >
-                <Icon icon={Share2} size="sm" tone="inherit" />
-                {canNativeShare ? "Share" : "Copy link"}
-              </button>
-            </div>
           )}
 
           <button
