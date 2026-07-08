@@ -43,7 +43,7 @@ import {
 const NAV = [
   { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen },
   { to: "/prayers", label: "Prayers", icon: HandHeart },
-  { to: "/listen", label: "Listen", icon: Headphones },
+  ...(FEATURES.listen ? [{ to: "/listen", label: "Listen", icon: Headphones } as const] : []),
   { to: "/journey", label: "Journey", icon: Compass },
   { to: "/library", label: "Notes & Letters", icon: BookOpen },
 ] as const;
