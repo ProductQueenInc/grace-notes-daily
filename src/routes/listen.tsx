@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
@@ -11,10 +11,16 @@ import { PlayingBars } from "@/components/playing-bars";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
+import { FEATURES } from "@/lib/feature-flags";
 
 
 export const Route = createFileRoute("/listen")({
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
+  beforeLoad: () => {
+    if (!FEATURES.listen) {
+      throw redirect({ to: "/home" });
+    }
+  },
   component: () => <RequireAuth><AppShell><Listen /></AppShell></RequireAuth>,
 });
 
