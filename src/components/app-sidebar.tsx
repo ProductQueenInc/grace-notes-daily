@@ -40,15 +40,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const ALL_NAV = [
-  { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen, flag: "always" as const },
-  { to: "/prayers", label: "Prayers", icon: HandHeart, flag: "always" as const },
-  { to: "/listen", label: "Listen", icon: Headphones, flag: "listen" as const },
-  { to: "/journey", label: "Journey", icon: Compass, flag: "always" as const },
-  { to: "/library", label: "Notes & Letters", icon: BookOpen, flag: "always" as const },
-];
+const NAV = [
+  { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen },
+  { to: "/prayers", label: "Prayers", icon: HandHeart },
+  { to: "/listen", label: "Listen", icon: Headphones },
+  { to: "/journey", label: "Journey", icon: Compass },
+  { to: "/library", label: "Notes & Letters", icon: BookOpen },
+] as const;
 
-const NAV = ALL_NAV.filter((n) => n.flag === "always" || FEATURES[n.flag]);
+const VISIBLE_NAV = NAV.filter((item) => item.to !== "/listen" || FEATURES.listen);
 
 const PIN_KEY = "gn:sidebar:pinned";
 
