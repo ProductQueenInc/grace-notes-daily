@@ -121,7 +121,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
-              {NAV.map((item) => {
+              {VISIBLE_NAV.map((item) => {
                 const active = currentPath === item.to || currentPath.startsWith(item.to + "/");
                 return (
                   <SidebarMenuItem key={item.to}>
