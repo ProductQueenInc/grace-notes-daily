@@ -12,6 +12,7 @@ import {
   Flame,
   ChevronUp,
 } from "lucide-react";
+import { FEATURES } from "@/lib/feature-flags";
 import {
   Sidebar,
   SidebarContent,
@@ -46,6 +47,8 @@ const NAV = [
   { to: "/journey", label: "Journey", icon: Compass },
   { to: "/library", label: "Notes & Letters", icon: BookOpen },
 ] as const;
+
+const VISIBLE_NAV = NAV.filter((item) => item.to !== "/listen" || FEATURES.listen);
 
 const PIN_KEY = "gn:sidebar:pinned";
 
@@ -118,7 +121,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
-              {NAV.map((item) => {
+              {VISIBLE_NAV.map((item) => {
                 const active = currentPath === item.to || currentPath.startsWith(item.to + "/");
                 return (
                   <SidebarMenuItem key={item.to}>
