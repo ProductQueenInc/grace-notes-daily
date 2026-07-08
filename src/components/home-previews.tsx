@@ -1,5 +1,4 @@
 import graceNotesPreview from "@/assets/home-previews/grace-notes-home.svg.asset.json";
-import listenPreview from "@/assets/home-previews/listen-home.svg.asset.json";
 import dailyRhythmsPreview from "@/assets/home-previews/daily-rhythms-home.svg.asset.json";
 import heartNotesPreview from "@/assets/home-previews/heart-notes-home.svg.asset.json";
 import prayerPreview from "@/assets/home-previews/prayer-home.svg.asset.json";
@@ -23,11 +22,11 @@ const previewRows: PreviewItem[][] = [
       alt: "GraceNotes Daily grace note mockup on a green leaf background",
     },
     {
-      title: "Listen",
-      eyebrow: "Music and prayer",
-      description: "Worship and reflective audio in a calm, uncluttered listening space.",
-      imageUrl: listenPreview.url,
-      alt: "GraceNotes Daily listen player mockup on a green leaf background",
+      title: "Heart Notes",
+      eyebrow: "Daily journaling",
+      description: "A gentle place to pour out what is on your heart without pressure.",
+      imageUrl: heartNotesPreview.url,
+      alt: "GraceNotes Daily heart notes mockup on a warm desk background",
     },
     {
       title: "Daily Rhythms",
@@ -38,13 +37,6 @@ const previewRows: PreviewItem[][] = [
     },
   ],
   [
-    {
-      title: "Heart Notes",
-      eyebrow: "Daily journaling",
-      description: "A gentle place to pour out what is on your heart without pressure.",
-      imageUrl: heartNotesPreview.url,
-      alt: "GraceNotes Daily heart notes mockup on a warm desk background",
-    },
     {
       title: "Prayer Tracker",
       eyebrow: "Active and answered",
