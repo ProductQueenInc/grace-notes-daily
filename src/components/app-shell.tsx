@@ -24,12 +24,11 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 const MOBILE_TABS = [
   { to: "/home", label: "Home", icon: Sun },
-  { to: "/listen", label: "Listen", icon: Headphones },
+  { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen },
   { to: "/prayers", label: "Prayers", icon: HandHeart },
 ] as const;
 
 const DRAWER_ITEMS = [
-  { to: "/heart-notes", label: "Heart Notes", icon: NotebookPen },
   { to: "/journey", label: "Journey", icon: Compass },
   { to: "/library", label: "Notes & Letters", icon: BookOpen },
 ] as const;
