@@ -84,6 +84,10 @@ function PreviewCard({ item }: { item: PreviewItem }) {
 }
 
 function PreviewRow({ items, mobileLabel }: { items: PreviewItem[]; mobileLabel: string }) {
+  const desktopGridCols =
+    items.length === 2
+      ? "sm:grid-cols-2 sm:max-w-3xl sm:mx-auto"
+      : "sm:grid-cols-3";
   return (
     <>
       <div className="sm:hidden">
@@ -101,7 +105,7 @@ function PreviewRow({ items, mobileLabel }: { items: PreviewItem[]; mobileLabel:
         </div>
       </div>
 
-      <div className="hidden sm:grid grid-cols-3 gap-5 lg:gap-6">
+      <div className={`hidden sm:grid ${desktopGridCols} gap-5 lg:gap-6`}>
         {items.map((item) => (
           <PreviewCard key={item.title} item={item} />
         ))}
