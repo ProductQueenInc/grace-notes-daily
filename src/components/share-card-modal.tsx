@@ -174,8 +174,14 @@ export function ShareCardModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-md p-0 md:p-6">
-      <div className="w-full md:max-w-md bg-background md:rounded-3xl rounded-t-3xl shadow-2xl fade-up max-h-[92vh] overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-gradient-to-b from-background to-background/80 px-5 py-3.5 flex items-start justify-between gap-3 border-b border-black/5">
+      <div
+        className="w-full md:max-w-md bg-background md:rounded-3xl rounded-t-3xl shadow-2xl fade-up max-h-[92dvh] overflow-y-auto"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div
+          className="sticky top-0 z-10 bg-background px-5 py-3.5 flex items-start justify-between gap-3 border-b border-black/5"
+          style={{ paddingTop: "calc(0.875rem + env(safe-area-inset-top))" }}
+        >
           <div className="min-w-0">
             {heading.eyebrow && (
               <p className="text-[11px] uppercase tracking-[0.2em] text-grace/70 flex items-center gap-1.5">
