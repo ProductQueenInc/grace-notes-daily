@@ -93,8 +93,14 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-md p-0 md:p-6">
-      <ReadingSurface className="w-full md:max-w-2xl max-h-[92vh] overflow-y-auto md:rounded-3xl rounded-t-3xl shadow-2xl fade-up">
-        <div className="sticky top-0 z-10 bg-gradient-to-b from-[color:var(--surface-parchment-from)] to-transparent px-6 py-4 flex items-center justify-between">
+      <ReadingSurface
+        className="w-full md:max-w-2xl max-h-[92dvh] overflow-y-auto md:rounded-3xl rounded-t-3xl shadow-2xl fade-up"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div
+          className="sticky top-0 z-10 bg-[color:var(--surface-parchment-from)] px-6 py-4 flex items-center justify-between border-b border-black/5"
+          style={{ paddingTop: "calc(1rem + env(safe-area-inset-top))" }}
+        >
           <div className="flex items-center gap-2 text-grace">
             <Icon icon={BookOpen} size="md" tone="inherit" />
             <span className="font-semibold">Daily Devotional</span>
@@ -103,6 +109,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
             <Icon icon={X} size="md" />
           </button>
         </div>
+
 
         {isError ? (
           <div className="p-12 text-center">
