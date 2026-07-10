@@ -7,11 +7,15 @@ import { cn } from "@/lib/utils";
 export function ReadingSurface({
   children,
   className,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
-    <div className={cn("glass-parchment rounded-3xl", className)}>{children}</div>
+    <div className={cn("glass-parchment rounded-3xl", className)} style={style}>
+      {children}
+    </div>
   );
 }
