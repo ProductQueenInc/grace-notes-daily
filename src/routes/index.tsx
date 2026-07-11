@@ -160,7 +160,7 @@ function Landing() {
       <section className="px-6 pt-16 pb-24 md:pt-24 md:pb-32">
         <div className="max-w-3xl mx-auto text-center text-white fade-up">
           <p className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-sm mb-6 border border-white/20">
-            <Sparkles className="w-4 h-4 text-gold" />
+            <DoveMark variant="gold" className="w-4 h-4" alt="" />
             Your daily space for spiritual growth
           </p>
           <h1 className="font-display text-5xl md:text-7xl leading-[1.05] mb-6 drop-shadow-lg">

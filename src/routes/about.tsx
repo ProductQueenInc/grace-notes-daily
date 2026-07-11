@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { NatureBackground } from "@/components/nature-background";
 import { SiteFooter } from "@/components/site-footer";
-import { Sparkles } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -49,7 +48,7 @@ function About() {
 
           {/* What the product is */}
           <div className="glass rounded-3xl p-10 md:p-14 text-foreground">
-            <Sparkles className="w-7 h-7 text-gold mb-4" />
+            <DoveMark variant="gold" className="w-7 h-7 mb-4" alt="" />
             <h1 className="font-display text-4xl md:text-5xl text-grace mb-4">About GraceNotes Daily</h1>
             <p className="text-foreground/75 leading-relaxed mb-4">
               GraceNotes Daily is a soft, daily companion for your walk with God. We believe faith should feel like rest,

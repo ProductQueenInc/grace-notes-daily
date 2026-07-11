@@ -3,9 +3,10 @@ import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
+import { DoveMark } from "@/components/dove-mark";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2, Sparkles } from "lucide-react";
+import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { generousAnsweredConfetti, subtleConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
@@ -277,7 +278,7 @@ function Prayers() {
         {showRememberWhen && (
           <div className="mb-8">
             <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold" />
+              <DoveMark variant="gold" className="w-5 h-5" alt="" />
               <h2 className="font-display text-2xl text-white">Remember When</h2>
               <span className="ml-auto text-xs text-white/70 italic">Refreshes daily</span>
             </div>
