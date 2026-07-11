@@ -314,7 +314,7 @@ function Home() {
         </div>
 
         <p className="text-center text-sm md:text-base text-white/75 italic font-display mt-10 mb-4 flex items-center justify-center gap-2 px-4">
-          <Icon icon={Sparkles} size="sm" className="text-gold shrink-0" />
+          <DoveMark variant="gold" className="w-4 h-4 shrink-0" alt="" />
           <span>{pickDailyPromise()}</span>
         </p>
       </section>
