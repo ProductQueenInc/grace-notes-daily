@@ -106,6 +106,7 @@ function initOnce() {
     setState({ session: data.session, user: data.session?.user ?? null });
     if (data.session?.user) {
       await loadProfile(data.session.user.id);
+      identifyUser(data.session.user.id, data.session.user.email ?? null);
     }
     setState({ loading: false });
   });
