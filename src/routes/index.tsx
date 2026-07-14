@@ -180,8 +180,8 @@ function Landing() {
               {isLoggedIn ? "Open your space →" : "Come on in"}
             </Link>
           </div>
-          <p className="text-xs text-white/70 mt-5 flex items-center justify-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> All entries secure
+          <p className="text-sm text-white/75 mt-5 flex items-center justify-center gap-2">
+            <ShieldCheck className="w-4 h-4" /> All entries secure
           </p>
         </div>
       </section>
