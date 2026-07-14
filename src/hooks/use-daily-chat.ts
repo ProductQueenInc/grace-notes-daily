@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase, SUPABASE_FUNCTIONS_URL, SUPABASE_PROJECT_ANON_KEY } from "@/lib/supabase";
 import { localTodayISO } from "@/lib/today";
+import { capture } from "@/lib/analytics";
 import type { DailyGraceNote } from "@/hooks/use-daily-grace-note";
 
 export type ChatRole = "user" | "assistant";
