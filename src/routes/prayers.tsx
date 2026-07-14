@@ -83,9 +83,10 @@ function Prayers() {
   const active = items.filter((p) => !p.answeredAt);
   const answered = items.filter((p) => p.answeredAt);
 
-  // Daily-seeded picks for the "Remember When" carousel.
+  // Weekly-seeded picks for the "Remember When" carousel — only shown when
+  // the user has at least 3 answered prayers; refreshes each ISO week.
   const rememberWhen = answered.length >= 3
-    ? seededShuffle(answered, `${user?.id ?? "anon"}:${localTodayISO()}`).slice(0, 3)
+    ? seededShuffle(answered, `${user?.id ?? "anon"}:${isoWeekKey()}`).slice(0, 3)
     : [];
 
   const showRememberWhen = filter === "all" && rememberWhen.length === 3;
