@@ -94,9 +94,11 @@ function initOnce() {
     setState({ session: s, user: s?.user ?? null });
     if (s?.user) {
       loadProfile(s.user.id);
+      identifyUser(s.user.id, s.user.email ?? null);
       if (event === "SIGNED_IN") markDeviceHasAccount();
     } else {
       setState({ profile: null });
+      if (event === "SIGNED_OUT") resetAnalytics();
     }
   });
 
