@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-07-05**.
+Last updated: **2026-07-14**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -292,6 +292,15 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-07-14 — Daily chat: truncated replies now auto-continue instead of cutting off mid-sentence
+
+Cindy reported the daily GraceNote chat sometimes cut a reply off mid-sentence, only completing it if she typed "continue." Root cause: `supabase/functions/chat-reply/index.ts` capped every reply at `max_tokens: 250` with no handling for Claude's `stop_reason: "max_tokens"` — when a reply ran long, the stream just stopped where the cap hit.
+
+- **Raised the per-reply cap** from 250 to 400 tokens (`CHAT_MAX_TOKENS`), so cutoffs should be rarer to begin with.
+- **Added transparent auto-continue** (owner decisions this session): the streaming loop now checks `stop_reason` after each Claude call. If it's `max_tokens`, the partial reply-so-far is fed back in as an assistant-role "prefill" message and Claude is asked again, continuing from the exact cutoff point (no repeats, no restart) — up to `MAX_AUTO_CONTINUES = 2` times per reply before giving up and sending what's there. Because this all happens inside the same SSE stream the edge function already returns, the client (`src/hooks/use-daily-chat.ts`) needed **no changes** — the chat bubble just keeps growing as one continuous message, with no visible pause or second network round-trip from the browser's perspective.
+- Each auto-continue and any still-truncated-after-retries case is logged via `console.warn` (visible in `get_logs` for `edge-function`) so we can see in practice how often this actually fires.
+- **Deployed to Supabase** (`chat-reply`, version 7). No schema, route, or client-side changes.
 
 ### 2026-07-05 (PM12) — Stage 3 progress: owner decisions locked, PostHog mirror shipped, Lovable adapter verified
 
