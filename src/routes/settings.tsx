@@ -42,10 +42,6 @@ const RHYTHMS = [
   { id: "night", label: "Before bed" },
 ] as const;
 
-const SEASONS = [
-  "anxiety", "grief", "joy", "transition", "waiting",
-  "doubt", "burnout", "new beginnings", "loneliness", "gratitude",
-] as const;
 
 function todayISO() {
   return localTodayISO();
