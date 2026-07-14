@@ -30,7 +30,16 @@ function fmt(iso: string) {
 type Filter = "all" | "active" | "answered";
 const PAGE_SIZE = 10;
 
-/** Tiny deterministic shuffle so "Remember When" picks rotate daily, not per load. */
+/** Tiny deterministic shuffle so "Remember When" picks rotate weekly, not per load. */
+function isoWeekKey(d = new Date()): string {
+  // ISO week number: Monday-based, week 1 contains the year's first Thursday.
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((t.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
 function seededShuffle<T>(arr: T[], seed: string): T[] {
   // FNV-1a-ish hash of the seed string.
   let h = 2166136261;
