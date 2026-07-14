@@ -121,7 +121,7 @@ function Home() {
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5 font-semibold text-white min-w-0">
-                  <DoveMark variant="medallion" className="w-10 h-10 sm:w-11 sm:h-11 shrink-0 drop-shadow-md" alt="" />
+                  <DoveMark variant="medallion" className="w-8 h-8 shrink-0 drop-shadow-sm" alt="" />
                   <span className="truncate text-[15px] sm:text-base">Today's Grace Note</span>
 
                   {/* Info: explains personalization, links to settings, and
