@@ -4,15 +4,18 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { capitalizeFirst } from "@/lib/personalization";
 import { localTodayISO } from "@/lib/today";
+import { getInferredThemes, deleteInferredTheme } from "@/lib/profile-themes.functions";
+import { capture } from "@/lib/analytics";
 import {
   LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
-  Sprout, Wind, Compass as CompassIcon, Anchor,
+  Sprout, Wind, Compass as CompassIcon, Anchor, X as XIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
