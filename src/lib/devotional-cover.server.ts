@@ -1,7 +1,11 @@
 // Server-only helper. Generates an AI cover image for a devotional using the
-// Lovable AI Gateway (google/gemini-3.1-flash-image) and uploads it to the
+// Google Gemini API directly (gemini-3.1-flash-image) and uploads it to the
 // PRIVATE `devotional-covers` bucket. Returns the stable public proxy URL
 // (served by /api/public/devotional-cover/<date>.png) or null on failure.
+//
+// Transport: direct Google Generative Language API using GEMINI_API_KEY
+// (Google AI Studio key). Billed to the GraceNotes Daily GCP project, not
+// Lovable credits.
 //
 // Failure is non-fatal: the devotional row still ships without a cover;
 // callers fall back to the parchment/DoveMark tile on the frontend.
@@ -15,8 +19,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/admin.server";
 import { BASE_URL } from "@/lib/library";
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/images/generations";
-const MODEL = "google/gemini-3.1-flash-image";
+const MODEL = "gemini-3.1-flash-image";
 const BUCKET = "devotional-covers";
 
 // Stable public URL served by the proxy route (see
@@ -40,39 +43,39 @@ STRICTLY FORBIDDEN: any human figure or body part (hands, silhouettes, shadows o
 }
 
 async function generateImageBase64(prompt: string): Promise<string | null> {
-  const key = process.env.LOVABLE_API_KEY;
+  const key = process.env.GEMINI_API_KEY;
   if (!key) {
-    console.warn("[devotional-cover] LOVABLE_API_KEY missing; skipping image generation");
+    console.warn("[devotional-cover] GEMINI_API_KEY missing; skipping image generation");
     return null;
   }
   try {
-    const res = await fetch(GATEWAY_URL, {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+    const res = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": key,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: MODEL,
-        // Gemini image models use the chat-completions image shape.
-        messages: [{ role: "user", content: prompt }],
-        modalities: ["image", "text"],
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ["IMAGE"] },
       }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      console.error(`[devotional-cover] gateway ${res.status}:`, text.slice(0, 500));
+      console.error(`[devotional-cover] gemini ${res.status}:`, text.slice(0, 500));
       return null;
     }
-    const json = (await res.json()) as { data?: { b64_json?: string }[] };
-    const b64 = json?.data?.[0]?.b64_json;
-    if (!b64) console.error("[devotional-cover] gateway returned no b64_json");
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { inlineData?: { data?: string } }[] } }[];
+    };
+    const parts = json?.candidates?.[0]?.content?.parts ?? [];
+    const b64 = parts.find((p) => p?.inlineData?.data)?.inlineData?.data;
+    if (!b64) console.error("[devotional-cover] gemini returned no inlineData");
     return b64 ?? null;
   } catch (err) {
-    console.error("[devotional-cover] gateway fetch failed:", err);
+    console.error("[devotional-cover] gemini fetch failed:", err);
     return null;
   }
 }
+
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
