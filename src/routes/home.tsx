@@ -16,7 +16,7 @@ import { ShareCardModal } from "@/components/share-card-modal";
 import { MilestoneWatcher } from "@/components/milestone-watcher";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
-  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag, Share2,
+  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag, Share2, Eye, EyeOff,
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
