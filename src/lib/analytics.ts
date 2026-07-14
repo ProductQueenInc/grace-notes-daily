@@ -12,18 +12,28 @@ let inited = false;
 export function initPostHog() {
   if (inited || typeof window === "undefined") return;
   inited = true;
-  try {
-    posthog.init(POSTHOG_KEY, {
-      api_host: POSTHOG_HOST,
-      capture_pageview: true,
-      capture_pageleave: true,
-      person_profiles: "identified_only",
-      loaded: () => {
-        /* no-op */
-      },
-    });
-  } catch (err) {
-    console.warn("PostHog init failed", err);
+  // Defer init until after React hydration commits. posthog.init() injects a
+  // <script> tag into <head> synchronously, which otherwise races the SSR
+  // hydration diff on the landing route's JSON-LD script slot.
+  const run = () => {
+    try {
+      posthog.init(POSTHOG_KEY, {
+        api_host: POSTHOG_HOST,
+        capture_pageview: true,
+        capture_pageleave: true,
+        person_profiles: "identified_only",
+        autocapture: false,
+        disable_surveys: true,
+      });
+    } catch (err) {
+      console.warn("PostHog init failed", err);
+    }
+  };
+  const w = window as Window & { requestIdleCallback?: (cb: () => void) => void };
+  if (typeof w.requestIdleCallback === "function") {
+    w.requestIdleCallback(run);
+  } else {
+    setTimeout(run, 0);
   }
 }
 
