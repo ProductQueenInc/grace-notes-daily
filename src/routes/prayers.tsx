@@ -282,13 +282,13 @@ function Prayers() {
 
         {/* Remember When: shows only when filter=All and there are 3+ answered prayers. */}
         {showRememberWhen && (
-          <div className="mb-8">
-            <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
-              <DoveMark variant="gold" className="w-5 h-5" alt="" />
-              <h2 className="font-display text-2xl text-white">Remember When</h2>
-              <span className="ml-auto text-xs text-white/70 italic">Refreshes daily</span>
+          <div className="mb-12">
+            <div className="glass-on-hue rounded-2xl px-4 py-2.5 mb-5 flex items-center gap-2">
+              <DoveMark variant="gold" className="w-5 h-5 shrink-0" alt="" />
+              <h2 className="font-display text-lg sm:text-xl text-white truncate min-w-0">Remember When</h2>
+              <span className="ml-auto shrink-0 text-[11px] text-white/70 italic">Refreshes weekly</span>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-proximity justify-start [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {rememberWhen.map((p) => (
                 <div
                   key={p.id}
