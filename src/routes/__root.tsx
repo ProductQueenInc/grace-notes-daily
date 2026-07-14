@@ -450,6 +450,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    initPostHog();
+  }, []);
+
   function openFeedback() {
     openTallyForm("VL4NY6");
   }
