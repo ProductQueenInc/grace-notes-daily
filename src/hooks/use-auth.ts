@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured, markDeviceHasAccount } from "@/lib/supabase";
 import { syncCountryCode } from "@/lib/auth.functions";
+import { identifyUser, resetAnalytics } from "@/lib/analytics";
 import type { Session, User } from "@supabase/supabase-js";
 
 export type Rhythm = "morning" | "midday" | "evening" | "night";
@@ -93,9 +94,11 @@ function initOnce() {
     setState({ session: s, user: s?.user ?? null });
     if (s?.user) {
       loadProfile(s.user.id);
+      identifyUser(s.user.id, s.user.email ?? null);
       if (event === "SIGNED_IN") markDeviceHasAccount();
     } else {
       setState({ profile: null });
+      if (event === "SIGNED_OUT") resetAnalytics();
     }
   });
 
@@ -103,6 +106,7 @@ function initOnce() {
     setState({ session: data.session, user: data.session?.user ?? null });
     if (data.session?.user) {
       await loadProfile(data.session.user.id);
+      identifyUser(data.session.user.id, data.session.user.email ?? null);
     }
     setState({ loading: false });
   });

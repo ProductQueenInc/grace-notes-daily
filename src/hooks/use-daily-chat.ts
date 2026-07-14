@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase, SUPABASE_FUNCTIONS_URL, SUPABASE_PROJECT_ANON_KEY } from "@/lib/supabase";
 import { localTodayISO } from "@/lib/today";
+import { capture } from "@/lib/analytics";
 import type { DailyGraceNote } from "@/hooks/use-daily-grace-note";
 
 export type ChatRole = "user" | "assistant";
@@ -138,6 +139,23 @@ export function useDailyChat(graceContext?: DailyGraceNote | null) {
       const userMsg = await insertMessage(userId, "user", t);
       const historyBefore = [...messages, userMsg];
       setMessages(historyBefore);
+
+      // Fire grace_note_responded_to once per user per local day, the first
+      // time they send a message in the daily chat. Dedupe via localStorage.
+      try {
+        const today = localTodayISO();
+        const key = `gn:analytics:responded:${today}`;
+        if (typeof window !== "undefined" && !localStorage.getItem(key)) {
+          const priorUserMsgs = messages.filter((m) => m.role === "user").length;
+          if (priorUserMsgs === 0) {
+            localStorage.setItem(key, "1");
+            capture("grace_note_responded_to", { date: today });
+          }
+        }
+      } catch {
+        /* ignore analytics dedupe errors */
+      }
+
 
       // 2. Optimistic streaming assistant bubble
       const streamId = `streaming-${crypto.randomUUID()}`;
