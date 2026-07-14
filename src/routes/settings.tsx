@@ -216,20 +216,42 @@ function Settings() {
           </div>
 
           <div>
-            <label className="text-sm font-medium block mb-2">What you're carrying right now</label>
-            <p className="text-xs text-foreground/60 mb-2">Pick anything that fits. We use these to shape what your note notices - never to name them back at you.</p>
-            <div className="flex flex-wrap gap-2">
-              {SEASONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSeasons((prev) => toggleIn(prev, s))}
-                  className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${seasons.includes(s) ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+            <label className="text-sm font-medium block mb-2">What we're noticing in your chats</label>
+            <p className="text-xs text-foreground/60 mb-3">
+              These are gentle themes we've picked up from your daily conversations. Remove any that no longer fit - your grace note will shape around what's left.
+            </p>
+            {themesQuery.isLoading ? (
+              <p className="text-xs text-foreground/50 italic">Listening...</p>
+            ) : themesQuery.data && themesQuery.data.themes.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {themesQuery.data.themes.map((t) => {
+                  const isDeleting = deleteMutation.isPending && deleteMutation.variables === t.theme;
+                  return (
+                    <span
+                      key={t.theme}
+                      className={`inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full text-sm border-2 border-transparent bg-grace-soft transition ${isDeleting ? "opacity-50" : ""}`}
+                    >
+                      <span>{t.theme}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${t.theme}`}
+                        disabled={isDeleting}
+                        onClick={() => deleteMutation.mutate(t.theme)}
+                        className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-grace/15 transition"
+                      >
+                        <XIcon className="w-3.5 h-3.5 text-grace" strokeWidth={2} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-foreground/55 italic">
+                Nothing yet - as you chat each day, gentle themes will show up here.
+              </p>
+            )}
           </div>
+
 
           <div>
             <label className="text-sm font-medium block mb-2">Bible translation</label>
