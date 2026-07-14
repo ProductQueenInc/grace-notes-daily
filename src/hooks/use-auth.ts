@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured, markDeviceHasAccount } from "@/lib/supabase";
 import { syncCountryCode } from "@/lib/auth.functions";
+import { identifyUser, resetAnalytics } from "@/lib/analytics";
 import type { Session, User } from "@supabase/supabase-js";
 
 export type Rhythm = "morning" | "midday" | "evening" | "night";
