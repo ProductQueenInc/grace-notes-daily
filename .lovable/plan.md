@@ -1,39 +1,48 @@
-## Plan: Direct Google Gemini for devotional covers
+## Frontend: inferred_themes personalization + PostHog events
 
-`GEMINI_API_KEY` is now saved. Ready to build.
+### 1. Replace "What you're carrying right now" in Settings with a read-only themes panel
 
-### Changes
+**File:** `src/routes/settings.tsx`
 
-**1. `src/lib/devotional-cover.server.ts`**
-- Swap endpoint: `https://ai.gateway.lovable.dev/v1/images/generations` → `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${GEMINI_API_KEY}`
-- Swap request body from Gateway shape → native Gemini shape:
-  ```
-  { contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { responseModalities: ["IMAGE"] } }
-  ```
-- Swap response parse: `data.data[0].b64_json` → `data.candidates[0].content.parts[].inlineData.data`
-- Read `process.env.GEMINI_API_KEY` inside the handler (not module scope)
-- Everything else unchanged: prompt, bucket, storage path, proxy URL, cache headers, error handling
+- Remove the 10-chip season picker and its save logic (stop writing `profiles.seasons`; existing values left untouched).
+- Add a "What we're noticing in your chats" panel that reads `profiles.inferred_themes` (jsonb: `{ themes: [{ theme, weight, last_seen }], updated_at }`).
+- Render each theme as a chip with a small × delete button. Empty state: soft copy like "Nothing yet — as you chat, gentle themes will show up here."
+- Delete = server function that rewrites `inferred_themes.themes` without that entry (RLS: own row only). On success, refetch + fire `theme_deleted_by_user` with `{ theme }`.
+- Copy tone stays soft/held per brand voice.
 
-**2. `supabase/functions/generate-daily-devotional/index.ts`**
-- Identical rewrite in the inlined cover-generation block
-- Read `Deno.env.get("GEMINI_API_KEY")`
-- Preserves CLAUDE.md §5 three-pair sync rule (prompt text itself unchanged)
+**New server fn:** `src/lib/profile-themes.functions.ts`
+- `getInferredThemes()` — `.middleware([requireSupabaseAuth])`, returns `{ themes, updated_at }`.
+- `deleteInferredTheme({ theme })` — filters the theme out and updates `profiles.inferred_themes`.
 
-**3. Redeploy `generate-daily-devotional` edge function**
-- Required for cron to use the new code path. Deploy via supabase tool after editing.
+### 2. Refresh the grace note when Settings closes
 
-**4. CLAUDE.md §11 entry**
-- Log the transport change, note key naming, note that cost now bills directly to Google AI Studio "GraceNotes Daily" project instead of Lovable credits.
+**Files:** `src/routes/settings.tsx`, `src/hooks/use-daily-grace-note.ts` (light touch only if needed)
 
-### Verification (after build)
-- Delete `cover_image_url` for one test date in `daily_devotionals`, hit the proxy URL, confirm a fresh PNG lands in the `devotional-covers` bucket.
-- After next cron run (09:00 UTC), confirm 2026-07-16's row has a cover.
-- Check Lovable AI Gateway logs the following day → zero `google/gemini-3.1-flash-image` calls.
-- Check Google AI Studio → GraceNotes Daily → Spend shows the traffic.
+- On unmount of Settings (or on successful theme delete), invalidate the daily grace note query so the next visit to `/home` refetches. No visual change on the Settings page itself.
 
-### Explicitly NOT doing
-- Not swapping the model (staying on `gemini-3.1-flash-image`)
-- Not adding a Lovable Gateway fallback (owner wants clean cutover)
-- Not touching Anthropic/OpenAI paths (grace notes, devotional text, chat safety stay on Lovable/Claude)
-- Not touching the prompt text — this is a pure transport swap
+### 3. PostHog client + two events
+
+**Setup:**
+- `bun add posthog-js`
+- Add `VITE_POSTHOG_KEY` (user provides — public `phc_...` key from PostHog project 449655).
+- New file `src/lib/analytics.ts` — thin wrapper: `initPostHog()`, `identifyUser(user)`, `capture(event, props?)`. No-op when key is missing so dev/preview stays clean.
+- Init in `src/routes/__root.tsx` (client-only, inside a `useEffect`). Identify on auth state change in `src/hooks/use-auth.ts` (`posthog.identify(user.id, { email })`); reset on sign-out.
+
+**Events:**
+- `grace_note_responded_to` — fired in `src/hooks/use-daily-chat.ts` the first time the user sends a message today. Dedupe with a `localStorage` key `gn:analytics:responded:<YYYY-MM-DD>` so it's once per user per local day. Props: `{ date }`.
+- `theme_deleted_by_user` — fired in Settings on successful delete. Props: `{ theme }`.
+
+Server-side events (share_events, share_clicks, signup_attributed via DB triggers) are untouched — they already flow into the same PostHog project.
+
+### Explicit non-goals
+- Not touching `faith_phase`, the grace-note edge function, its prompt, or `profiles.seasons` values.
+- Not adding any admin UI for themes; delete is the only user-facing mutation.
+- Not adding IntersectionObserver / view tracking — `grace_note_responded_to` replaces `grace_note_viewed` per your call.
+
+### Verification
+- Settings shows chips reflecting `inferred_themes.themes` when present; empty state otherwise. Delete removes the chip and it stays gone after reload.
+- After deleting a theme and returning to `/home`, the grace note query refetches.
+- PostHog live events view (project 449655) shows `grace_note_responded_to` once per day per test account, and `theme_deleted_by_user` on each chip delete with the correct `theme` property.
+
+### What I still need from you
+- The `VITE_POSTHOG_KEY` value (public project API key from PostHog → Project Settings). I'll open the secret input when you approve the plan.
