@@ -216,12 +216,12 @@ function Settings() {
           </div>
 
           <div>
-            <label className="text-sm font-medium block mb-2">What we're noticing in your chats</label>
-            <p className="text-xs text-foreground/60 mb-3">
-              These are gentle themes we've picked up from your daily conversations. Remove any that no longer fit - your grace note will shape around what's left.
+            <label className="text-sm font-medium block mb-2">Themes shaping your Grace Notes</label>
+            <p className="text-sm text-foreground/65 mb-3">
+              These are drawn from your daily chats. Remove any that don't fit - your next note will shape around what's left.
             </p>
             {themesQuery.isLoading ? (
-              <p className="text-xs text-foreground/50 italic">Listening...</p>
+              <p className="text-sm text-foreground/55 italic">Listening...</p>
             ) : themesQuery.data && themesQuery.data.themes.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {themesQuery.data.themes.map((t) => {
@@ -246,7 +246,7 @@ function Settings() {
                 })}
               </div>
             ) : (
-              <p className="text-xs text-foreground/55 italic">
+              <p className="text-sm text-foreground/60 italic">
                 Nothing yet - as you chat each day, gentle themes will show up here.
               </p>
             )}
