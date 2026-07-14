@@ -167,29 +167,32 @@ async function generateAndStoreCover(
   title: string,
   takeaway: string,
 ): Promise<string | null> {
-  if (!LOVABLE_API_KEY) {
-    console.warn('[cover] LOVABLE_API_KEY missing; skipping image generation')
+  if (!GEMINI_API_KEY) {
+    console.warn('[cover] GEMINI_API_KEY missing; skipping image generation')
     return null
   }
   try {
-    const res = await fetch(IMAGE_GATEWAY, {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': LOVABLE_API_KEY },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: IMAGE_MODEL,
-        messages: [{ role: 'user', content: buildCoverPrompt(theme, title, takeaway) }],
-        modalities: ['image', 'text'],
+        contents: [{ parts: [{ text: buildCoverPrompt(theme, title, takeaway) }] }],
+        generationConfig: { responseModalities: ['IMAGE'] },
       }),
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
-      console.error(`[cover] gateway ${res.status}:`, text.slice(0, 500))
+      console.error(`[cover] gemini ${res.status}:`, text.slice(0, 500))
       return null
     }
-    const json = (await res.json()) as { data?: { b64_json?: string }[] }
-    const b64 = json?.data?.[0]?.b64_json
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { inlineData?: { data?: string } }[] } }[]
+    }
+    const parts = json?.candidates?.[0]?.content?.parts ?? []
+    const b64 = parts.find((p) => p?.inlineData?.data)?.inlineData?.data
     if (!b64) {
-      console.error('[cover] gateway returned no b64_json')
+      console.error('[cover] gemini returned no inlineData')
       return null
     }
     const bytes = base64ToBytes(b64)
