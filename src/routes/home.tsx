@@ -320,7 +320,7 @@ function Home() {
         </div>
 
         <p className="text-center text-sm md:text-base text-white/75 italic font-display mt-10 mb-4 flex items-center justify-center gap-2 px-4">
-          <DoveMark variant="gold" className="w-4 h-4 shrink-0" alt="" />
+          <DoveMark variant="gold" className="w-7 h-7 shrink-0 drop-shadow-md" alt="" />
           <span>{pickDailyPromise()}</span>
         </p>
       </section>
