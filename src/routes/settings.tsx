@@ -56,12 +56,33 @@ function Settings() {
   const [phase, setPhase] = useState<string>("growth");
   const [voice, setVoice] = useState<string>("gentle");
   const [rhythms, setRhythms] = useState<string[]>([]);
-  const [seasons, setSeasons] = useState<string[]>([]);
   const [translation, setTranslation] = useState<string>("NIV");
   const [saving, setSaving] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+
+  // Inferred themes (populated by the backend classifier)
+  const fetchThemes = useServerFn(getInferredThemes);
+  const deleteTheme = useServerFn(deleteInferredTheme);
+  const themesQuery = useQuery({
+    queryKey: ["inferred-themes", user?.id ?? "anon"],
+    queryFn: () => fetchThemes(),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (theme: string) => deleteTheme({ data: { theme } }),
+    onSuccess: (next, theme) => {
+      queryClient.setQueryData(["inferred-themes", user?.id ?? "anon"], next);
+      queryClient.invalidateQueries({ queryKey: ["daily-grace-note"] });
+      capture("theme_deleted_by_user", { theme });
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : "Could not remove that theme.";
+      toast.error(msg);
+    },
+  });
 
   useEffect(() => {
     if (!profile) return;
@@ -69,7 +90,6 @@ function Settings() {
     setPhase(profile.faith_phase || "growth");
     setVoice(profile.voice || "gentle");
     setRhythms(profile.rhythms || []);
-    setSeasons((profile.seasons || []).map((s) => s.tag));
     setTranslation(profile.translation || "NIV");
   }, [profile]);
 
@@ -81,14 +101,7 @@ function Settings() {
     if (!user || !supabaseConfigured) return toast.error("Sign in first.");
     setSaving(true);
 
-    // Preserve set_at for existing seasons; stamp new ones with today.
-    const existing = new Map((profile?.seasons || []).map((s) => [s.tag, s.set_at]));
     const today = todayISO();
-    const seasonsPayload = seasons.map((tag) => ({
-      tag,
-      set_at: existing.get(tag) || today,
-    }));
-
     const normalizedName = capitalizeFirst(name);
 
     const { error } = await supabase
@@ -98,10 +111,11 @@ function Settings() {
         faith_phase: phase,
         voice,
         rhythms,
-        seasons: seasonsPayload,
         translation,
       })
       .eq("id", user.id);
+
+
 
     if (error) {
       setSaving(false);
