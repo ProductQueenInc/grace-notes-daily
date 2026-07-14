@@ -60,10 +60,6 @@ function seededShuffle<T>(arr: T[], seed: string): T[] {
   return copy;
 }
 
-function localTodayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
 
 function Prayers() {
   const [items, setItems] = useState<Prayer[]>([]);
