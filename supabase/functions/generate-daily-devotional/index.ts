@@ -25,10 +25,9 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') ?? ''
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? ''
 const COVER_BUCKET = 'devotional-covers'
-const IMAGE_MODEL = 'google/gemini-3.1-flash-image'
-const IMAGE_GATEWAY = 'https://ai.gateway.lovable.dev/v1/images/generations'
+const IMAGE_MODEL = 'gemini-3.1-flash-image'
 // Public proxy that serves cover images from the private bucket.
 // Keep in sync with coverPublicUrl in src/lib/devotional-cover.server.ts and
 // the BASE_URL in src/lib/library.ts.
