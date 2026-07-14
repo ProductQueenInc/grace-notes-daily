@@ -16,19 +16,16 @@ function normalize(raw: unknown): InferredThemesPayload {
   if (!raw || typeof raw !== "object") return { themes: [], updated_at: null };
   const obj = raw as Record<string, unknown>;
   const rawThemes = Array.isArray(obj.themes) ? obj.themes : [];
-  const themes: InferredTheme[] = rawThemes
-    .map((t) => {
-      if (!t || typeof t !== "object") return null;
-      const r = t as Record<string, unknown>;
-      const theme = typeof r.theme === "string" ? r.theme : null;
-      if (!theme) return null;
-      return {
-        theme,
-        weight: typeof r.weight === "number" ? r.weight : undefined,
-        last_seen: typeof r.last_seen === "string" ? r.last_seen : undefined,
-      };
-    })
-    .filter((t): t is InferredTheme => t !== null);
+  const themes: InferredTheme[] = [];
+  for (const t of rawThemes) {
+    if (!t || typeof t !== "object") continue;
+    const r = t as Record<string, unknown>;
+    if (typeof r.theme !== "string" || !r.theme) continue;
+    const entry: InferredTheme = { theme: r.theme };
+    if (typeof r.weight === "number") entry.weight = r.weight;
+    if (typeof r.last_seen === "string") entry.last_seen = r.last_seen;
+    themes.push(entry);
+  }
   return {
     themes,
     updated_at: typeof obj.updated_at === "string" ? obj.updated_at : null,
