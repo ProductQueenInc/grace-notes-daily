@@ -88,7 +88,7 @@ export type AIProfile = {
   recentVerses?: string[];
 };
 
-export type GraceNoteResult = { message: string; verse: string; signed: string; chatPrompt: string };
+export type GraceNoteResult = { message: string; verse: string; signed: string; chatPrompt: string; shape?: string | null };
 export type DevotionalResult = {
   title: string;
   verseOfDay: string;
@@ -154,6 +154,52 @@ function stripEmDashes(s: string | null | undefined): string {
 const NO_EM_DASH_RULE =
   "STYLE RULE: Never use em-dashes (—) or en-dashes (–). Use a hyphen (-), comma, semicolon, or colon instead.";
 
+// ── Grace note shape rotation + duplicate safety net ───────────────────────────
+// Added 2026-07-20: the grace note library had converged on one dominant
+// sentence shape ("Not because X... it is Y"), because that shape happened to
+// dominate the EXAMPLES in generateGraceNoteRaw below and the model leaned on
+// it. Fixed by: a fixed vocabulary of shapes the model self-reports each time
+// (stored alongside the note), feeding back which shapes were used recently so
+// it picks something different, and a duplicate check that asks the model to
+// retry if a fresh note is too close to one this person already received.
+const GRACE_NOTE_SHAPES = ["declaration", "image", "question", "invitation", "promise"] as const;
+type GraceNoteShape = (typeof GRACE_NOTE_SHAPES)[number];
+
+function isGraceNoteShape(s: unknown): s is GraceNoteShape {
+  return typeof s === "string" && (GRACE_NOTE_SHAPES as readonly string[]).includes(s);
+}
+
+function recentShapesLine(recentShapes: string[]): string {
+  if (!recentShapes.length) return "";
+  const remaining = GRACE_NOTE_SHAPES.filter((s) => !recentShapes.includes(s));
+  const pickFrom = remaining.length ? remaining : GRACE_NOTE_SHAPES;
+  return `\nShape rotation: the last note(s) sent to this person used, most recent first: ${recentShapes.join(", ")}. Do not use that shape again today. Choose from: ${pickFrom.join(", ")}.`;
+}
+
+function avoidNoteLine(avoid: string | null): string {
+  if (!avoid) return "";
+  return `\nYour last attempt for this note was too close to something this person already received recently: "${avoid}" Write something that arrives at the same truth through clearly different words and a different shape.`;
+}
+
+function normalizeForCompare(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+}
+
+function firstWords(s: string, n: number): string {
+  return normalizeForCompare(s).split(/\s+/).slice(0, n).join(" ");
+}
+
+function isTooSimilarToRecent(candidate: string, recent: string[]): boolean {
+  const candNorm = normalizeForCompare(candidate);
+  const candPrefix = firstWords(candidate, 6);
+  for (const r of recent) {
+    if (!r) continue;
+    if (candNorm === normalizeForCompare(r)) return true;
+    if (candPrefix && candPrefix === firstWords(r, 6)) return true;
+  }
+  return false;
+}
+
 // The core anti-saccharine block. Applied to every user-facing prompt.
 const NO_OVER_FAMILIARITY = `
 TONE GUARDRAILS - read carefully, these are hard rules:
@@ -209,7 +255,7 @@ POSITIVE EXAMPLES - different entry points, shown to illustrate range of shape, 
 `;
 
 function sanitizeGraceNote(r: GraceNoteResult): GraceNoteResult {
-  return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: "", chatPrompt: r.chatPrompt ?? "" };
+  return { message: stripEmDashes(r.message), verse: stripEmDashes(r.verse), signed: "", chatPrompt: r.chatPrompt ?? "", shape: r.shape ?? null };
 }
 function sanitizeDevotional(r: DevotionalResult): DevotionalResult {
   return {
@@ -254,11 +300,13 @@ function postureFromPhase(phase: string): string {
 async function generateGraceNoteRaw(
   p: AIProfile,
   verse: { text: string; reference: string },
+  recentShapes: string[] = [],
+  recentNoteTexts: string[] = [],
 ): Promise<GraceNoteResult> {
   const client = anthropic();
 
-  const system = `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
-Faith phase: ${phaseDesc(p.faithPhase)}.${seasonLine(p.seasons)}
+  const buildSystem = (avoidNote: string | null) => `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
+Faith phase: ${phaseDesc(p.faithPhase)}.${seasonLine(p.seasons)}${recentShapesLine(recentShapes)}${avoidNoteLine(avoidNote)}
 
 Today's verse has already been chosen and is shown to the reader separately:
 "${verse.text}" - ${verse.reference}
@@ -275,8 +323,9 @@ Faith phase guidance — tone only, never reflect the label back:
 - actively deepening: slightly more direct, assumes some familiarity
 - mature in faith: peer tone, can hold complexity
 
-Rules (in priority order — the first two are the most important):
+Rules (in priority order — the first three are the most important):
 - HARD BAN on observing the reader. Never write any sentence that describes the reader's behavior, faithfulness, effort, choices, struggles, growth, or inner state. Banned openings and phrasings include: "You have been...", "I see you...", "I see the way you...", "I see the daily...", "I notice...", "You are doing...", "Your faithfulness...", "Your steadiness...", "That steadiness of yours...", "Your heart is...". God speaks from who He is, not from what He observes about the reader.
+- SHAPE BAN: never build a sentence by naming what is not true before saying what is true ("Not because you...", "not in a distant way, not in a ... way", "It is not X, it is Y", "Not X. Just Y."). This exact construction has been used across the note library far more than any other and now reads as a template, even though each individual line is defensible on its own. Treat it as off the table, not just something to use sparingly.
 - Make bold declarations from God's character. "I notice you are grateful" is wrong. "My blessing is on you" is right. "You have been faithful" is wrong. "My faithfulness toward you does not depend on anything you do" is right.
 - Written as I (God) speaking directly to you (the reader)
 - No time anchors: never write "this morning," "tonight," "as you start your day," "before you sleep," or any phrase that assumes what time of day the reader is opening this
@@ -288,66 +337,97 @@ Rules (in priority order — the first two are the most important):
 - Read it aloud — if it sounds written, rewrite it until it sounds spoken
 - Never open with "I notice." This is a stage direction, not a declaration.
 
+SHAPES — choose exactly one for today's note (see the shape rotation note above, if present, for which ones to avoid):
+- declaration: a flat, confident statement of who I am or what I have done. No setup, no negation.
+- image: a picture or piece of the physical world that carries the truth without explaining it.
+- question: I ask a question about My own character, then answer it directly.
+- invitation: a short instruction or invitation, then the reason it is safe to follow it.
+- promise: a forward-looking commitment — what I am doing, will do, or will not stop doing.
+
 CRITICAL — THE message FIELD MUST NEVER CONTAIN VERSE TEXT:
 The message and verse are two completely separate fields. The message field must end before any scripture is quoted. Never place a verse quotation, a verse reference, or any fragment of the verse inside the message field. If the message contains quotation marks around scripture or a book/chapter reference (e.g. "Isaiah 60:1"), it is wrong. The verse belongs exclusively in the verse field.
 
-EXAMPLES — study these for voice, shape, and restraint. Do not copy phrasing.
+EXAMPLES — study these for voice and restraint, one per shape. Do not copy phrasing.
 
-(Blessing)
-My blessing is on you right now. Not because of what you have done or have not done; it is just on you. That is not going anywhere.
+(declaration - Blessing)
+My blessing is already on you, resting there whether you notice it or not. Nothing you do adds to it, and nothing you do can take it away. Stand there.
 Verse: Blessed be the God and Father of our Lord Jesus Christ, who has blessed us in Christ with every spiritual blessing in the heavenly places. - Ephesians 1:3
 
-(Rest)
-Be still for a moment. Not because nothing matters, but because I am here and that changes everything. You do not have to figure it out right now.
-Verse: Be still, and know that I am God. - Psalm 46:10
-
-(Courage)
-Fear is loud, but it is not in charge. I am in charge, and I am for you. Walk forward.
+(image - Courage)
+Picture a shield raised before the first arrow is even loosed. That is Me, already positioned between you and what you are afraid of. Walk forward under it.
 Verse: For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline. - 2 Timothy 1:7
 
-(Presence)
-I am with you, not in a distant way, not in a spiritual-but-not-real way; actually with you. Right here. That is not going to change.
+(question - Being Known)
+Do I forget the small things? I never have, not once, not with you. Every detail matters to Me, and I am not done paying attention.
 Verse: And surely I am with you always, to the very end of the age. - Matthew 28:20
 
-(Hope)
-The thing you are waiting for has not been forgotten. I am not slow; I am building something you cannot see the whole of yet. Stay with Me.
+(invitation - Rest)
+Set it down for a minute. I am strong enough to hold what you are carrying, and I am not going anywhere while you rest. Come sit with Me.
+Verse: Be still, and know that I am God. - Psalm 46:10
+
+(promise - Hope)
+I am not finished with what I started in you. What looks stalled from here is still moving on My side, and I have never once let go of it. Keep walking toward Me.
 Verse: May the God of hope fill you with all joy and peace as you trust in him. - Romans 15:13
 
-NEGATIVE EXAMPLES — these violate the HARD BAN above. Do not write anything like these:
+NEGATIVE EXAMPLES — these violate the HARD BAN or SHAPE BAN above. Do not write anything like these:
 - "You have been faithful in small things, and that faithfulness is not invisible to Me. I see the daily choices you make to show up..." (Observes the reader. Banned.)
 - "I see how hard you have been trying lately." (Observes the reader. Banned.)
 - "Your steadiness is building something real." (Reflects the reader's action back. Banned.)
+- "My blessing is on you right now. Not because of what you have done or have not done; it is just on you." (This exact line and its "not because... it is" shape have already been used many times. Do not reuse it or reproduce its pattern.)
 
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "chatPrompt": "a single question or gentle invitation that flows naturally from this specific grace note. Specific - could only follow this note, not any other. Example style: 'What is one thing you have been waiting for?' or 'Where does it feel hardest to be still right now?'" }`;
+{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "chatPrompt": "a single question or gentle invitation that flows naturally from this specific grace note. Specific - could only follow this note, not any other. Example style: 'What is one thing you have been waiting for?' or 'Where does it feel hardest to be still right now?'", "shape": "one of: declaration, image, question, invitation, promise - whichever you actually used" }`;
 
-  const msg = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 400,
-    temperature: 0.9,
-    system,
-    messages: [{ role: "user", content: "Write today's note." }],
-  } as Parameters<typeof client.messages.create>[0]);
+  const MAX_ATTEMPTS = 3;
+  let avoidNote: string | null = null;
+  let lastParsed: { message?: string; chatPrompt?: string; shape?: string } | null = null;
 
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const msg = await client.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 400,
+      temperature: 0.9,
+      system: buildSystem(avoidNote),
+      messages: [{ role: "user", content: "Write today's note." }],
+    } as Parameters<typeof client.messages.create>[0]);
 
-  const block = (msg as Anthropic.Message).content[0];
-  const raw = block.type === "text" ? block.text : "";
-  // Throw on empty or unparseable response so the caller does NOT cache the
-  // fallback as real content. The next request will try again fresh.
-  if (!raw.trim()) throw new Error("Grace note: AI returned empty response");
-  const parsed = parseJSON<{ message?: string; chatPrompt?: string } | null>(raw, null);
-  if (!parsed?.message) {
-    throw new Error("Grace note: AI returned invalid JSON — will retry on next request");
+    const block = (msg as Anthropic.Message).content[0];
+    const raw = block.type === "text" ? block.text : "";
+    // Throw on empty or unparseable response so the caller does NOT cache the
+    // fallback as real content. The next request will try again fresh.
+    if (!raw.trim()) throw new Error("Grace note: AI returned empty response");
+    const parsed = parseJSON<{ message?: string; chatPrompt?: string; shape?: string } | null>(raw, null);
+    if (!parsed?.message) {
+      throw new Error("Grace note: AI returned invalid JSON — will retry on next request");
+    }
+    lastParsed = parsed;
+
+    const candidate = stripEmDashes(parsed.message);
+    if (attempt === MAX_ATTEMPTS || !isTooSimilarToRecent(candidate, recentNoteTexts)) {
+      // Verse text is grounded from the curated NIV `verses` table, never
+      // written by the model. This guarantees accurate, verified scripture
+      // every day.
+      return {
+        message: candidate,
+        verse: `${verse.text} - ${verse.reference}`,
+        signed: "",
+        chatPrompt: parsed.chatPrompt ?? "",
+        shape: isGraceNoteShape(parsed.shape) ? parsed.shape : null,
+      };
+    }
+    avoidNote = candidate;
   }
-  // Verse text is grounded from the curated NIV `verses` table, never written by
-  // the model. This guarantees accurate, verified scripture every day.
+
+  // Unreachable in practice (the loop always returns on its final attempt),
+  // but keeps TypeScript happy and gives a safe fallback if it ever isn't.
   return {
-    message: stripEmDashes(parsed.message),
+    message: stripEmDashes(lastParsed?.message ?? ""),
     verse: `${verse.text} - ${verse.reference}`,
     signed: "",
-    chatPrompt: parsed.chatPrompt ?? "",
+    chatPrompt: lastParsed?.chatPrompt ?? "",
+    shape: null,
   };
 }
 
@@ -404,8 +484,23 @@ export const getOrCreateGraceNote = createServerFn({ method: "POST" })
     }
     if (!chosen) throw new Error("Grace note: no active verse available to ground from the verses table");
 
+    // Shape rotation + duplicate safety net: pull this person's recent grace
+    // notes (stored as JSON in daily_content.grace_note) so the prompt can
+    // avoid repeating the same sentence shape or near-identical wording.
+    const { data: recentRows } = await supabase
+      .from("daily_content")
+      .select("grace_note")
+      .eq("user_id", userId)
+      .order("date", { ascending: false })
+      .limit(20);
+    const recentNotes = (recentRows ?? [])
+      .map((r) => r.grace_note as GraceNoteResult | null)
+      .filter((g): g is GraceNoteResult => !!g);
+    const recentNoteTexts = recentNotes.map((g) => g.message).filter(Boolean);
+    const recentShapes = recentNotes.slice(0, 3).map((g) => g.shape).filter((s): s is string => !!s);
+
     try {
-      const result = await generateGraceNoteRaw(data, { text: chosen.text, reference: chosen.reference });
+      const result = await generateGraceNoteRaw(data, { text: chosen.text, reference: chosen.reference }, recentShapes, recentNoteTexts);
       await supabase.from("daily_content").upsert({ user_id: userId, date, grace_note: result });
       // Log the verse so the 60-day rotation can avoid repeats (fire-and-forget).
       void admin
