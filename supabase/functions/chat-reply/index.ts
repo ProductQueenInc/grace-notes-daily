@@ -267,10 +267,11 @@ Reply with one word only.`,
         // assistant reply so far as an assistant-role "prefill" message, which
         // tells Claude to keep writing from exactly where it left off instead
         // of starting over or repeating itself.
-        let currentMessages: { role: 'user' | 'assistant'; content: string }[] = [
+        const baseMessages: { role: 'user' | 'assistant'; content: string }[] = [
           ...safeHistory,
           { role: 'user', content: safeMessage },
         ]
+        let currentMessages: { role: 'user' | 'assistant'; content: string }[] = baseMessages
         let continues = 0
 
         while (true) {
@@ -307,8 +308,12 @@ Reply with one word only.`,
 
           if (stopReason === 'max_tokens' && continues < MAX_AUTO_CONTINUES) {
             continues++
+            // Replace (don't append) the assistant prefill each retry — fullText
+            // already contains everything streamed so far, so appending would
+            // produce two consecutive assistant messages and Anthropic would
+            // reject the next call (roles must strictly alternate).
             currentMessages = [
-              ...currentMessages,
+              ...baseMessages,
               { role: 'assistant', content: fullText },
             ]
             console.warn(
@@ -316,6 +321,7 @@ Reply with one word only.`,
             )
             continue
           }
+
 
           if (stopReason === 'max_tokens') {
             // Hit the cap on every attempt including the last allowed retry —
