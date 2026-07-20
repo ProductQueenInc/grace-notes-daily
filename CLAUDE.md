@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-07-14**.
+Last updated: **2026-07-20**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -292,6 +292,24 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-07-20 — Cover image prompt: human-emotion centered, diverse demographic rotation; sitemap + bucket fixes
+
+Three changes shipped this session:
+
+**1. Sitemap: 7 Notes & Letters articles added** (`public/sitemap.xml`). These were missing entirely despite being live and crawlable at `/library/<slug>`. Sitemap now has 25 entries. After the next Lovable publish, resubmit the sitemap in Google Search Console to request indexing.
+
+**2. `devotional-covers` Supabase bucket created.** The bucket was missing from production storage despite CLAUDE.md claiming it existed. Created via SQL insert (`public: false`, 5MB limit). The proxy route (`/api/public/devotional-cover/$date.ts`) will activate on the next Lovable publish; run the backfill after that.
+
+**3. Cover image prompt completely rewritten** — both `src/lib/devotional-cover.server.ts` and `supabase/functions/generate-daily-devotional/index.ts` updated in sync (§5 rule).
+
+- **Old:** nature-landscape only, human figures strictly forbidden.
+- **New:** human-emotion centered. One specific person per devotional date, drawn from a 10-entry `SUBJECT_ROTATION` array cycling deterministically by date so no demographic becomes the default. Subjects include: Black woman (30s), white man (late 40s), South Asian woman (mid-30s), Latina woman (late 20s), East Asian man (early 50s), Middle Eastern woman (early 40s), white woman (late 30s), mixed-race man (late 40s), Black man (early 40s), Latina woman (early 50s).
+- **Audience brief baked in:** middle-income professionals 25–50, modern environments (offices, apartments, decent hospitals, coffee shops, cars, city parks). Not aspirational luxury, not under-resourced.
+- **Photographic style:** 35mm film / cinematic documentary still, muted palette, natural light, candid — not stock photo. Subtle sage/forest green from environment or color grade.
+- **`THEME_CONTEXT` map:** each of the 8 devotional themes (hope, peace, grief & comfort, gratitude, courage, rest, purpose, grief) maps to a specific setting and emotional posture — steers the AI without prescribing literally.
+- **New signature:** `buildCoverPrompt(theme, title, takeaway, dateStr)` — `dateStr` is used for deterministic rotation index. Both call sites updated (`params.date` in server.ts; `date` in the edge function's `generateAndStoreCover`).
+- `tsc --noEmit` clean for changed files (pre-existing posthog-js error unrelated).
 
 ### 2026-07-14 — Daily chat: truncated replies now auto-continue instead of cutting off mid-sentence
 
