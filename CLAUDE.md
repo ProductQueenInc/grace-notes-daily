@@ -293,6 +293,17 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-07-22 (PM2) — Founder blog post moved under /library (owner decision)
+
+Cindy chose a full URL move so all writing lives under `/library`. Old URL 301s (same SSR pattern as the legacy devotional routes).
+
+- **`src/routes/blog.building-gracenotes-daily.tsx`** is now a `beforeLoad` 301 → `/library/building-gracenotes-daily`.
+- **Route file moved** to `src/routes/library.building-gracenotes-daily.tsx` (layout unchanged): PATH/canonical/OG URL updated, BreadcrumbList gains a Library level.
+- **`library.index.tsx`**: new slim "From the Founder" glass card linking to the post, after Free Guides, shown on the unfiltered view. Kept out of the Notes & Letters registry deliberately — it is a build story, not a faith letter; revisit if Cindy wants it in the letter rows.
+- **Sitemap route**: entry updated to the new URL, lastmod 2026-07-22.
+- Verified via `wrangler dev` on the production build: old URL 301s server-side with correct Location, new URL 200, sitemap carries the new URL (42 total), founder card renders on `/library`. Google will re-learn the address over a few weeks; the 301 preserves the ranking signal.
+- routeTree regenerated. `tsc --noEmit`: only the pre-existing `article-card-compact.tsx` error remains.
+
 ### 2026-07-22 (PM) — Dynamic sitemap: dated devotional pages now included automatically
 
 The long-flagged "highest-leverage SEO action" (see 2026-06-29 entry) is built. `/sitemap.xml` is now served by a server route instead of a static file, so every published devotional page is submitted to Google automatically, forever.

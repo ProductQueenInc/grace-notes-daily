@@ -41,6 +41,7 @@ import { Route as DevotionalIndexRouteImport } from './routes/devotional.index'
 import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
 import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
+import { Route as LibraryBuildingGracenotesDailyRouteImport } from './routes/library.building-gracenotes-daily'
 import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
 import { Route as LibraryDevotionalIndexRouteImport } from './routes/library.devotional.index'
 import { Route as LibraryDevotionalDateRouteImport } from './routes/library.devotional.$date'
@@ -211,6 +212,12 @@ const LibrarySlugRoute = LibrarySlugRouteImport.update({
   path: '/library/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryBuildingGracenotesDailyRoute =
+  LibraryBuildingGracenotesDailyRouteImport.update({
+    id: '/library/building-gracenotes-daily',
+    path: '/library/building-gracenotes-daily',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiRiscReceiverRoute = ApiRiscReceiverRouteImport.update({
   id: '/api/risc/receiver',
   path: '/api/risc/receiver',
@@ -285,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/library/building-gracenotes-daily': typeof LibraryBuildingGracenotesDailyRoute
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
@@ -327,6 +335,7 @@ export interface FileRoutesByTo {
   '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/library/building-gracenotes-daily': typeof LibraryBuildingGracenotesDailyRoute
   '/devotional': typeof DevotionalIndexRoute
   '/library': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
@@ -370,6 +379,7 @@ export interface FileRoutesById {
   '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/library/building-gracenotes-daily': typeof LibraryBuildingGracenotesDailyRoute
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
+    | '/library/building-gracenotes-daily'
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
@@ -456,6 +467,7 @@ export interface FileRouteTypes {
     | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
+    | '/library/building-gracenotes-daily'
     | '/devotional'
     | '/library'
     | '/api/risc/receiver'
@@ -498,6 +510,7 @@ export interface FileRouteTypes {
     | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
+    | '/library/building-gracenotes-daily'
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
@@ -541,6 +554,7 @@ export interface RootRouteChildren {
   BlogBuildingGracenotesDailyRoute: typeof BlogBuildingGracenotesDailyRoute
   DevotionalDateRoute: typeof DevotionalDateRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
+  LibraryBuildingGracenotesDailyRoute: typeof LibraryBuildingGracenotesDailyRoute
   DevotionalIndexRoute: typeof DevotionalIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   ApiRiscReceiverRoute: typeof ApiRiscReceiverRoute
@@ -779,6 +793,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibrarySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/building-gracenotes-daily': {
+      id: '/library/building-gracenotes-daily'
+      path: '/library/building-gracenotes-daily'
+      fullPath: '/library/building-gracenotes-daily'
+      preLoaderRoute: typeof LibraryBuildingGracenotesDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/risc/receiver': {
       id: '/api/risc/receiver'
       path: '/api/risc/receiver'
@@ -869,6 +890,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogBuildingGracenotesDailyRoute: BlogBuildingGracenotesDailyRoute,
   DevotionalDateRoute: DevotionalDateRoute,
   LibrarySlugRoute: LibrarySlugRoute,
+  LibraryBuildingGracenotesDailyRoute: LibraryBuildingGracenotesDailyRoute,
   DevotionalIndexRoute: DevotionalIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   ApiRiscReceiverRoute: ApiRiscReceiverRoute,

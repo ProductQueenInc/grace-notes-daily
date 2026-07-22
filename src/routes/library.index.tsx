@@ -607,6 +607,31 @@ function LibraryHub() {
         </section>
       )}
 
+      {/* From the founder — the build story lives under /library as of 2026-07-22 */}
+      {isAll && (
+        <section className="px-6 pb-12 sm:pb-16 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <Link
+              to="/library/building-gracenotes-daily"
+              className="group glass-parchment rounded-2xl p-5 sm:p-6 flex items-center justify-between gap-4 transition hover:shadow-lg"
+            >
+              <div>
+                <p className="text-gold uppercase tracking-widest text-[11px] sm:text-xs font-semibold mb-1.5">
+                  From the Founder
+                </p>
+                <span className="block font-display text-grace text-lg sm:text-xl leading-snug group-hover:text-grace-deep">
+                  How I built GraceNotes Daily
+                </span>
+                <span className="block text-foreground/60 text-sm mt-1">
+                  The honest story of building this app, and the calls that were never handed to the machine.
+                </span>
+              </div>
+              <ArrowRight className="w-5 h-5 text-grace/60 shrink-0 transition group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </section>
+      )}
+
       <SiteFooter />
     </>
   );

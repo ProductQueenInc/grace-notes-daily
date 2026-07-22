@@ -45,7 +45,8 @@ const STATIC_PAGES: StaticPage[] = [
   { path: "/free-prayer-toolkit", lastmod: "2026-06-01", changefreq: "monthly", priority: "0.8" },
   { path: "/fasting-guide", lastmod: "2026-06-01", changefreq: "monthly", priority: "0.8" },
   { path: "/7-day-prayer-journal", lastmod: "2026-06-01", changefreq: "monthly", priority: "0.8" },
-  { path: "/blog/building-gracenotes-daily", lastmod: "2026-06-29", changefreq: "monthly", priority: "0.8" },
+  // Moved from /blog/building-gracenotes-daily on 2026-07-22 (old URL 301s here).
+  { path: "/library/building-gracenotes-daily", lastmod: "2026-07-22", changefreq: "monthly", priority: "0.8" },
   { path: "/library/and-then-there-were-three", lastmod: "2026-06-10", priority: "0.7" },
   { path: "/library/i-still-believe-i-just-dont-believe-that-anymore", lastmod: "2026-06-10", priority: "0.7" },
   { path: "/library/losing-your-job-as-a-christian", lastmod: "2026-06-10", priority: "0.7" },
