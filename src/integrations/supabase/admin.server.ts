@@ -1,29 +1,25 @@
-// Server-side Supabase admin client.
+// Server-side Supabase admin client — hardcoded to the TKOEBO GraceNotes
+// backend (tkoebogweygaabndrsvl). All app data (auth users, devotionals,
+// prayers, storage buckets) lives there. Do NOT switch this back to the
+// Lovable Cloud injected env vars.
 //
-// Points at the CURRENT Lovable Cloud project via the injected env vars
-// (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY). An earlier version hardcoded
-// this to tkoebogweygaabndrsvl on the assumption that Lovable had switched
-// us to a different project — that turned out to be wrong: the app's data
-// (daily_devotionals rows, devotional-covers bucket, listen-audio bucket,
-// share-cards bucket) all live in the Lovable-injected project, so the
-// hardcode caused every server route to read the wrong DB (returning either
-// stale devotionals from tkoebo or "Bucket not found" for storage).
-//
-// Do NOT import client.server.ts from app code — always use this file, so
-// the "which project?" decision lives in one place.
+// Prefer importing this file from app code rather than client.server.ts,
+// so the "which project?" decision is centralized here.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+const SUPABASE_URL = 'https://tkoebogweygaabndrsvl.supabase.co';
+
 function createAdmin(): SupabaseClient<Database> {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
+  const key =
+    process.env.TKOEBO_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
     const msg =
-      'Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY on the server. These are injected by Lovable Cloud automatically.';
+      'Missing TKOEBO_SERVICE_ROLE_KEY on the server. Add it via Cloud > Secrets.';
     console.error(`[Supabase admin] ${msg}`);
     throw new Error(msg);
   }
-  return createClient<Database>(url, key, {
+  return createClient<Database>(SUPABASE_URL, key, {
     auth: {
       storage: undefined,
       persistSession: false,
