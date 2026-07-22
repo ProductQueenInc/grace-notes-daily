@@ -293,6 +293,14 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-07-22 — Analytics hardening: auth tokens scrubbed from PostHog, pre-init event queue fixes dropped signed_in
+
+Two fixes in `src/lib/analytics.ts` only (no other files touched), prompted by a PostHog audit that found (a) `$pageview` events recording the full Supabase `/auth/callback#access_token=...` URL, i.e. live access/refresh/provider tokens stored in analytics, and (b) `signed_in` never ingesting despite `$identify` arriving.
+
+- **Token scrubbing**: new `sanitize_properties` hook on `posthog.init` strips URL fragments and sensitive query params (`access_token`, `refresh_token`, `provider_token`, `provider_refresh_token`, `id_token`, `token_hash`) from every string property (one level deep into `$set`/`$set_once` bags) before any event is sent.
+- **Pre-init queue**: `capture`/`identifyUser`/`resetAnalytics`/`setPersonProperties` now queue until the deferred `posthog.init` completes (`loaded` callback flushes, in order). Root cause of the missing `signed_in`: `onAuthStateChange` SIGNED_IN can fire before the idle-deferred init, and posthog-js silently drops pre-init calls. The idle-deferral itself is unchanged (still needed for the hydration race, see comment in file).
+- Historical note: PostHog retains the previously captured token-bearing URLs; those sessions predate launch traffic and the tokens are short-lived, but a manual event deletion in PostHog is the cleanup if ever needed.
+
 ### 2026-07-20 — Cover image prompt: human-emotion centered, diverse demographic rotation; sitemap + bucket fixes
 
 Three changes shipped this session:
