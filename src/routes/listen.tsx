@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
@@ -11,9 +11,17 @@ import { PlayingBars } from "@/components/playing-bars";
 import { pickListenRailTitle } from "@/lib/personalization";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
+import { FEATURES } from "@/lib/feature-flags";
 
 
 export const Route = createFileRoute("/listen")({
+  // Fully unreachable while FEATURES.listen is off — runs on every match
+  // (nav click, bookmark, or typed URL), not just when linked from the app.
+  beforeLoad: () => {
+    if (!FEATURES.listen) {
+      throw redirect({ to: "/home" });
+    }
+  },
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Listen /></AppShell></RequireAuth>,
 });

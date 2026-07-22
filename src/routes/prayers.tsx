@@ -14,16 +14,28 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ShareCardModal } from "@/components/share-card-modal";
 import { dismissAnsweredPrayerShare } from "@/lib/share-dismissals";
+import { capture } from "@/lib/analytics";
 
 export const Route = createFileRoute("/prayers")({
   head: () => ({ meta: [{ title: "Prayers - GraceNotes Daily" }] }),
   component: () => <RequireAuth><AppShell><Prayers /></AppShell></RequireAuth>,
 });
 
-type Prayer = { id: string; text: string; createdAt: string; answeredAt?: string; thanksgiving?: string };
+type Prayer = {
+  id: string;
+  text: string;
+  createdAt: string;
+  createdAtISO: string;
+  answeredAt?: string;
+  thanksgiving?: string;
+};
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
+
+function ageInDays(iso: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
 }
 
 type Filter = "all" | "active" | "answered";
@@ -160,6 +172,7 @@ function Prayers() {
           id: p.id as string,
           text: p.body as string,
           createdAt: fmt(p.created_at as string),
+          createdAtISO: p.created_at as string,
           answeredAt: p.answered_at ? fmt(p.answered_at as string) : undefined,
           thanksgiving: thanksMap[p.id as string],
         })),
@@ -171,7 +184,7 @@ function Prayers() {
     if (!draft.trim()) return;
     const text = draft.trim();
     const now = new Date().toISOString();
-    const newPrayer: Prayer = { id: crypto.randomUUID(), text, createdAt: fmt(now) };
+    const newPrayer: Prayer = { id: crypto.randomUUID(), text, createdAt: fmt(now), createdAtISO: now };
 
     if (supabaseConfigured && user) {
       const { data } = await supabase
@@ -184,10 +197,12 @@ function Prayers() {
 
     setItems((s) => [newPrayer, ...s]);
     setDraft("");
+    capture("prayer_added", { char_count: text.length });
     toast.success("Prayer added.");
   }
 
   function markAnswered(p: Prayer) {
+    capture("prayer_marked_answered", { prayer_age_days: ageInDays(p.createdAtISO) });
     generousAnsweredConfetti();
     setTimeout(() => setCelebrating(p), 1500);
   }
@@ -215,6 +230,10 @@ function Prayers() {
       }
     }
 
+    capture("prayer_thanksgiving_submitted", {
+      has_thanksgiving_text: !!thanksgivingText.trim(),
+      prayer_age_days: ageInDays(target.createdAtISO),
+    });
     subtleConfetti();
     toast.success("Thanksgiving received. Praise be");
     setCelebrating(null);
@@ -430,6 +449,7 @@ function Prayers() {
       <ShareCardModal
         open={!!sharingPrayer}
         ctx={sharingPrayer ? { type: "answered_prayer", prayer_id: sharingPrayer.id, prayer_text: sharingPrayer.text, answered_date: sharingPrayer.answeredAt } : null}
+        entryPoint="auto_prompt"
         heading={{
           eyebrow: "Prayer answered",
           title: "Mark the moment",

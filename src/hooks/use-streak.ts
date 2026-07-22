@@ -2,6 +2,32 @@ import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { isoForDate } from "@/lib/today";
 import type { HabitState } from "@/hooks/use-habits";
+import { capture } from "@/lib/analytics";
+import { TIERS } from "@/lib/milestones";
+
+// One-shot per tier per device — this fires from the streak calculation
+// itself (objective crossing), independent of whether the celebration UI
+// ever actually shows (see streak_milestone_celebration_shown in
+// milestone-watcher.tsx for that separate signal).
+const REPORTED_KEY = "gn:streak:reported-tiers";
+function reportedTiers(): number[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(REPORTED_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+function markTierReported(tier: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const set = new Set(reportedTiers());
+    set.add(tier);
+    localStorage.setItem(REPORTED_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    /* quota / private mode */
+  }
+}
 
 /**
  * Show-up streak: counts the TOTAL number of days the user has shown up
@@ -52,7 +78,12 @@ export function useStreak() {
           if (liveTodayQualifies) {
             qualifying.add(isoForDate(new Date()));
           }
-          setStreak(qualifying.size);
+          const size = qualifying.size;
+          if ((TIERS as readonly number[]).includes(size) && !reportedTiers().includes(size)) {
+            markTierReported(size);
+            capture("streak_milestone_reached", { tier: size, streak_days: size });
+          }
+          setStreak(size);
         });
     });
   }, [liveTodayQualifies, refreshTick]);

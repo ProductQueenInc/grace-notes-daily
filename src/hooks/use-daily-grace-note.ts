@@ -18,6 +18,10 @@ export type DailyGraceNote = {
   // served from the cron path (daily_grace_notes table) until a DB column
   // is added; UI falls back to a static label in that case.
   chatPrompt: string;
+  // Analytics only: whether this came from the overnight cron cache or had
+  // to be generated on demand (the cron missed / ran late). See
+  // grace_note_viewed in the PostHog taxonomy doc.
+  source: "cached" | "generated_on_demand";
 };
 
 function postureFromPhase(phase: string | null | undefined): string {
@@ -66,6 +70,7 @@ export function useDailyGraceNote() {
           segment,
           posture,
           chatPrompt: "", // not yet stored in daily_grace_notes; UI falls back to default
+          source: "cached",
         };
       }
 
@@ -85,6 +90,7 @@ export function useDailyGraceNote() {
         segment,
         posture,
         chatPrompt: fresh.chatPrompt || "",
+        source: "generated_on_demand",
       };
     },
   });

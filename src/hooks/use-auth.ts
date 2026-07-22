@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured, markDeviceHasAccount } from "@/lib/supabase";
 import { syncCountryCode } from "@/lib/auth.functions";
+import { capture, identifyUser, resetAnalytics, setPersonProperties } from "@/lib/analytics";
 import type { Session, User } from "@supabase/supabase-js";
 
 export type Rhythm = "morning" | "midday" | "evening" | "night";
@@ -71,6 +72,16 @@ async function loadProfile(uid: string) {
 
   if (data) {
     setState({ profile: data as Profile });
+    // Re-set on every profile load (initial sign-in, post-onboarding reload,
+    // post-settings-save reload) rather than duplicating this call at each
+    // of those call sites.
+    const p = data as Profile;
+    setPersonProperties({
+      faith_phase: p.faith_phase,
+      voice: p.voice,
+      onboarded: p.onboarded,
+      timezone: p.timezone,
+    });
   } else {
     await supabase.from("profiles").insert({ id: uid }).select().maybeSingle();
     setState({ profile: { id: uid, name: null, faith_phase: null, onboarded: false } });
@@ -89,13 +100,24 @@ function initOnce() {
   }
 
   // Register listener BEFORE reading the initial session.
+  // This is the one reliable place that sees every sign-in and sign-out, so
+  // identify()/reset() and the signed_in/signed_out events live here rather
+  // than scattered across login.tsx/settings.tsx.
   supabase.auth.onAuthStateChange((event, s) => {
     setState({ session: s, user: s?.user ?? null });
     if (s?.user) {
       loadProfile(s.user.id);
-      if (event === "SIGNED_IN") markDeviceHasAccount();
+      if (event === "SIGNED_IN") {
+        markDeviceHasAccount();
+        identifyUser(s.user.id, s.user.email);
+        capture("signed_in");
+      }
     } else {
       setState({ profile: null });
+      if (event === "SIGNED_OUT") {
+        capture("signed_out");
+        resetAnalytics();
+      }
     }
   });
 

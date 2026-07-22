@@ -3,7 +3,7 @@ import { milestoneShareSeen } from "@/lib/share-dismissals";
 
 // Tiers per the plan: 1st gold day, then 5 / 10 / 30 / 60 / 100.
 // Every-gold-day celebration is intentionally omitted (share fatigue).
-const TIERS: MilestoneTier[] = [1, 5, 10, 30, 60, 100];
+export const TIERS: MilestoneTier[] = [1, 5, 10, 30, 60, 100];
 
 /**
  * Highest tier reached (or crossed) at this streak count. Null if none.

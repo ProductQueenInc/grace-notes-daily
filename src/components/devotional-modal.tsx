@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { capture } from "@/lib/analytics";
 import { X, BookOpen, Heart, Check, RefreshCw, Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSharedDevotional } from "@/lib/ai-stubs";
@@ -75,16 +76,32 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
   // the user dismisses (or shares), reopening the modal that same day
   // never shows it again.
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareEntryPoint, setShareEntryPoint] = useState<"auto_prompt" | "manual_button">("manual_button");
+
+  // Custom event needed here specifically because opening the modal doesn't
+  // change the URL, so pageview autocapture can't see it. Fires once the
+  // content is actually ready (so is_fallback_content is accurate), not on
+  // the raw open() call.
+  const openedForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (open && data && openedForRef.current !== devotionalDate) {
+      openedForRef.current = devotionalDate;
+      capture("devotional_opened", { is_fallback_content: !!data.isFallback });
+    }
+    if (!open) openedForRef.current = null;
+  }, [open, data, devotionalDate]);
 
   if (!open || typeof document === "undefined") return null;
 
   function receive() {
+    capture("devotional_received", { is_fallback_content: !!data?.isFallback });
     softGoldConfetti();
     toast.success("Received. His word is alive in you.");
     markComplete("devotional");
     onReceived?.();
     if (!devotionalShareDismissed(devotionalDate)) {
       // Small beat lets the confetti + toast breathe before the sheet opens.
+      setShareEntryPoint("auto_prompt");
       setTimeout(() => setShareOpen(true), 650);
     } else {
       setTimeout(onClose, 700);
@@ -164,7 +181,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
                   {devotionalDate === localTodayISO() ? "Received today" : "Received"}
                 </div>
                 <button
-                  onClick={() => setShareOpen(true)}
+                  onClick={() => { setShareEntryPoint("manual_button"); setShareOpen(true); }}
                   aria-label="Share"
                   title="Share"
                   className="w-10 h-10 rounded-full text-grace/70 hover:text-grace hover:bg-grace-soft flex items-center justify-center transition"
@@ -187,6 +204,7 @@ export function DevotionalModal({ open, onClose, onReceived }: { open: boolean; 
       <ShareCardModal
         open={shareOpen}
         ctx={{ type: "devotional", date: devotionalDate }}
+        entryPoint={shareEntryPoint}
         heading={{
           eyebrow: "Today's devotional",
           title: "Keep this one close",

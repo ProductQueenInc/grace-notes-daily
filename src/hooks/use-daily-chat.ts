@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase, SUPABASE_FUNCTIONS_URL, SUPABASE_PROJECT_ANON_KEY } from "@/lib/supabase";
 import { localTodayISO } from "@/lib/today";
 import type { DailyGraceNote } from "@/hooks/use-daily-grace-note";
+import { capture } from "@/lib/analytics";
 
 export type ChatRole = "user" | "assistant";
 export interface ChatMessage {
@@ -192,6 +193,8 @@ export function useDailyChat(graceContext?: DailyGraceNote | null) {
           finalText = json.response ?? json.error ?? "Something went quiet on our end.";
           if (json.session_closed && json.close_reason) {
             setCloseReason(json.close_reason);
+            // Trust-and-safety signal — zero message content attached, just the flag.
+            capture("chat_session_closed", { close_reason: json.close_reason });
           }
         } else if (res.body) {
           const reader = res.body.getReader();
@@ -243,6 +246,8 @@ export function useDailyChat(graceContext?: DailyGraceNote | null) {
       });
       streamingIdRef.current = null;
       setPending(false);
+      // The meaningful unit here is a completed exchange, not "chat opened".
+      capture("chat_message_sent", { is_first_message_of_day: messages.length === 0 });
       return true;
     },
     [userId, sessionId, messages, closeReason, pending, graceContext],

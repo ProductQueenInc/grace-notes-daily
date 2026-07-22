@@ -16,6 +16,7 @@ import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Icon } from "@/components/icon";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { PlayingBars } from "@/components/playing-bars";
+import { initPostHog } from "@/lib/analytics";
 
 import appCss from "../styles.css?url";
 
@@ -448,6 +449,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Once at app startup, client-side only (initPostHog no-ops on the
+  // server and is idempotent, but this guarantees it runs exactly once
+  // regardless of how many times the root remounts).
+  useEffect(() => {
+    initPostHog();
+  }, []);
 
   function openFeedback() {
     openTallyForm("VL4NY6");

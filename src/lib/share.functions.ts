@@ -19,9 +19,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // so cast to a schema-agnostic client (same pattern as ai.functions.ts).
 const admin = supabaseAdmin as unknown as SupabaseClient;
 
-// Tokens are 32-char hex (crypto.randomUUID without dashes), minted by
-// render-share-card. Reject anything else without touching the DB.
-const TokenSchema = z.string().regex(/^[0-9a-f]{32}$/i);
+// Tokens are 8-char hex (crypto.randomUUID without dashes, truncated),
+// minted by render-share-card. Shortened from 32 chars on 2026-07-22 for a
+// cleaner-looking shared link. Reject anything else without touching the DB.
+const TokenSchema = z.string().regex(/^[0-9a-f]{8}$/i);
 
 export const logShareClick = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>

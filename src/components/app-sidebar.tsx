@@ -29,6 +29,7 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useStreak } from "@/hooks/use-streak";
+import { FEATURES } from "@/lib/feature-flags";
 import doveLogo from "@/assets/dove-medallion.png";
 import {
   DropdownMenu,
@@ -46,6 +47,11 @@ const NAV = [
   { to: "/journey", label: "Journey", icon: Compass },
   { to: "/library", label: "Notes & Letters", icon: BookOpen },
 ] as const;
+
+// Listen stays out of the menu while FEATURES.listen is off — the route
+// itself also refuses to load (see listen.tsx), this just keeps it from
+// ever being clicked in the first place.
+const VISIBLE_NAV = FEATURES.listen ? NAV : NAV.filter((item) => item.to !== "/listen");
 
 const PIN_KEY = "gn:sidebar:pinned";
 
@@ -118,7 +124,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
-              {NAV.map((item) => {
+              {VISIBLE_NAV.map((item) => {
                 const active = currentPath === item.to || currentPath.startsWith(item.to + "/");
                 return (
                   <SidebarMenuItem key={item.to}>

@@ -14,8 +14,9 @@ export const Route = createFileRoute("/library/devotional/$date")({
   // arbitrary dated URLs). Generation lives in the cron + today path.
   // ?s=<share_token> is PLG share attribution: logged fire-and-forget into
   // share_clicks (never blocks or fails the page), then ignored by the view.
+  // Tokens are 8 hex chars as of 2026-07-22 (shortened from 32).
   validateSearch: (search: Record<string, unknown>): { s?: string } => {
-    const s = typeof search.s === "string" && /^[0-9a-f]{32}$/i.test(search.s) ? search.s : undefined;
+    const s = typeof search.s === "string" && /^[0-9a-f]{8}$/i.test(search.s) ? search.s : undefined;
     return s ? { s } : {};
   },
   loaderDeps: ({ search }) => ({ s: search.s }),

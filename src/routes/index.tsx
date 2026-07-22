@@ -9,8 +9,10 @@ import {
   Sparkles, BookHeart, HandHeart, Compass,
   ChevronDown, ShieldCheck, Moon, ArrowRight, ArrowLeft,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { logShareClick } from "@/lib/share.functions";
+import { savePendingShareToken } from "@/lib/share";
 
 const homepageSchema = [
   {
@@ -63,6 +65,25 @@ const homepageSchema = [
 ];
 
 export const Route = createFileRoute("/")({
+  // ?s=<share_token> is PLG share attribution for every non-devotional share
+  // type (answered prayer, milestone, and — once wired for speed — grace
+  // note). Logged fire-and-forget into share_clicks (mirrors into PostHog
+  // server-side automatically), then saved so it can be claimed via
+  // claim_share_attribution once the visitor finishes onboarding. Tokens are
+  // 8 hex chars (see library.devotional.$date.tsx for the same pattern).
+  validateSearch: (search: Record<string, unknown>): { s?: string } => {
+    const s = typeof search.s === "string" && /^[0-9a-f]{8}$/i.test(search.s) ? search.s : undefined;
+    return s ? { s } : {};
+  },
+  loaderDeps: ({ search }) => ({ s: search.s }),
+  loader: async ({ deps }): Promise<{ shareToken?: string }> => {
+    if (deps.s) {
+      // Fire-and-forget; logShareClick swallows its own errors.
+      void logShareClick({ data: { token: deps.s } });
+      return { shareToken: deps.s };
+    }
+    return {};
+  },
   head: () => ({
     meta: [
       { title: "GraceNotes Daily | Christian Devotional, Prayer Journal & Daily Grace Notes" },
@@ -146,6 +167,13 @@ const faqs = [
 function Landing() {
   const { session, loading } = useAuth();
   const isLoggedIn = !loading && !!session;
+  const { shareToken } = Route.useLoaderData();
+
+  // Persist the incoming share token so it can be claimed post-onboarding —
+  // the visitor isn't signed in yet at the moment they land here.
+  useEffect(() => {
+    if (shareToken) savePendingShareToken(shareToken);
+  }, [shareToken]);
 
   return (
     <>

@@ -22,6 +22,7 @@ import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
 import { pickRhythmGreeting, firstNameCap } from "@/lib/personalization";
 import { badgeForCount, badgeLabel, badgeColors, type BadgeTier } from "@/lib/badges";
+import { capture } from "@/lib/analytics";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -81,6 +82,17 @@ function Home() {
   });
 
 
+
+  // Single most important "did they show up today" signal. Fires once per
+  // load (react-query keeps the same object reference across re-renders
+  // while the day's note hasn't changed), not per re-render.
+  const gracedForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (graceNote && gracedForRef.current !== today) {
+      gracedForRef.current = today;
+      capture("grace_note_viewed", { source: graceNote.source });
+    }
+  }, [graceNote, today]);
 
   function handleHabitClick(k: HabitKey) {
     if (k === "devotional") { setDevotionalOpen(true); return; }
@@ -153,7 +165,10 @@ function Home() {
                           Edit your preferences →
                         </Link>
                         <button
-                          onClick={() => openTallyForm("VL4NY6")}
+                          onClick={() => {
+                            capture("content_flag_reported", { note_date: today });
+                            openTallyForm("VL4NY6");
+                          }}
                           aria-label="Report this note"
                           title="Report this note"
                           className="text-white/40 hover:text-white/70 transition shrink-0 p-1 -m-1"
@@ -331,7 +346,16 @@ function Home() {
 
       <ShareCardModal
         open={graceShareOpen}
-        ctx={graceNote ? { type: "grace_note", note_id: today } : null}
+        ctx={
+          graceNote
+            ? {
+                type: "grace_note",
+                note_id: today,
+                noteText: graceNote.graceNoteRaw,
+                verseReference: graceNote.verseReference,
+              }
+            : null
+        }
         heading={{
           eyebrow: "Today's grace note",
           title: "Hold onto this",

@@ -20,7 +20,16 @@ export type ShareType =
 export type MilestoneTier = 1 | 5 | 10 | 30 | 60 | 100;
 
 export type ShareContext =
-  | { type: "grace_note"; note_id: string; theme?: string }
+  | {
+      type: "grace_note";
+      note_id: string;
+      theme?: string;
+      /** Note text + verse reference, already loaded client-side (see
+       * useDailyGraceNote). Sharing is text-only and needs no render-share-card
+       * round trip, so these ride along on the context instead of a fetch. */
+      noteText: string;
+      verseReference: string;
+    }
   | { type: "devotional"; date: string; theme?: string }
   | {
       type: "answered_prayer";
@@ -124,4 +133,31 @@ export async function generateShareCard(ctx: ShareContext): Promise<ShareCard> {
     caption: ok.caption ?? "",
     deep_link: ok.share_url,
   };
+}
+
+// ── Share-link attribution (roadmap Stage 4) ────────────────────────────────
+// The homepage records an incoming ?s=<token> here so it can be claimed via
+// the claim_share_attribution RPC right after onboarding finishes (the user
+// isn't signed in yet when the link is first clicked).
+const PENDING_SHARE_TOKEN_KEY = "gn:pending-share-token";
+
+export function savePendingShareToken(token: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PENDING_SHARE_TOKEN_KEY, token);
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+/** Reads and clears the pending token in one shot — it's only ever claimed once. */
+export function takePendingShareToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const token = window.localStorage.getItem(PENDING_SHARE_TOKEN_KEY);
+    if (token) window.localStorage.removeItem(PENDING_SHARE_TOKEN_KEY);
+    return token;
+  } catch {
+    return null;
+  }
 }

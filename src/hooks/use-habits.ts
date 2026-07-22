@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { localTodayISO } from "@/lib/today";
+import { capture } from "@/lib/analytics";
+import { badgeForCount } from "@/lib/badges";
 
 export type HabitKey = "devotional" | "dailyMessage" | "journal";
 export type HabitState = Record<HabitKey, boolean>;
@@ -157,20 +159,34 @@ export function useHabits(date?: string) {
       // time. This is the fix for the midnight-crossing bug: marking
       // yesterday's devotional writes to yesterday's row only.
       const targetDate = effectiveDate;
+      const prevCount = Object.values(habits).filter(Boolean).length;
+      let next: HabitState;
       if (supabaseConfigured && userId) {
-        const next = await markInDB(userId, key, targetDate);
+        next = await markInDB(userId, key, targetDate);
         setHabits(next);
         // Notify other hook instances + the streak flame.
         window.dispatchEvent(
           new CustomEvent("gn:habits-change", { detail: { date: targetDate, state: next } }),
         );
       } else {
-        const next = { ...readLocal(targetDate), [key]: true };
+        next = { ...readLocal(targetDate), [key]: true };
         writeLocal(targetDate, next);
         setHabits(next);
       }
+
+      // One cross-cutting "ledger" event across all 3 habits, correlated
+      // with badge tier — only set badge_tier_reached the moment a NEW tier
+      // is crossed, not on every subsequent completion at that tier.
+      const nextCount = Object.values(next).filter(Boolean).length;
+      const prevTier = badgeForCount(prevCount);
+      const nextTier = badgeForCount(nextCount);
+      capture("habit_completed", {
+        habit: key,
+        habits_completed_today_count: nextCount,
+        ...(nextTier !== prevTier && nextTier !== "none" ? { badge_tier_reached: nextTier } : {}),
+      });
     },
-    [userId, effectiveDate],
+    [userId, effectiveDate, habits],
   );
 
   return { habits, markComplete, date: effectiveDate };

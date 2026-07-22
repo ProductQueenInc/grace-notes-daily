@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { BookHeart, Send, Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import { localTodayISO } from "@/lib/today";
+import { capture } from "@/lib/analytics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +75,7 @@ function HeartNotes() {
     setLoading(true);
     setTitleLoading(true);
     markComplete("journal");
+    capture("journal_entry_saved", { word_count: body.trim() ? body.trim().split(/\s+/).length : 0 });
 
     const r = await respondToHeartNote(body, profile);
     setResponse(r);

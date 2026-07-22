@@ -5,11 +5,19 @@ import { useAuth, writeProfileExtras } from "@/hooks/use-auth";
 import { capitalizeFirst } from "@/lib/personalization";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
+import { capture } from "@/lib/analytics";
+import { takePendingShareToken } from "@/lib/share";
 import { Icon } from "@/components/icon";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   Compass, Sprout, Anchor, Wind,
   Sparkles, ArrowRight, ArrowLeft, HandHeart,
 } from "lucide-react";
+
+// claim_share_attribution was added after the generated types were last
+// regenerated (same situation as share.functions.ts / share_clicks), so cast
+// to a schema-agnostic client for this one call.
+const rpcClient = supabase as unknown as SupabaseClient;
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Welcome - GraceNotes Daily" }] }),
@@ -78,6 +86,21 @@ function Onboarding() {
         }
       } else {
         writeProfileExtras(user.id, { rhythms: [], seasons: [], voice: DEFAULT_VOICE, timezone, translation: null });
+      }
+
+      // This is the activation event — everything upstream is funnel.
+      capture("onboarding_completed", { faith_phase: phase, voice: DEFAULT_VOICE });
+
+      // If this visitor arrived via a shared link, claim the attribution now
+      // that they have an account (they weren't signed in when the link was
+      // first clicked). Best-effort — never blocks finishing onboarding.
+      const pendingShareToken = takePendingShareToken();
+      if (pendingShareToken && supabaseConfigured) {
+        rpcClient.rpc("claim_share_attribution", { p_token: pendingShareToken }).then(
+          ({ error }: { error: { message: string } | null }) => {
+            if (error) console.warn("[onboarding] claim_share_attribution failed:", error.message);
+          },
+        );
       }
 
       await reloadProfile();

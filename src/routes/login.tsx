@@ -4,6 +4,7 @@ import { NatureBackground } from "@/components/nature-background";
 import { supabase, supabaseConfigured, deviceHasAccount } from "@/lib/supabase";
 import { toast } from "sonner";
 import { DoveMark } from "@/components/dove-mark";
+import { capture } from "@/lib/analytics";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Welcome - GraceNotes Daily" }] }),
@@ -63,6 +64,8 @@ function Auth() {
       toast.error("Sign-in is temporarily unavailable. Please try again shortly.");
       return;
     }
+    // Only reliable signal we get pre-redirect.
+    capture("auth_oauth_selected", { provider });
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -93,6 +96,7 @@ function Auth() {
       toast.error(authErrorMessage(error));
       return;
     }
+    capture("auth_link_requested", { is_returning_device: returning, is_resend: false });
     setEmail(trimmed);
     setMode("sent");
     startCooldown(45);
@@ -107,6 +111,7 @@ function Auth() {
       toast.error(authErrorMessage(error));
       return;
     }
+    capture("auth_link_requested", { is_returning_device: returning, is_resend: true });
     toast.success("Link resent. Check your inbox.");
     startCooldown(45);
   }

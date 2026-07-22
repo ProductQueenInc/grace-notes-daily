@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Download, Mail } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
+import { capture } from "@/lib/analytics";
+
+export type GuideSlug = "free-prayer-toolkit" | "7-day-prayer-journal" | "fasting-guide";
 
 interface DownloadGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
   guideTitle: string;
+  guideSlug: GuideSlug;
   beehiivFormUrl: string; // paste your Beehiiv embed URL here per guide
 }
 
@@ -13,9 +17,16 @@ export function DownloadGuideModal({
   isOpen,
   onClose,
   guideTitle,
+  guideSlug,
   beehiivFormUrl,
 }: DownloadGuideModalProps) {
   const [step, setStep] = useState<"form" | "success">("form");
+
+  // Fires when the signup modal opens.
+  useEffect(() => {
+    if (isOpen) capture("guide_download_started", { guide_slug: guideSlug });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -33,6 +44,7 @@ export function DownloadGuideModal({
         (e.data.includes("beehiiv") || e.data.includes("subscribed"))
       ) {
         setStep("success");
+        capture("guide_download_completed", { guide_slug: guideSlug });
       }
     };
   }
@@ -110,6 +122,7 @@ export function DownloadGuideModal({
 
 interface DownloadGuideButtonProps {
   guideTitle: string;
+  guideSlug: GuideSlug;
   beehiivFormUrl?: string;
   className?: string;
   children?: React.ReactNode;
@@ -117,6 +130,7 @@ interface DownloadGuideButtonProps {
 
 export function DownloadGuideButton({
   guideTitle,
+  guideSlug,
   beehiivFormUrl = "",
   className,
   children,
@@ -140,6 +154,7 @@ export function DownloadGuideButton({
         isOpen={open}
         onClose={() => setOpen(false)}
         guideTitle={guideTitle}
+        guideSlug={guideSlug}
         beehiivFormUrl={beehiivFormUrl}
       />
     </>

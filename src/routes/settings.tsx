@@ -10,10 +10,29 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { capitalizeFirst } from "@/lib/personalization";
 import { localTodayISO } from "@/lib/today";
+import { capture } from "@/lib/analytics";
 import {
   LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
   Sprout, Wind, Compass as CompassIcon, Anchor,
 } from "lucide-react";
+
+// `seasons` is excluded entirely per the taxonomy decision — it never
+// appears in changed_fields, and no seasons data goes to PostHog at all.
+function changedFields(
+  profile: { name: string | null; faith_phase: string | null; voice?: string; rhythms?: string[]; translation?: string | null } | null,
+  next: { name: string; faith_phase: string; voice: string; rhythms: string[]; translation: string },
+): string[] {
+  if (!profile) return [];
+  const fields: string[] = [];
+  if ((profile.name || "") !== next.name) fields.push("name");
+  if ((profile.faith_phase || "") !== next.faith_phase) fields.push("faith_phase");
+  if ((profile.voice || "gentle") !== next.voice) fields.push("voice");
+  if (JSON.stringify([...(profile.rhythms || [])].sort()) !== JSON.stringify([...next.rhythms].sort())) {
+    fields.push("rhythms");
+  }
+  if ((profile.translation || "NIV") !== next.translation) fields.push("translation");
+  return fields;
+}
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings - GraceNotes Daily" }] }),
@@ -91,6 +110,7 @@ function Settings() {
     }));
 
     const normalizedName = capitalizeFirst(name);
+    const changed = changedFields(profile, { name: normalizedName, faith_phase: phase, voice, rhythms, translation });
 
     const { error } = await supabase
       .from("profiles")
@@ -119,6 +139,7 @@ function Settings() {
     queryClient.invalidateQueries({ queryKey: ["daily-grace-note"] });
     queryClient.invalidateQueries({ queryKey: ["devotional"] });
 
+    if (changed.length) capture("profile_settings_updated", { changed_fields: changed });
     toast.success("Saved with care. Today's note will refresh.");
     reloadProfile();
     setSaving(false);
@@ -145,6 +166,9 @@ function Settings() {
 
   async function deleteAccount() {
     if (!confirm("This will permanently delete your account. Continue?")) return;
+    // Named `_requested`, not `_deleted` — today's flow is only a support-ticket
+    // acknowledgment, not an actual deletion path.
+    capture("account_deletion_requested");
     toast("Account deletion request received. We'll be in touch within 24 hours.");
   }
 

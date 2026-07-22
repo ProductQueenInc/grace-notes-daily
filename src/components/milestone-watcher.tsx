@@ -7,6 +7,7 @@ import {
   markMilestoneShareSeen,
 } from "@/lib/share-dismissals";
 import type { MilestoneTier } from "@/lib/share";
+import { capture } from "@/lib/analytics";
 
 /**
  * Watches the show-up streak. When it crosses a milestone tier for the
@@ -26,6 +27,11 @@ export function MilestoneWatcher() {
     const t = window.setTimeout(() => {
       const dialogOpen = document.querySelector('[role="dialog"]');
       if (dialogOpen) return;
+      // Split from streak_milestone_reached (use-streak.ts) on purpose: the
+      // celebration can silently skip (another dialog already open), so this
+      // catches the case where a milestone is objectively hit but the user
+      // never actually sees the moment.
+      capture("streak_milestone_celebration_shown", { tier });
       setOpenTier(tier);
     }, 1500);
     return () => window.clearTimeout(t);
@@ -37,6 +43,7 @@ export function MilestoneWatcher() {
     <ShareCardModal
       open
       ctx={{ type: "milestone", tier: openTier, streak }}
+      entryPoint="auto_prompt"
       heading={{
         eyebrow: `${openTier}-day rhythm`,
         title:
