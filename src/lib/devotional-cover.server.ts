@@ -22,8 +22,14 @@ const BUCKET = "devotional-covers";
 // Stable public URL served by the proxy route (see
 // src/routes/api/public/devotional-cover.$date.ts). The bucket is private,
 // so we never expose signed URLs (they expire and break social previews).
+//
+// COVER_URL_VERSION is a cache-buster. The proxy sets a 1-year immutable
+// Cache-Control header, so Cloudflare + browser caches can otherwise pin a
+// broken response for a very long time. Bump this string any time cached
+// viewers need to see an updated / re-uploaded cover image sooner.
+const COVER_URL_VERSION = "2";
 export function coverPublicUrl(date: string) {
-  return `${BASE_URL}/api/public/devotional-cover/${date}.png`;
+  return `${BASE_URL}/api/public/devotional-cover/${date}.png?v=${COVER_URL_VERSION}`;
 }
 
 // Deterministic demographic rotation — one specific person per date,
