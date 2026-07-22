@@ -9,166 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as R7DayPrayerJournalRouteImport } from './routes/7-day-prayer-journal'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as AnsweredPrayerTrackerRouteImport } from './routes/answered-prayer-tracker'
-import { Route as ChristianJournalingRouteImport } from './routes/christian-journaling'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as DailyDevotionalRouteImport } from './routes/daily-devotional'
-import { Route as FaithHabitTrackerRouteImport } from './routes/faith-habit-tracker'
-import { Route as FaqRouteImport } from './routes/faq'
-import { Route as FastingGuideRouteImport } from './routes/fasting-guide'
-import { Route as FreePrayerToolkitRouteImport } from './routes/free-prayer-toolkit'
-import { Route as HeartNotesRouteImport } from './routes/heart-notes'
-import { Route as HomeRouteImport } from './routes/home'
-import { Route as JourneyRouteImport } from './routes/journey'
-import { Route as ListenRouteImport } from './routes/listen'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as PrayerJournalingRouteImport } from './routes/prayer-journaling'
-import { Route as PrayersRouteImport } from './routes/prayers'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as QuietTimeAppRouteImport } from './routes/quiet-time-app'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as BlogBuildingGracenotesDailyRouteImport } from './routes/blog.building-gracenotes-daily'
-import { Route as DevotionalIndexRouteImport } from './routes/devotional.index'
-import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as QuietTimeAppRouteImport } from './routes/quiet-time-app'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PrayersRouteImport } from './routes/prayers'
+import { Route as PrayerJournalingRouteImport } from './routes/prayer-journaling'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ListenRouteImport } from './routes/listen'
+import { Route as JourneyRouteImport } from './routes/journey'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as HeartNotesRouteImport } from './routes/heart-notes'
+import { Route as FreePrayerToolkitRouteImport } from './routes/free-prayer-toolkit'
+import { Route as FastingGuideRouteImport } from './routes/fasting-guide'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FaithHabitTrackerRouteImport } from './routes/faith-habit-tracker'
+import { Route as DailyDevotionalRouteImport } from './routes/daily-devotional'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ChristianJournalingRouteImport } from './routes/christian-journaling'
+import { Route as AnsweredPrayerTrackerRouteImport } from './routes/answered-prayer-tracker'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as R7DayPrayerJournalRouteImport } from './routes/7-day-prayer-journal'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
-import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
+import { Route as DevotionalIndexRouteImport } from './routes/devotional.index'
 import { Route as LibraryBuildingGracenotesDailyRouteImport } from './routes/library.building-gracenotes-daily'
-import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
+import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
+import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
+import { Route as BlogBuildingGracenotesDailyRouteImport } from './routes/blog.building-gracenotes-daily'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LibraryDevotionalIndexRouteImport } from './routes/library.devotional.index'
 import { Route as LibraryDevotionalDateRouteImport } from './routes/library.devotional.$date'
-import { Route as ApiPublicDevotionalCoverDateRouteImport } from './routes/api/public/devotional-cover.$date'
-import { Route as ApiPublicShareCardKeyRouteImport } from './routes/api/public/share-card.$key'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as ApiRiscReceiverRouteImport } from './routes/api/risc/receiver'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicShareCardKeyRouteImport } from './routes/api/public/share-card.$key'
+import { Route as ApiPublicDevotionalCoverDateRouteImport } from './routes/api/public/devotional-cover.$date'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const R7DayPrayerJournalRoute = R7DayPrayerJournalRouteImport.update({
-  id: '/7-day-prayer-journal',
-  path: '/7-day-prayer-journal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnsweredPrayerTrackerRoute = AnsweredPrayerTrackerRouteImport.update({
-  id: '/answered-prayer-tracker',
-  path: '/answered-prayer-tracker',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChristianJournalingRoute = ChristianJournalingRouteImport.update({
-  id: '/christian-journaling',
-  path: '/christian-journaling',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DailyDevotionalRoute = DailyDevotionalRouteImport.update({
-  id: '/daily-devotional',
-  path: '/daily-devotional',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaithHabitTrackerRoute = FaithHabitTrackerRouteImport.update({
-  id: '/faith-habit-tracker',
-  path: '/faith-habit-tracker',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FastingGuideRoute = FastingGuideRouteImport.update({
-  id: '/fasting-guide',
-  path: '/fasting-guide',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FreePrayerToolkitRoute = FreePrayerToolkitRouteImport.update({
-  id: '/free-prayer-toolkit',
-  path: '/free-prayer-toolkit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HeartNotesRoute = HeartNotesRouteImport.update({
-  id: '/heart-notes',
-  path: '/heart-notes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JourneyRoute = JourneyRouteImport.update({
-  id: '/journey',
-  path: '/journey',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ListenRoute = ListenRouteImport.update({
-  id: '/listen',
-  path: '/listen',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrayerJournalingRoute = PrayerJournalingRouteImport.update({
-  id: '/prayer-journaling',
-  path: '/prayer-journaling',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrayersRoute = PrayersRouteImport.update({
-  id: '/prayers',
-  path: '/prayers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuietTimeAppRoute = QuietTimeAppRouteImport.update({
-  id: '/quiet-time-app',
-  path: '/quiet-time-app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -176,30 +61,124 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogBuildingGracenotesDailyRoute =
-  BlogBuildingGracenotesDailyRouteImport.update({
-    id: '/blog/building-gracenotes-daily',
-    path: '/blog/building-gracenotes-daily',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DevotionalIndexRoute = DevotionalIndexRouteImport.update({
-  id: '/devotional/',
-  path: '/devotional/',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DevotionalDateRoute = DevotionalDateRouteImport.update({
-  id: '/devotional/$date',
-  path: '/devotional/$date',
+const QuietTimeAppRoute = QuietTimeAppRouteImport.update({
+  id: '/quiet-time-app',
+  path: '/quiet-time-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrayersRoute = PrayersRouteImport.update({
+  id: '/prayers',
+  path: '/prayers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrayerJournalingRoute = PrayerJournalingRouteImport.update({
+  id: '/prayer-journaling',
+  path: '/prayer-journaling',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListenRoute = ListenRouteImport.update({
+  id: '/listen',
+  path: '/listen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneyRoute = JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HeartNotesRoute = HeartNotesRouteImport.update({
+  id: '/heart-notes',
+  path: '/heart-notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FreePrayerToolkitRoute = FreePrayerToolkitRouteImport.update({
+  id: '/free-prayer-toolkit',
+  path: '/free-prayer-toolkit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FastingGuideRoute = FastingGuideRouteImport.update({
+  id: '/fasting-guide',
+  path: '/fasting-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaithHabitTrackerRoute = FaithHabitTrackerRouteImport.update({
+  id: '/faith-habit-tracker',
+  path: '/faith-habit-tracker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DailyDevotionalRoute = DailyDevotionalRouteImport.update({
+  id: '/daily-devotional',
+  path: '/daily-devotional',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChristianJournalingRoute = ChristianJournalingRouteImport.update({
+  id: '/christian-journaling',
+  path: '/christian-journaling',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnsweredPrayerTrackerRoute = AnsweredPrayerTrackerRouteImport.update({
+  id: '/answered-prayer-tracker',
+  path: '/answered-prayer-tracker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R7DayPrayerJournalRoute = R7DayPrayerJournalRouteImport.update({
+  id: '/7-day-prayer-journal',
+  path: '/7-day-prayer-journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryIndexRoute = LibraryIndexRouteImport.update({
@@ -207,9 +186,9 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   path: '/library/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LibrarySlugRoute = LibrarySlugRouteImport.update({
-  id: '/library/$slug',
-  path: '/library/$slug',
+const DevotionalIndexRoute = DevotionalIndexRouteImport.update({
+  id: '/devotional/',
+  path: '/devotional/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryBuildingGracenotesDailyRoute =
@@ -218,9 +197,25 @@ const LibraryBuildingGracenotesDailyRoute =
     path: '/library/building-gracenotes-daily',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiRiscReceiverRoute = ApiRiscReceiverRouteImport.update({
-  id: '/api/risc/receiver',
-  path: '/api/risc/receiver',
+const LibrarySlugRoute = LibrarySlugRouteImport.update({
+  id: '/library/$slug',
+  path: '/library/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevotionalDateRoute = DevotionalDateRouteImport.update({
+  id: '/devotional/$date',
+  path: '/devotional/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogBuildingGracenotesDailyRoute =
+  BlogBuildingGracenotesDailyRouteImport.update({
+    id: '/blog/building-gracenotes-daily',
+    path: '/blog/building-gracenotes-daily',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryDevotionalIndexRoute = LibraryDevotionalIndexRouteImport.update({
@@ -233,15 +228,20 @@ const LibraryDevotionalDateRoute = LibraryDevotionalDateRouteImport.update({
   path: '/library/devotional/$date',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicDevotionalCoverDateRoute =
-  ApiPublicDevotionalCoverDateRouteImport.update({
-    id: '/api/public/devotional-cover/$date',
-    path: '/api/public/devotional-cover/$date',
+const ApiRiscReceiverRoute = ApiRiscReceiverRouteImport.update({
+  id: '/api/risc/receiver',
+  path: '/api/risc/receiver',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicShareCardKeyRoute = ApiPublicShareCardKeyRouteImport.update({
-  id: '/api/public/share-card/$key',
-  path: '/api/public/share-card/$key',
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
@@ -249,15 +249,15 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
+const ApiPublicShareCardKeyRoute = ApiPublicShareCardKeyRouteImport.update({
+  id: '/api/public/share-card/$key',
+  path: '/api/public/share-card/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
+const ApiPublicDevotionalCoverDateRoute =
+  ApiPublicDevotionalCoverDateRouteImport.update({
+    id: '/api/public/devotional-cover/$date',
+    path: '/api/public/devotional-cover/$date',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -569,172 +569,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/7-day-prayer-journal': {
-      id: '/7-day-prayer-journal'
-      path: '/7-day-prayer-journal'
-      fullPath: '/7-day-prayer-journal'
-      preLoaderRoute: typeof R7DayPrayerJournalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/answered-prayer-tracker': {
-      id: '/answered-prayer-tracker'
-      path: '/answered-prayer-tracker'
-      fullPath: '/answered-prayer-tracker'
-      preLoaderRoute: typeof AnsweredPrayerTrackerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/christian-journaling': {
-      id: '/christian-journaling'
-      path: '/christian-journaling'
-      fullPath: '/christian-journaling'
-      preLoaderRoute: typeof ChristianJournalingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/daily-devotional': {
-      id: '/daily-devotional'
-      path: '/daily-devotional'
-      fullPath: '/daily-devotional'
-      preLoaderRoute: typeof DailyDevotionalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faith-habit-tracker': {
-      id: '/faith-habit-tracker'
-      path: '/faith-habit-tracker'
-      fullPath: '/faith-habit-tracker'
-      preLoaderRoute: typeof FaithHabitTrackerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fasting-guide': {
-      id: '/fasting-guide'
-      path: '/fasting-guide'
-      fullPath: '/fasting-guide'
-      preLoaderRoute: typeof FastingGuideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/free-prayer-toolkit': {
-      id: '/free-prayer-toolkit'
-      path: '/free-prayer-toolkit'
-      fullPath: '/free-prayer-toolkit'
-      preLoaderRoute: typeof FreePrayerToolkitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/heart-notes': {
-      id: '/heart-notes'
-      path: '/heart-notes'
-      fullPath: '/heart-notes'
-      preLoaderRoute: typeof HeartNotesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/journey': {
-      id: '/journey'
-      path: '/journey'
-      fullPath: '/journey'
-      preLoaderRoute: typeof JourneyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/listen': {
-      id: '/listen'
-      path: '/listen'
-      fullPath: '/listen'
-      preLoaderRoute: typeof ListenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prayer-journaling': {
-      id: '/prayer-journaling'
-      path: '/prayer-journaling'
-      fullPath: '/prayer-journaling'
-      preLoaderRoute: typeof PrayerJournalingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prayers': {
-      id: '/prayers'
-      path: '/prayers'
-      fullPath: '/prayers'
-      preLoaderRoute: typeof PrayersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quiet-time-app': {
-      id: '/quiet-time-app'
-      path: '/quiet-time-app'
-      fullPath: '/quiet-time-app'
-      preLoaderRoute: typeof QuietTimeAppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -744,39 +583,172 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/building-gracenotes-daily': {
-      id: '/blog/building-gracenotes-daily'
-      path: '/blog/building-gracenotes-daily'
-      fullPath: '/blog/building-gracenotes-daily'
-      preLoaderRoute: typeof BlogBuildingGracenotesDailyRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/devotional/': {
-      id: '/devotional/'
-      path: '/devotional'
-      fullPath: '/devotional/'
-      preLoaderRoute: typeof DevotionalIndexRouteImport
+    '/quiet-time-app': {
+      id: '/quiet-time-app'
+      path: '/quiet-time-app'
+      fullPath: '/quiet-time-app'
+      preLoaderRoute: typeof QuietTimeAppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/devotional/$date': {
-      id: '/devotional/$date'
-      path: '/devotional/$date'
-      fullPath: '/devotional/$date'
-      preLoaderRoute: typeof DevotionalDateRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prayers': {
+      id: '/prayers'
+      path: '/prayers'
+      fullPath: '/prayers'
+      preLoaderRoute: typeof PrayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prayer-journaling': {
+      id: '/prayer-journaling'
+      path: '/prayer-journaling'
+      fullPath: '/prayer-journaling'
+      preLoaderRoute: typeof PrayerJournalingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listen': {
+      id: '/listen'
+      path: '/listen'
+      fullPath: '/listen'
+      preLoaderRoute: typeof ListenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journey': {
+      id: '/journey'
+      path: '/journey'
+      fullPath: '/journey'
+      preLoaderRoute: typeof JourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/heart-notes': {
+      id: '/heart-notes'
+      path: '/heart-notes'
+      fullPath: '/heart-notes'
+      preLoaderRoute: typeof HeartNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/free-prayer-toolkit': {
+      id: '/free-prayer-toolkit'
+      path: '/free-prayer-toolkit'
+      fullPath: '/free-prayer-toolkit'
+      preLoaderRoute: typeof FreePrayerToolkitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fasting-guide': {
+      id: '/fasting-guide'
+      path: '/fasting-guide'
+      fullPath: '/fasting-guide'
+      preLoaderRoute: typeof FastingGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faith-habit-tracker': {
+      id: '/faith-habit-tracker'
+      path: '/faith-habit-tracker'
+      fullPath: '/faith-habit-tracker'
+      preLoaderRoute: typeof FaithHabitTrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daily-devotional': {
+      id: '/daily-devotional'
+      path: '/daily-devotional'
+      fullPath: '/daily-devotional'
+      preLoaderRoute: typeof DailyDevotionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/christian-journaling': {
+      id: '/christian-journaling'
+      path: '/christian-journaling'
+      fullPath: '/christian-journaling'
+      preLoaderRoute: typeof ChristianJournalingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/answered-prayer-tracker': {
+      id: '/answered-prayer-tracker'
+      path: '/answered-prayer-tracker'
+      fullPath: '/answered-prayer-tracker'
+      preLoaderRoute: typeof AnsweredPrayerTrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/7-day-prayer-journal': {
+      id: '/7-day-prayer-journal'
+      path: '/7-day-prayer-journal'
+      fullPath: '/7-day-prayer-journal'
+      preLoaderRoute: typeof R7DayPrayerJournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/': {
@@ -786,11 +758,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/library/$slug': {
-      id: '/library/$slug'
-      path: '/library/$slug'
-      fullPath: '/library/$slug'
-      preLoaderRoute: typeof LibrarySlugRouteImport
+    '/devotional/': {
+      id: '/devotional/'
+      path: '/devotional'
+      fullPath: '/devotional/'
+      preLoaderRoute: typeof DevotionalIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/building-gracenotes-daily': {
@@ -800,11 +772,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryBuildingGracenotesDailyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/risc/receiver': {
-      id: '/api/risc/receiver'
-      path: '/api/risc/receiver'
-      fullPath: '/api/risc/receiver'
-      preLoaderRoute: typeof ApiRiscReceiverRouteImport
+    '/library/$slug': {
+      id: '/library/$slug'
+      path: '/library/$slug'
+      fullPath: '/library/$slug'
+      preLoaderRoute: typeof LibrarySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devotional/$date': {
+      id: '/devotional/$date'
+      path: '/devotional/$date'
+      fullPath: '/devotional/$date'
+      preLoaderRoute: typeof DevotionalDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/building-gracenotes-daily': {
+      id: '/blog/building-gracenotes-daily'
+      path: '/blog/building-gracenotes-daily'
+      fullPath: '/blog/building-gracenotes-daily'
+      preLoaderRoute: typeof BlogBuildingGracenotesDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/devotional/': {
@@ -821,25 +814,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryDevotionalDateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/devotional-cover/$date': {
-      id: '/api/public/devotional-cover/$date'
-      path: '/api/public/devotional-cover/$date'
-      fullPath: '/api/public/devotional-cover/$date'
-      preLoaderRoute: typeof ApiPublicDevotionalCoverDateRouteImport
+    '/api/risc/receiver': {
+      id: '/api/risc/receiver'
+      path: '/api/risc/receiver'
+      fullPath: '/api/risc/receiver'
+      preLoaderRoute: typeof ApiRiscReceiverRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/share-card/$key': {
-      id: '/api/public/share-card/$key'
-      path: '/api/public/share-card/$key'
-      fullPath: '/api/public/share-card/$key'
-      preLoaderRoute: typeof ApiPublicShareCardKeyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/webhook': {
@@ -849,11 +835,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/share-card/$key': {
+      id: '/api/public/share-card/$key'
+      path: '/api/public/share-card/$key'
+      fullPath: '/api/public/share-card/$key'
+      preLoaderRoute: typeof ApiPublicShareCardKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/devotional-cover/$date': {
+      id: '/api/public/devotional-cover/$date'
+      path: '/api/public/devotional-cover/$date'
+      fullPath: '/api/public/devotional-cover/$date'
+      preLoaderRoute: typeof ApiPublicDevotionalCoverDateRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
