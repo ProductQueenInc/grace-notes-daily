@@ -12,9 +12,10 @@ const EVENT = {
 } as const
 
 function adminClient() {
-  const url = process.env.VITE_SUPABASE_URL || ''
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  if (!url || !key) throw new Error('Missing Supabase env vars')
+  // Hardcoded to TKOEBO — where auth users live.
+  const url = 'https://tkoebogweygaabndrsvl.supabase.co'
+  const key = process.env.TKOEBO_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  if (!key) throw new Error('Missing TKOEBO_SERVICE_ROLE_KEY')
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
