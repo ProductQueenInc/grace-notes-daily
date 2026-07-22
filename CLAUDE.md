@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-07-05**.
+Last updated: **2026-07-20**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -292,6 +292,33 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-07-20 — Cover image prompt: human-emotion centered, diverse demographic rotation; sitemap + bucket fixes
+
+Three changes shipped this session:
+
+**1. Sitemap: 7 Notes & Letters articles added** (`public/sitemap.xml`). These were missing entirely despite being live and crawlable at `/library/<slug>`. Sitemap now has 25 entries. After the next Lovable publish, resubmit the sitemap in Google Search Console to request indexing.
+
+**2. `devotional-covers` Supabase bucket created.** The bucket was missing from production storage despite CLAUDE.md claiming it existed. Created via SQL insert (`public: false`, 5MB limit). The proxy route (`/api/public/devotional-cover/$date.ts`) will activate on the next Lovable publish; run the backfill after that.
+
+**3. Cover image prompt completely rewritten** — both `src/lib/devotional-cover.server.ts` and `supabase/functions/generate-daily-devotional/index.ts` updated in sync (§5 rule).
+
+- **Old:** nature-landscape only, human figures strictly forbidden.
+- **New:** human-emotion centered. One specific person per devotional date, drawn from a 10-entry `SUBJECT_ROTATION` array cycling deterministically by date so no demographic becomes the default. Subjects include: Black woman (30s), white man (late 40s), South Asian woman (mid-30s), Latina woman (late 20s), East Asian man (early 50s), Middle Eastern woman (early 40s), white woman (late 30s), mixed-race man (late 40s), Black man (early 40s), Latina woman (early 50s).
+- **Audience brief baked in:** middle-income professionals 25–50, modern environments (offices, apartments, decent hospitals, coffee shops, cars, city parks). Not aspirational luxury, not under-resourced.
+- **Photographic style:** 35mm film / cinematic documentary still, muted palette, natural light, candid — not stock photo. Subtle sage/forest green from environment or color grade.
+- **`THEME_CONTEXT` map:** each of the 8 devotional themes (hope, peace, grief & comfort, gratitude, courage, rest, purpose, grief) maps to a specific setting and emotional posture — steers the AI without prescribing literally.
+- **New signature:** `buildCoverPrompt(theme, title, takeaway, dateStr)` — `dateStr` is used for deterministic rotation index. Both call sites updated (`params.date` in server.ts; `date` in the edge function's `generateAndStoreCover`).
+- `tsc --noEmit` clean for changed files (pre-existing posthog-js error unrelated).
+
+### 2026-07-14 — Daily chat: truncated replies now auto-continue instead of cutting off mid-sentence
+
+Cindy reported the daily GraceNote chat sometimes cut a reply off mid-sentence, only completing it if she typed "continue." Root cause: `supabase/functions/chat-reply/index.ts` capped every reply at `max_tokens: 250` with no handling for Claude's `stop_reason: "max_tokens"` — when a reply ran long, the stream just stopped where the cap hit.
+
+- **Raised the per-reply cap** from 250 to 400 tokens (`CHAT_MAX_TOKENS`), so cutoffs should be rarer to begin with.
+- **Added transparent auto-continue** (owner decisions this session): the streaming loop now checks `stop_reason` after each Claude call. If it's `max_tokens`, the partial reply-so-far is fed back in as an assistant-role "prefill" message and Claude is asked again, continuing from the exact cutoff point (no repeats, no restart) — up to `MAX_AUTO_CONTINUES = 2` times per reply before giving up and sending what's there. Because this all happens inside the same SSE stream the edge function already returns, the client (`src/hooks/use-daily-chat.ts`) needed **no changes** — the chat bubble just keeps growing as one continuous message, with no visible pause or second network round-trip from the browser's perspective.
+- Each auto-continue and any still-truncated-after-retries case is logged via `console.warn` (visible in `get_logs` for `edge-function`) so we can see in practice how often this actually fires.
+- **Deployed to Supabase** (`chat-reply`, version 7). No schema, route, or client-side changes.
 
 ### 2026-07-05 (PM12) — Stage 3 progress: owner decisions locked, PostHog mirror shipped, Lovable adapter verified
 

@@ -18,7 +18,6 @@ Additional features:
 - **Prayer Journal** — A private space to write, track, and revisit prayers. Users can mark prayers as answered and write thanksgiving notes.
 - **Habit Tracker (Daily Rhythms)** — Tracks daily completion of the three core practices and maintains a running streak with copper, silver, and gold day ratings.
 - **Journey Archive** — A searchable archive of past devotionals, grace notes, prayers, and heart notes.
-- **Listen** — Worship, prayer, and teaching audio curated for the user's faith journey.
 
 ## Who this is for
 

@@ -250,39 +250,87 @@ Reply with one word only.`,
   // Increment message count atomically
   await supabase.rpc('increment_session_message_count', { p_session_id: session_id })
 
+  // Max output tokens per Claude call. If a reply hits this ceiling mid-sentence,
+  // Claude reports stop_reason "max_tokens" and we transparently continue the
+  // same message (see MAX_AUTO_CONTINUES below) rather than leaving it cut off.
+  const CHAT_MAX_TOKENS = 400
+  // How many times we'll ask Claude to keep going on a single reply that keeps
+  // hitting the token ceiling, before giving up and sending what we have.
+  const MAX_AUTO_CONTINUES = 2
+
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
+      let fullText = ''
       try {
-        const stream = anthropic.messages.stream({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 250,
-          system: CHAT_REPLY_PROMPT(
-            safeSegment,
-            safePosture,
-            safeGraceNote,
-            safeVerseText,
-            safeVerseRef,
-            safeMode,
-            isMild,
-            userTurnCount
-          ),
+        // currentMessages grows on each auto-continue: we append the partial
+        // assistant reply so far as an assistant-role "prefill" message, which
+        // tells Claude to keep writing from exactly where it left off instead
+        // of starting over or repeating itself.
+        const baseMessages: { role: 'user' | 'assistant'; content: string }[] = [
+          ...safeHistory,
+          { role: 'user', content: safeMessage },
+        ]
+        let currentMessages: { role: 'user' | 'assistant'; content: string }[] = baseMessages
+        let continues = 0
 
-          messages: [
-            ...safeHistory,
-            { role: 'user', content: safeMessage },
-          ],
-        })
+        while (true) {
+          const stream = anthropic.messages.stream({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: CHAT_MAX_TOKENS,
+            system: CHAT_REPLY_PROMPT(
+              safeSegment,
+              safePosture,
+              safeGraceNote,
+              safeVerseText,
+              safeVerseRef,
+              safeMode,
+              isMild,
+              userTurnCount
+            ),
+            messages: currentMessages,
+          })
 
-        for await (const chunk of stream) {
-          if (
-            chunk.type === 'content_block_delta' &&
-            chunk.delta.type === 'text_delta'
-          ) {
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`)
+          for await (const chunk of stream) {
+            if (
+              chunk.type === 'content_block_delta' &&
+              chunk.delta.type === 'text_delta'
+            ) {
+              fullText += chunk.delta.text
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`)
+              )
+            }
+          }
+
+          const finalMessage = await stream.finalMessage()
+          const stopReason = finalMessage.stop_reason
+
+          if (stopReason === 'max_tokens' && continues < MAX_AUTO_CONTINUES) {
+            continues++
+            // Replace (don't append) the assistant prefill each retry — fullText
+            // already contains everything streamed so far, so appending would
+            // produce two consecutive assistant messages and Anthropic would
+            // reject the next call (roles must strictly alternate).
+            currentMessages = [
+              ...baseMessages,
+              { role: 'assistant', content: fullText },
+            ]
+            console.warn(
+              `chat-reply: auto-continuing truncated reply (attempt ${continues}) for session ${session_id}`
+            )
+            continue
+          }
+
+
+          if (stopReason === 'max_tokens') {
+            // Hit the cap on every attempt including the last allowed retry —
+            // log it so we can see how often this actually happens in practice.
+            console.warn(
+              `chat-reply: reply still truncated after ${MAX_AUTO_CONTINUES} auto-continues for session ${session_id}`
             )
           }
+          break
         }
 
         controller.enqueue(encoder.encode('data: [DONE]\n\n'))

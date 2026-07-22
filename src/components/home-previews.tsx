@@ -1,5 +1,4 @@
 import graceNotesPreview from "@/assets/home-previews/grace-notes-home.svg.asset.json";
-import listenPreview from "@/assets/home-previews/listen-home.svg.asset.json";
 import dailyRhythmsPreview from "@/assets/home-previews/daily-rhythms-home.svg.asset.json";
 import heartNotesPreview from "@/assets/home-previews/heart-notes-home.svg.asset.json";
 import prayerPreview from "@/assets/home-previews/prayer-home.svg.asset.json";
@@ -23,11 +22,11 @@ const previewRows: PreviewItem[][] = [
       alt: "GraceNotes Daily grace note mockup on a green leaf background",
     },
     {
-      title: "Listen",
-      eyebrow: "Music and prayer",
-      description: "Worship and reflective audio in a calm, uncluttered listening space.",
-      imageUrl: listenPreview.url,
-      alt: "GraceNotes Daily listen player mockup on a green leaf background",
+      title: "Heart Notes",
+      eyebrow: "Daily journaling",
+      description: "A gentle place to pour out what is on your heart without pressure.",
+      imageUrl: heartNotesPreview.url,
+      alt: "GraceNotes Daily heart notes mockup on a warm desk background",
     },
     {
       title: "Daily Rhythms",
@@ -38,13 +37,6 @@ const previewRows: PreviewItem[][] = [
     },
   ],
   [
-    {
-      title: "Heart Notes",
-      eyebrow: "Daily journaling",
-      description: "A gentle place to pour out what is on your heart without pressure.",
-      imageUrl: heartNotesPreview.url,
-      alt: "GraceNotes Daily heart notes mockup on a warm desk background",
-    },
     {
       title: "Prayer Tracker",
       eyebrow: "Active and answered",
@@ -92,6 +84,10 @@ function PreviewCard({ item }: { item: PreviewItem }) {
 }
 
 function PreviewRow({ items, mobileLabel }: { items: PreviewItem[]; mobileLabel: string }) {
+  const desktopGridCols =
+    items.length === 2
+      ? "sm:grid-cols-2 sm:max-w-3xl sm:mx-auto"
+      : "sm:grid-cols-3";
   return (
     <>
       <div className="sm:hidden">
@@ -109,7 +105,7 @@ function PreviewRow({ items, mobileLabel }: { items: PreviewItem[]; mobileLabel:
         </div>
       </div>
 
-      <div className="hidden sm:grid grid-cols-3 gap-5 lg:gap-6">
+      <div className={`hidden sm:grid ${desktopGridCols} gap-5 lg:gap-6`}>
         {items.map((item) => (
           <PreviewCard key={item.title} item={item} />
         ))}

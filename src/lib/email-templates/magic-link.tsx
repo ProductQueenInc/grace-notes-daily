@@ -11,7 +11,7 @@ interface MagicLinkEmailProps {
 }
 
 const MEDALLION_URL =
-  'https://jtjizrchmmmvphkndmhs.supabase.co/storage/v1/object/public/email-assets/dove-medallion.png'
+  'https://tkoebogweygaabndrsvl.supabase.co/storage/v1/object/public/email-assets/dove-medallion.png'
 
 const headingFont = 'Georgia, "Times New Roman", serif'
 const bodyFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'

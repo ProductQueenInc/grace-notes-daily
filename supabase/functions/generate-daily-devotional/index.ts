@@ -142,17 +142,91 @@ function coverPublicUrl(date: string): string {
   return `${SITE_BASE_URL}/api/public/devotional-cover/${date}.png`
 }
 
-function buildCoverPrompt(theme: string, title: string, takeaway: string): string {
-  return `A reverent nature photograph that accompanies a Christian devotional titled "${title}" on the theme of ${theme}.
+// ── Demographic rotation (synced with src/lib/devotional-cover.server.ts) ──
+// If you change this list, update the canonical copy in server.ts too.
+const SUBJECT_ROTATION = [
+  "a Black woman in her early 30s",
+  "a white man in his late 40s",
+  "a South Asian woman in her mid-30s",
+  "a Latina woman in her late 20s",
+  "an East Asian man in his early 50s",
+  "a Middle Eastern woman in her early 40s",
+  "a white woman in her late 30s",
+  "a mixed-race man in his late 40s",
+  "a Black man in his early 40s",
+  "a Latina woman in her early 50s",
+]
 
-The image should make the viewer feel something aligned with the theme. Use the takeaway only for emotional tone, NOT for literal depiction:
-"${takeaway}"
+const THEME_CONTEXT: Record<string, { setting: string; moment: string }> = {
+  hope: {
+    setting: "a modern kitchen, office window, or city park — morning light, the start of something",
+    moment: "quietly open to something they cannot quite name yet",
+  },
+  peace: {
+    setting: "a private interior — parked car, apartment living room, corner of a coffee shop",
+    moment: "still. not needing to fix anything right now",
+  },
+  "grief & comfort": {
+    setting: "a private space — parked car after arriving home, living room at night, clean modern hospital room, empty office after hours",
+    moment: "sitting with something that cannot be solved. not crying, or just finished crying",
+  },
+  grief: {
+    setting: "a private space — parked car after arriving home, living room at night, clean modern hospital room",
+    moment: "sitting with something that cannot be solved. not crying, or just finished crying",
+  },
+  gratitude: {
+    setting: "a domestic or quiet social moment — kitchen with morning light, table after dinner, a window with a view",
+    moment: "quietly aware of something good that almost went unnoticed",
+  },
+  courage: {
+    setting: "a threshold — hallway outside an office door, parking lot before walking in, desk before making a difficult call",
+    moment: "about to do the hard thing. still deciding, but leaning toward yes",
+  },
+  rest: {
+    setting: "a quiet interior — bedroom with morning light, couch at the end of a long week, coffee shop with no laptop open",
+    moment: "finally allowed to stop. the exhale after a long hold",
+  },
+  purpose: {
+    setting: "a professional or creative space — desk, modern office, coffee shop with an open notebook",
+    moment: "seeing their work with new eyes. not burned out — something just became clear",
+  },
+}
 
-STYLE: cinematic, painterly natural light, quiet, atmospheric, contemplative. Wide landscape 16:9 orientation. Subjects that stir feeling - a stormy sky for grief, a wide-open calm field for rest, dawn light through mist for hope, a lantern-lit path at night for courage, dew on grass at first light for gratitude, still water for peace, a single tree standing against wind for purpose.
+const DEFAULT_CONTEXT = {
+  setting: "a modern everyday space — office, apartment, coffee shop, or city park",
+  moment: "in a quiet, honest moment with themselves",
+}
 
-ALLOWED: forests, meadows, mountains, valleys, still water, rivers, oceans, mist, fog, dawn skies, night skies, storms, rain, snow, wildflowers, trees, plants, leaves, moss, stone, open fields, distant paths, gardens.
+function dateIndex(dateStr: string): number {
+  return parseInt(dateStr.replace(/-/g, ""), 10)
+}
 
-STRICTLY FORBIDDEN: any human figure or body part (hands, silhouettes, shadows of people), any text or lettering or watermarks, any religious symbols (crosses, doves, chalices, angels, halos), any brand logos, farmed animals or slaughter imagery, weapons, alcohol, cigarettes, vehicles, buildings (except a distant fence, footbridge, or dirt path at most), any commercial or man-made imagery. Do not draw a cross out of tree branches or clouds.`
+function buildCoverPrompt(theme: string, title: string, takeaway: string, dateStr: string): string {
+  const subject = SUBJECT_ROTATION[dateIndex(dateStr) % SUBJECT_ROTATION.length]
+  const ctx = THEME_CONTEXT[theme.toLowerCase()] ?? DEFAULT_CONTEXT
+
+  return `Generate a photographic cover image for a Christian devotional article.
+
+DEVOTIONAL TITLE: "${title}"
+EMOTIONAL CORE (use for tone only — do not depict literally): "${takeaway}"
+
+SUBJECT: ${subject}, ${ctx.setting}.
+
+This person is ${ctx.moment}. The specific emotional truth of this devotional — based on the title above — should be visible in their face, their posture, or their stillness. Not a posed expression. A real moment you were not supposed to see.
+
+AUDIENCE: Middle-income professionals aged 25–50. Show environments they actually live in — modern offices, clean apartments, decent hospitals, city parks, cars, kitchens, coffee shops, airport lounges. Not aspirational luxury. Not under-resourced or visibly underfunded settings.
+
+PHOTOGRAPHIC STYLE:
+- 35mm film photograph or cinematic documentary still
+- Muted, desaturated palette
+- Subtle sage or forest green in the environment — plants, window light, curtains, or a light color grade. Present but not dominant.
+- Natural light only (morning, golden hour, overcast window light, lamp)
+- Candid — not posed, not smiling at camera, not stock photo aesthetics
+- One person; occasionally two in quiet proximity
+
+DO NOT INCLUDE: text of any kind, watermarks, crosses or religious symbols used decoratively (halos, angels, doves as icons), brand logos, stock photo smile-at-camera poses, visual markers of poverty or neglect, overtly staged or editorial compositions.
+
+The image should make someone scrolling past pause — not because it is dramatic, but because it is honest and specific.`
 }
 
 function base64ToBytes(b64: string): Uint8Array {
@@ -178,7 +252,7 @@ async function generateAndStoreCover(
       headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': LOVABLE_API_KEY },
       body: JSON.stringify({
         model: IMAGE_MODEL,
-        messages: [{ role: 'user', content: buildCoverPrompt(theme, title, takeaway) }],
+        messages: [{ role: 'user', content: buildCoverPrompt(theme, title, takeaway, date) }],
         modalities: ['image', 'text'],
       }),
     })

@@ -172,22 +172,22 @@ function LibraryHub() {
       <NatureBackground />
 
       {/* Sticky page header — CTA stays pinned top-right as user scrolls. */}
-      <header className="sticky top-0 z-30 px-6 py-4 flex items-center justify-between text-white backdrop-blur-md bg-grace-deep/30">
-        <Link to="/" className="flex items-center gap-2">
-          <DoveMark variant="medallion" className="w-9 h-9" />
-          <span className="font-display text-xl sm:text-2xl">GraceNotes Daily</span>
+      <header className="sticky top-0 z-30 px-5 sm:px-6 py-5 sm:py-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-white backdrop-blur-md bg-grace-deep/30">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <DoveMark variant="medallion" className="w-9 h-9 shrink-0" />
+          <span className="font-display text-lg sm:text-2xl truncate whitespace-nowrap">GraceNotes Daily</span>
         </Link>
         {isLoggedIn ? (
           <BackHomeButton />
         ) : (
-          <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
+          <Link to="/signup" className="shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace shadow">
             Come on in
           </Link>
         )}
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-8 pb-16 sm:pt-10 sm:pb-10 relative z-10 text-center">
+      <section className="px-6 pt-10 sm:pt-14 pb-12 sm:pb-10 relative z-10 text-center">
         <p className="text-gold uppercase tracking-widest text-xs font-semibold mb-3">
           Notes &amp; Letters
         </p>
@@ -199,57 +199,115 @@ function LibraryHub() {
         </p>
       </section>
 
-      {/* Today's devotional — featured hero. New: devotionals now live in the
-          library, and today's reflection earns the top slot. Falls back
-          silently if the day-ahead cron hasn't landed a row yet. */}
+
+      {/* Today's devotional — featured hero (desktop) + swipe carousel (mobile). */}
       {todayDevotional && isAll && (
-        <section className="px-6 pb-10 sm:pb-12 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <Link
-              to="/library/devotional/$date"
-              params={{ date: todayDevotional.date }}
-              className="group block glass-parchment rounded-3xl overflow-hidden transition hover:shadow-lg"
-            >
-              <div className="grid gap-6 md:gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] items-stretch">
-                <div className="p-6 sm:p-8 md:p-10 md:pr-0 flex flex-col">
-                  <div className="flex items-center gap-2 text-gold text-[11px] uppercase tracking-[0.2em] mb-3">
-                    <Icon icon={BookOpen} size="sm" tone="inherit" /> Today's devotional
+        <>
+          {/* Mobile: horizontal snap carousel of recent devotionals */}
+          <section className="sm:hidden pb-8 relative z-10">
+            <div className="px-6 mb-3 flex items-center gap-2 text-gold text-[11px] uppercase tracking-[0.2em]">
+              <Icon icon={BookOpen} size="sm" tone="inherit" /> Daily devotionals
+            </div>
+            <div className="flex gap-3 overflow-x-auto px-6 pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {recentDevotionals.slice(0, 7).map((d: DevotionalListItem) => (
+                <Link
+                  key={d.date}
+                  to="/library/devotional/$date"
+                  params={{ date: d.date }}
+                  className="group snap-center shrink-0 w-[85vw] max-w-[360px] glass-parchment rounded-3xl overflow-hidden flex flex-col transition hover:shadow-lg"
+                >
+                  <div className="aspect-[16/10] overflow-hidden bg-grace-haze/40 relative">
+                    {d.coverImageUrl ? (
+                      <img
+                        src={d.coverImageUrl}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-grace-haze/40 to-grace/10">
+                        <DoveMark variant="medallion" className="w-12 h-12 opacity-60" />
+                      </div>
+                    )}
                   </div>
-                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-grace leading-tight mb-3 group-hover:text-grace-deep transition">
-                    {todayDevotional.title}
-                  </h2>
-                  <p className="text-grace/70 text-sm font-semibold tracking-wide mb-3">
-                    {todayDevotional.verseRef}
-                  </p>
-                  {todayDevotional.takeaway && (
-                    <p className="text-foreground/75 leading-relaxed max-w-[64ch] mb-4 line-clamp-3 sm:line-clamp-none">
-                      {todayDevotional.takeaway}
-                    </p>
-                  )}
-                  <span className="inline-flex items-center gap-1.5 text-gold font-semibold text-sm mt-auto">
-                    Read today's devotional
-                    <ArrowRight className="w-4 h-4 transition group-hover:translate-x-0.5" />
-                  </span>
-                </div>
-                <div className="relative aspect-[16/10] md:aspect-auto md:min-h-full overflow-hidden bg-grace-haze/40 order-first md:order-last">
-                  {todayDevotional.coverImageUrl ? (
-                    <img
-                      src={todayDevotional.coverImageUrl}
-                      alt=""
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-grace-haze/40 to-grace/10">
-                      <DoveMark variant="medallion" className="w-14 h-14 opacity-60" />
+                  <div className="p-5 flex flex-col gap-1.5 flex-1">
+                    <span className="text-grace/60 text-[11px] uppercase tracking-wider tabular-nums">
+                      {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
+                    </span>
+                    <h2 className="font-display text-xl text-grace leading-snug line-clamp-2">
+                      {d.title}
+                    </h2>
+                    <p className="text-grace/70 text-xs font-semibold tracking-wide">{d.verseRef}</p>
+                    {d.takeaway && (
+                      <p className="text-foreground/75 text-sm leading-relaxed line-clamp-3 mt-1">
+                        {d.takeaway}
+                      </p>
+                    )}
+                    <span className="inline-flex items-center gap-1.5 text-gold font-semibold text-sm mt-auto pt-3">
+                      Read
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* Desktop: single prominent featured card */}
+          <section className="hidden sm:block px-6 pb-10 sm:pb-12 relative z-10">
+            <div className="max-w-6xl mx-auto">
+              <Link
+                to="/library/devotional/$date"
+                params={{ date: todayDevotional.date }}
+                className="group block glass-parchment rounded-3xl overflow-hidden transition hover:shadow-lg"
+              >
+                <div className="grid gap-6 md:gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] items-stretch">
+                  <div className="p-6 sm:p-8 md:p-10 md:pr-0 flex flex-col">
+                    <div className="flex items-center gap-2 text-gold text-[11px] uppercase tracking-[0.2em] mb-3">
+                      <Icon icon={BookOpen} size="sm" tone="inherit" /> Today's devotional
                     </div>
-                  )}
+                    <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-grace leading-tight mb-3 group-hover:text-grace-deep transition">
+                      {todayDevotional.title}
+                    </h2>
+                    <p className="text-grace/70 text-sm font-semibold tracking-wide mb-3">
+                      {todayDevotional.verseRef}
+                    </p>
+                    {todayDevotional.takeaway && (
+                      <p className="text-foreground/75 leading-relaxed max-w-[64ch] mb-4 line-clamp-3 sm:line-clamp-none">
+                        {todayDevotional.takeaway}
+                      </p>
+                    )}
+                    <span className="inline-flex items-center gap-1.5 text-gold font-semibold text-sm mt-auto">
+                      Read today's devotional
+                      <ArrowRight className="w-4 h-4 transition group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                  <div className="relative aspect-[16/10] md:aspect-auto md:min-h-full overflow-hidden bg-grace-haze/40 order-first md:order-last">
+                    {todayDevotional.coverImageUrl ? (
+                      <img
+                        src={todayDevotional.coverImageUrl}
+                        alt=""
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-grace-haze/40 to-grace/10">
+                        <DoveMark variant="medallion" className="w-14 h-14 opacity-60" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Link>
-          </div>
-        </section>
+              </Link>
+            </div>
+          </section>
+        </>
       )}
+
 
 
       {/* Foundations teaser — quick numbered list so readers can jump in
@@ -444,7 +502,7 @@ function LibraryHub() {
       {/* Recent devotionals strip — primary entry point to the archive.
           Small horizontal cards, then a warm CTA to the full archive index. */}
       {recentDevotionals.length > 0 && isAll && (
-        <section className="px-6 pb-10 sm:pb-12 pt-2 relative z-10">
+        <section className="hidden sm:block px-6 pb-10 sm:pb-12 pt-2 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
               <div>
@@ -525,7 +583,7 @@ function LibraryHub() {
                 </h2>
               </div>
             </div>
-            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-3">
+            <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-3">
               <GuideCard
                 to="/free-prayer-toolkit"
                 eyebrow="Guide"

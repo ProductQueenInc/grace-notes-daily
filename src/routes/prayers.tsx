@@ -3,9 +3,10 @@ import { AppShell } from "@/components/app-shell";
 import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
+import { DoveMark } from "@/components/dove-mark";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2, Sparkles } from "lucide-react";
+import { HandHeart, CheckCircle2, Clock, Plus, X, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { generousAnsweredConfetti, subtleConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
@@ -41,7 +42,16 @@ function ageInDays(iso: string): number {
 type Filter = "all" | "active" | "answered";
 const PAGE_SIZE = 10;
 
-/** Tiny deterministic shuffle so "Remember When" picks rotate daily, not per load. */
+/** Tiny deterministic shuffle so "Remember When" picks rotate weekly, not per load. */
+function isoWeekKey(d = new Date()): string {
+  // ISO week number: Monday-based, week 1 contains the year's first Thursday.
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((t.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
 function seededShuffle<T>(arr: T[], seed: string): T[] {
   // FNV-1a-ish hash of the seed string.
   let h = 2166136261;
@@ -62,10 +72,6 @@ function seededShuffle<T>(arr: T[], seed: string): T[] {
   return copy;
 }
 
-function localTodayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
 
 function Prayers() {
   const [items, setItems] = useState<Prayer[]>([]);
@@ -85,9 +91,10 @@ function Prayers() {
   const active = items.filter((p) => !p.answeredAt);
   const answered = items.filter((p) => p.answeredAt);
 
-  // Daily-seeded picks for the "Remember When" carousel.
+  // Weekly-seeded picks for the "Remember When" carousel — only shown when
+  // the user has at least 3 answered prayers; refreshes each ISO week.
   const rememberWhen = answered.length >= 3
-    ? seededShuffle(answered, `${user?.id ?? "anon"}:${localTodayISO()}`).slice(0, 3)
+    ? seededShuffle(answered, `${user?.id ?? "anon"}:${isoWeekKey()}`).slice(0, 3)
     : [];
 
   const showRememberWhen = filter === "all" && rememberWhen.length === 3;
@@ -294,13 +301,13 @@ function Prayers() {
 
         {/* Remember When: shows only when filter=All and there are 3+ answered prayers. */}
         {showRememberWhen && (
-          <div className="mb-8">
-            <div className="glass-on-hue rounded-2xl px-5 py-3 mb-3 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold" />
-              <h2 className="font-display text-2xl text-white">Remember When</h2>
-              <span className="ml-auto text-xs text-white/70 italic">Refreshes daily</span>
+          <div className="mb-12">
+            <div className="glass-on-hue rounded-2xl px-4 py-2.5 mb-5 flex items-center gap-2">
+              <DoveMark variant="gold" className="w-5 h-5 shrink-0" alt="" />
+              <h2 className="font-display text-lg sm:text-xl text-white truncate min-w-0">Remember When</h2>
+              <span className="ml-auto shrink-0 text-[11px] text-white/70 italic">Refreshes weekly</span>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-proximity justify-start [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {rememberWhen.map((p) => (
                 <div
                   key={p.id}

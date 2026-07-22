@@ -48,19 +48,21 @@ export function ArticleShell({ article }: ArticleShellProps) {
         }}
       />
 
-      <header className="px-6 py-5 flex items-center justify-between text-white relative z-10">
-        <Link to="/" className="flex items-center gap-2">
-          <DoveMark variant="medallion" className="w-10 h-10" />
-          <span className="font-display text-2xl">GraceNotes Daily</span>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 sm:px-6 py-5 sm:py-6 text-white relative z-10">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <DoveMark variant="medallion" className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" />
+          <span className="font-display text-lg sm:text-2xl truncate whitespace-nowrap">
+            GraceNotes Daily
+          </span>
         </Link>
-        <div className="flex items-center gap-3">
-          <Link to="/library" className="hidden sm:inline text-white/90 hover:text-white text-sm">
+        <div className="flex shrink-0 items-center gap-3">
+          <Link to="/library" className="hidden sm:inline text-white/90 hover:text-white text-sm whitespace-nowrap">
             Notes &amp; Letters
           </Link>
           {isLoggedIn ? (
             <BackHomeButton />
           ) : (
-            <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace">
+            <Link to="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-white text-grace whitespace-nowrap shrink-0">
               Get started
             </Link>
           )}
@@ -68,8 +70,9 @@ export function ArticleShell({ article }: ArticleShellProps) {
       </header>
 
       {/* Hero */}
-      <section className="px-6 pt-8 pb-6 relative z-10 text-center max-w-4xl mx-auto [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
+      <section className="px-6 pt-10 sm:pt-14 pb-6 relative z-10 text-center max-w-4xl mx-auto [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
         <div className="text-sm text-white/95 mb-3 flex items-center justify-center gap-2 flex-wrap font-medium">
+
           <Link to="/library" className="hover:text-gold transition">
             Notes &amp; Letters
           </Link>

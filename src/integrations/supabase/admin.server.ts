@@ -1,11 +1,10 @@
-// Server-side Supabase admin client pointing at the app's real project
-// (tkoebogweygaabndrsvl). The auto-generated client.server.ts reads
-// Lovable Cloud's injected SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY, which
-// point at a different, empty Lovable-provisioned project — so storage
-// buckets and tables silently 404 from the Cloudflare Worker. This wrapper
-// uses the correct URL + TKOEBO_SERVICE_ROLE_KEY secret instead.
+// Server-side Supabase admin client — hardcoded to the TKOEBO GraceNotes
+// backend (tkoebogweygaabndrsvl). All app data (auth users, devotionals,
+// prayers, storage buckets) lives there. Do NOT switch this back to the
+// Lovable Cloud injected env vars.
 //
-// Do NOT import client.server.ts from app code — always use this file.
+// Prefer importing this file from app code rather than client.server.ts,
+// so the "which project?" decision is centralized here.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -13,11 +12,10 @@ const SUPABASE_URL = 'https://tkoebogweygaabndrsvl.supabase.co';
 
 function createAdmin(): SupabaseClient<Database> {
   const key =
-    process.env.TKOEBO_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY;
+    process.env.TKOEBO_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) {
     const msg =
-      'Missing TKOEBO_SERVICE_ROLE_KEY (service role for tkoebogweygaabndrsvl). Set it in Lovable Cloud secrets.';
+      'Missing TKOEBO_SERVICE_ROLE_KEY on the server. Add it via Cloud > Secrets.';
     console.error(`[Supabase admin] ${msg}`);
     throw new Error(msg);
   }

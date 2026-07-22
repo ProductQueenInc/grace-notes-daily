@@ -16,7 +16,7 @@ import { ShareCardModal } from "@/components/share-card-modal";
 import { MilestoneWatcher } from "@/components/milestone-watcher";
 import {
   Send, Flame, BookOpen, MessageCircle, NotebookPen,
-  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag, Share2,
+  ChevronLeft, ChevronRight, Sparkles, Check, Info, Flag, Share2, Eye, EyeOff,
 } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { DoveMark } from "@/components/dove-mark";
@@ -132,9 +132,9 @@ function Home() {
             {/* Today's Grace Note + Daily Message chat */}
             <div id="daily-message" className="glass-on-hue rounded-3xl overflow-hidden">
               <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
-                <div className="flex items-center gap-2 font-semibold text-white min-w-0">
+                <div className="flex items-center gap-2.5 font-semibold text-white min-w-0">
                   <DoveMark variant="medallion" className="w-8 h-8 shrink-0 drop-shadow-sm" alt="" />
-                  <span className="truncate text-[13px] sm:text-[15px]">Today's Grace Note</span>
+                  <span className="truncate text-[15px] sm:text-base">Today's Grace Note</span>
 
                   {/* Info: explains personalization, links to settings, and
                       tucks the report-flag in the bottom-right of the popover. */}
@@ -184,12 +184,18 @@ function Home() {
                     onClick={() => setGraceShareOpen(true)}
                     disabled={!graceNote}
                     aria-label="Share this grace note"
-                    className="text-xs bg-white/10 hover:bg-white/20 text-white p-2 min-h-9 min-w-9 rounded-full flex items-center justify-center disabled:opacity-40"
+                    className="text-sm bg-white/10 hover:bg-white/20 text-white p-2 min-h-9 min-w-9 rounded-full flex items-center justify-center disabled:opacity-40"
                   >
                     <Icon icon={Share2} size="sm" tone="inherit" />
                   </button>
-                  <button onClick={() => setShowVerse((v) => !v)} className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 min-h-9 rounded-full">
-                    {showVerse ? "Hide Verse" : "Show Verse"}
+                  <button
+                    onClick={() => setShowVerse((v) => !v)}
+                    aria-label={showVerse ? "Hide verse" : "Show verse"}
+                    title={showVerse ? "Hide verse" : "Show verse"}
+                    aria-pressed={showVerse}
+                    className="text-sm bg-white/10 hover:bg-white/20 text-white p-2 min-h-9 min-w-9 rounded-full flex items-center justify-center"
+                  >
+                    <Icon icon={showVerse ? EyeOff : Eye} size="sm" tone="inherit" />
                   </button>
                 </div>
               </div>
@@ -329,7 +335,7 @@ function Home() {
         </div>
 
         <p className="text-center text-sm md:text-base text-white/75 italic font-display mt-10 mb-4 flex items-center justify-center gap-2 px-4">
-          <Icon icon={Sparkles} size="sm" className="text-gold shrink-0" />
+          <DoveMark variant="gold" className="w-7 h-7 shrink-0 drop-shadow-md" alt="" />
           <span>{pickDailyPromise()}</span>
         </p>
       </section>

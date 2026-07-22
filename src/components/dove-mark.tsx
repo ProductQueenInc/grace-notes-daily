@@ -1,15 +1,15 @@
-import doveWhite from "@/assets/transparent-white-dove.png";
-import doveGold from "@/assets/transparent-gold-dove.png";
-import doveGreen from "@/assets/transparent-green-dove.png";
+import doveWhiteAsset from "@/assets/dove-white-transparent.svg.asset.json";
+import doveGoldAsset from "@/assets/dove-gold-transparent.svg.asset.json";
+import doveGreenAsset from "@/assets/dove-green-transparent.svg.asset.json";
 import doveGreenRound from "@/assets/round-transparent-green-dove.png";
 import doveMedallion from "@/assets/dove-medallion.png";
 
 type Variant = "white" | "gold" | "green" | "green-round" | "medallion";
 
 const SRC: Record<Variant, string> = {
-  white: doveWhite,
-  gold: doveGold,
-  green: doveGreen,
+  white: doveWhiteAsset.url,
+  gold: doveGoldAsset.url,
+  green: doveGreenAsset.url,
   "green-round": doveGreenRound,
   medallion: doveMedallion,
 };

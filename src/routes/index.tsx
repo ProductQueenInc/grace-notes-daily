@@ -188,7 +188,7 @@ function Landing() {
       <section className="px-6 pt-16 pb-24 md:pt-24 md:pb-32">
         <div className="max-w-3xl mx-auto text-center text-white fade-up">
           <p className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-sm mb-6 border border-white/20">
-            <Sparkles className="w-4 h-4 text-gold" />
+            <DoveMark variant="gold" className="w-10 h-10 -my-1.5 shrink-0 drop-shadow-md" alt="" />
             Your daily space for spiritual growth
           </p>
           <h1 className="font-display text-5xl md:text-7xl leading-[1.05] mb-6 drop-shadow-lg">
@@ -208,8 +208,8 @@ function Landing() {
               {isLoggedIn ? "Open your space →" : "Come on in"}
             </Link>
           </div>
-          <p className="text-xs text-white/70 mt-5 flex items-center justify-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> All entries secure
+          <p className="text-sm text-white/75 mt-5 flex items-center justify-center gap-2">
+            <ShieldCheck className="w-4 h-4" /> All entries secure
           </p>
         </div>
       </section>
@@ -231,8 +231,8 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-6">
           <SectionTitle
             eyebrow="A look inside"
-            title="Six spaces designed to hold your walk with God"
-            subtitle="From listening and daily rhythms to prayer, journaling, and remembrance — each part is built to feel calm, clear, and deeply personal."
+            title="Five spaces designed to hold your walk with God"
+            subtitle="From daily rhythms to prayer, journaling, and remembrance — each part is built to feel calm, clear, and deeply personal."
           />
         </div>
         <div className="mt-12 px-0 sm:px-6">

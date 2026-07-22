@@ -23,6 +23,11 @@ export const Route = createFileRoute("/listen")({
     }
   },
   head: () => ({ meta: [{ title: "Listen - GraceNotes Daily" }] }),
+  beforeLoad: () => {
+    if (!FEATURES.listen) {
+      throw redirect({ to: "/home" });
+    }
+  },
   component: () => <RequireAuth><AppShell><Listen /></AppShell></RequireAuth>,
 });
 

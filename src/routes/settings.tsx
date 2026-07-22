@@ -4,16 +4,18 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
 import { capitalizeFirst } from "@/lib/personalization";
 import { localTodayISO } from "@/lib/today";
+import { getInferredThemes, deleteInferredTheme } from "@/lib/profile-themes.functions";
 import { capture } from "@/lib/analytics";
 import {
   LogOut, Settings as SettingsIcon, Trash2, FileText, ShieldCheck, Info, HelpCircle,
-  Sprout, Wind, Compass as CompassIcon, Anchor,
+  Sprout, Wind, Compass as CompassIcon, Anchor, X as XIcon,
 } from "lucide-react";
 
 // `seasons` is excluded entirely per the taxonomy decision — it never
@@ -58,10 +60,6 @@ const RHYTHMS = [
   { id: "night", label: "Before bed" },
 ] as const;
 
-const SEASONS = [
-  "anxiety", "grief", "joy", "transition", "waiting",
-  "doubt", "burnout", "new beginnings", "loneliness", "gratitude",
-] as const;
 
 function todayISO() {
   return localTodayISO();
@@ -76,12 +74,33 @@ function Settings() {
   const [phase, setPhase] = useState<string>("growth");
   const [voice, setVoice] = useState<string>("gentle");
   const [rhythms, setRhythms] = useState<string[]>([]);
-  const [seasons, setSeasons] = useState<string[]>([]);
   const [translation, setTranslation] = useState<string>("NIV");
   const [saving, setSaving] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+
+  // Inferred themes (populated by the backend classifier)
+  const fetchThemes = useServerFn(getInferredThemes);
+  const deleteTheme = useServerFn(deleteInferredTheme);
+  const themesQuery = useQuery({
+    queryKey: ["inferred-themes", user?.id ?? "anon"],
+    queryFn: () => fetchThemes(),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (theme: string) => deleteTheme({ data: { theme } }),
+    onSuccess: (next, theme) => {
+      queryClient.setQueryData(["inferred-themes", user?.id ?? "anon"], next);
+      queryClient.invalidateQueries({ queryKey: ["daily-grace-note"] });
+      capture("theme_deleted_by_user", { theme });
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : "Could not remove that theme.";
+      toast.error(msg);
+    },
+  });
 
   useEffect(() => {
     if (!profile) return;
@@ -89,7 +108,6 @@ function Settings() {
     setPhase(profile.faith_phase || "growth");
     setVoice(profile.voice || "gentle");
     setRhythms(profile.rhythms || []);
-    setSeasons((profile.seasons || []).map((s) => s.tag));
     setTranslation(profile.translation || "NIV");
   }, [profile]);
 
@@ -101,14 +119,7 @@ function Settings() {
     if (!user || !supabaseConfigured) return toast.error("Sign in first.");
     setSaving(true);
 
-    // Preserve set_at for existing seasons; stamp new ones with today.
-    const existing = new Map((profile?.seasons || []).map((s) => [s.tag, s.set_at]));
     const today = todayISO();
-    const seasonsPayload = seasons.map((tag) => ({
-      tag,
-      set_at: existing.get(tag) || today,
-    }));
-
     const normalizedName = capitalizeFirst(name);
     const changed = changedFields(profile, { name: normalizedName, faith_phase: phase, voice, rhythms, translation });
 
@@ -119,10 +130,11 @@ function Settings() {
         faith_phase: phase,
         voice,
         rhythms,
-        seasons: seasonsPayload,
         translation,
       })
       .eq("id", user.id);
+
+
 
     if (error) {
       setSaving(false);
@@ -227,20 +239,42 @@ function Settings() {
           </div>
 
           <div>
-            <label className="text-sm font-medium block mb-2">What you're carrying right now</label>
-            <p className="text-xs text-foreground/60 mb-2">Pick anything that fits. We use these to shape what your note notices - never to name them back at you.</p>
-            <div className="flex flex-wrap gap-2">
-              {SEASONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSeasons((prev) => toggleIn(prev, s))}
-                  className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${seasons.includes(s) ? "border-grace bg-grace-soft" : "border-transparent bg-white/70"}`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+            <label className="text-sm font-medium block mb-2">Themes shaping your Grace Notes</label>
+            <p className="text-sm text-foreground/65 mb-3">
+              These are drawn from your daily chats. Remove any that don't fit - your next note will shape around what's left.
+            </p>
+            {themesQuery.isLoading ? (
+              <p className="text-sm text-foreground/55 italic">Listening...</p>
+            ) : themesQuery.data && themesQuery.data.themes.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {themesQuery.data.themes.map((t) => {
+                  const isDeleting = deleteMutation.isPending && deleteMutation.variables === t.theme;
+                  return (
+                    <span
+                      key={t.theme}
+                      className={`inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full text-sm border-2 border-transparent bg-grace-soft transition ${isDeleting ? "opacity-50" : ""}`}
+                    >
+                      <span>{t.theme}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${t.theme}`}
+                        disabled={isDeleting}
+                        onClick={() => deleteMutation.mutate(t.theme)}
+                        className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-grace/15 transition"
+                      >
+                        <XIcon className="w-3.5 h-3.5 text-grace" strokeWidth={2} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-foreground/60 italic">
+                Nothing yet - as you chat each day, gentle themes will show up here.
+              </p>
+            )}
           </div>
+
 
           <div>
             <label className="text-sm font-medium block mb-2">Bible translation</label>

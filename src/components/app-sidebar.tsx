@@ -12,6 +12,7 @@ import {
   Flame,
   ChevronUp,
 } from "lucide-react";
+import { FEATURES } from "@/lib/feature-flags";
 import {
   Sidebar,
   SidebarContent,
@@ -29,7 +30,6 @@ import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useStreak } from "@/hooks/use-streak";
-import { FEATURES } from "@/lib/feature-flags";
 import doveLogo from "@/assets/dove-medallion.png";
 import {
   DropdownMenu,

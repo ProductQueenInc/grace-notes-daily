@@ -1,135 +1,101 @@
-## Goal
 
-Unify the four share triggers under one coherent model:
+# Pre-publish: Magic Link, Recovery & TKOEBO Restoration
 
-- **Devotional** → link share (`navigator.share({ title, url })`). Public page carries the meaning.
-- **Grace-note, answered-prayer, milestone** → **image file share** with **auto-copy on Share tap**. Instagram / TikTok / WhatsApp / iMessage all appear as targets. Caption lands on clipboard the moment Share is tapped; user pastes in destination app.
+This is a walkthrough + checklist, not a code change. Nothing here modifies files — it's what you (or I) need to verify before you hit Publish.
 
-Also folds in the earlier asks: reframe modal copy to center the user's own walk; shrink devotional Share button to a subtle ghost icon.
+---
 
-## 1. Share modal — dual mode (`src/components/share-card-modal.tsx`)
+## 1. Session restore on return (what happens after the user clicks the link)
 
-Mode derived from context:
+1. User clicks the magic link → lands on TKOEBO's `/auth/v1/verify` → GoTrue redirects to `src/routes/auth/callback.tsx` with a code.
+2. `auth/callback.tsx` calls `supabase.auth.exchangeCodeForSession(code)` against **TKOEBO** (the browser client is now hardcoded there).
+3. Supabase-js writes the session into `localStorage` under key `sb-tkoebogweygaabndrsvl-auth-token`. Any old Lovable Cloud key (`sb-jtjizrchmmmvphkndmhs-auth-token`) is dead weight — harmless, but users signed in via the old project will appear signed out and must sign in again.
+4. `src/hooks/use-auth.ts` fires `onAuthStateChange`, bootstraps the profile row, and PostHog `identify` runs.
+5. Server functions using `requireSupabaseAuth` receive the TKOEBO bearer via `src/start.ts` middleware and validate it against TKOEBO's JWKS.
 
-```ts
-const mode = ctx.type === "devotional" ? "link" : "image";
-```
+**Risk:** any leftover code path still pointing at Lovable Cloud would mint a session on the wrong project. The hardcoding sweep from the last turn addresses this; see §3.
 
-### Capability probe (mount-time, SSR-safe)
+---
 
-```ts
-const [canShareFiles, setCanShareFiles] = useState(false);
-useEffect(() => {
-  if (typeof navigator === "undefined" || !navigator.canShare) return;
-  const probe = new File([""], "probe.png", { type: "image/png" });
-  try { setCanShareFiles(navigator.canShare({ files: [probe] })); } catch {}
-}, []);
-```
+## 2. Account recovery (password reset + email change use the same pipe)
 
-### Link mode (devotional only)
+All three flows — magic link login, password reset, email change — run through the same auth email hook:
 
-- No caption block. No copy buttons.
-- Single primary button: **Share** → `navigator.share({ title: "GraceNotes Daily", url: data.deep_link })`.
-- Fallback if `navigator.share` unsupported: label swaps to **Copy link** and copies `data.deep_link`.
-- Preserves CLAUDE.md §0 rule #5 invariant (no `text` alongside `url`).
+- **Trigger:** TKOEBO GoTrue → POST to `https://<your-app>/lovable/email/auth/webhook` with an HMAC signature.
+- **Render:** the webhook picks the template (`magic-link.tsx`, `recovery.tsx`, `email-change.tsx`, `signup.tsx`, etc.) and enqueues a rendered email.
+- **Send:** the email queue processor + pg_cron on **Lovable Cloud** dequeue and hand off to Mailgun.
+- **Click:** verify URL → `auth/callback.tsx` → session restore (§1). Password reset additionally requires the `/reset-password` route to exist as a public route that calls `updateUser({ password })`.
 
-### Image mode (grace-note, answered-prayer, milestone)
+**Key point:** the sender infrastructure (queue, cron, Mailgun connector) still lives on Lovable Cloud even though auth itself lives on TKOEBO. That is fine — GoTrue on TKOEBO calls out to the app URL; the app then uses whichever queue is wired up. Do **not** try to move the queue right now.
 
-Layout:
+---
 
-```
-[ 4:5 image preview ]
+## 3. Asset & config restoration to TKOEBO (the actual pre-publish checklist)
 
-Your caption  ·  tap to copy    📋
-[ tappable card containing the caption text ]
+This is the part that will break silently in production if any item is missed.
 
-[  ✧  Share  ]        ← primary, gradient-gold
-Caption's already copied — paste when you get there.
+### A. TKOEBO auth-hook config (blocking)
+- [ ] TKOEBO dashboard → Auth → Hooks → **Send Email Hook** is **enabled**.
+- [ ] Endpoint URL = `https://www.gracenotesdaily.com/lovable/email/auth/webhook` (your live domain, not preview).
+- [ ] Hook secret matches the `EMAIL_HOOK_SECRET` set on the app runtime.
+- [ ] If disabled, TKOEBO falls back to unbranded default emails (still works, but wrong sender + no branding).
 
-Maybe later
-```
+### B. TKOEBO edge function secrets (blocking for covers, not for auth)
+- [ ] `GEMINI_API_KEY` present (cover generation).
+- [ ] `LOVABLE_API_KEY` present (only if anything on TKOEBO still calls the gateway — covers no longer do, so optional).
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` auto-injected by Supabase — verify it's not blank.
 
-**One button. Just "Share".** No "Copy link". No "Share image" vs "Share link". The user doesn't need to think about payload types.
+### C. TKOEBO storage buckets (blocking for email images)
+- [ ] `email-assets` bucket exists, **public**, contains `dove-medallion.png`. The magic-link template now points at `https://tkoebogweygaabndrsvl.supabase.co/storage/v1/object/public/email-assets/dove-medallion.png` — if that 404s, every branded auth email arrives with a broken dove.
+- [ ] `devotional-covers` bucket exists (private) — covers are served via the app proxy route.
+- [ ] `listen-audio` bucket exists (private) — signed URLs.
 
-Behavior:
+### D. TKOEBO database (blocking)
+- [ ] `profiles`, `daily_grace_notes`, `daily_devotionals`, `verses`, `crisis_lines`, `chat_sessions`, `chat_flags`, `user_verse_log`, `heart_notes`, `prayers`, `thanksgivings`, `daily_habits`, `daily_content`, `daily_messages`, `tracks`, `app_user_connections` (if used), `email_*` tables all present with correct RLS + GRANTs.
+- [ ] pg_cron jobs `generate-daily-grace-notes` and `generate-daily-devotional` scheduled and using TKOEBO's vault-stored `email_queue_service_role_key`.
+- [ ] `verses` and `crisis_lines` seeded.
 
-- **Caption block is the copy affordance.** Tapping the entire card runs `navigator.clipboard.writeText(caption)` + toast "Caption copied." Small clipboard icon (top-right of the card) as a visual hint. No separate "Copy caption" button — the block IS the button.
-- **Share button — auto-copy first, then share.** On tap:
-  1. `await navigator.clipboard.writeText(caption)` — silently.
-  2. Fetch `image_url` → wrap as `File` (spinner state on button while fetching, ~200-500KB, same-origin, immutable-cached).
-  3. `await navigator.share({ files: [file], title: "GraceNotes Daily" })` — no `url`, no `text`.
-  4. On the FIRST successful share of the session, toast: *"Caption copied — paste it when you get there."* Persist `gn:share:paste-hint-seen` in localStorage so it appears once, not every share.
-  5. The helper line under the Share button — *"Caption's already copied — paste when you get there."* — is always visible in image mode, so users learn the pattern without being nagged by toasts.
-- **Clipboard write failures are silent.** In-app browsers (Instagram's own, Facebook's, LinkedIn's) can block programmatic clipboard writes. If it throws, we fall through to the share — the caption block is still tappable for manual copy.
-- **Desktop / no canShareFiles:** primary button swaps to **Download image** (anchor with `download` attribute pointing at `image_url`, filename per §2 below). Caption block stays as-is. No Copy link — per your ask.
-- **Errors:**
-  - Image fetch fails → toast "Couldn't prepare the image" + swap primary to Download.
-  - `navigator.share` cancel (AbortError) → silent.
-  - `navigator.share` other error → toast "Couldn't open share sheet" + reveal Download.
+### E. Lovable Cloud project (email queue still lives here)
+- [ ] `EMAIL_HOOK_SECRET` matches the value configured in TKOEBO's auth hook.
+- [ ] Email queue cron running (`process-email-queue`).
+- [ ] Mailgun connector linked, sender domain verified.
 
-### Cleanup
+### F. Code sanity (already done, verify)
+- [ ] `src/integrations/supabase/client.ts` → TKOEBO hardcoded ✅
+- [ ] `src/integrations/supabase/client.server.ts` + `admin.server.ts` → TKOEBO hardcoded ✅
+- [ ] `src/integrations/supabase/auth-middleware.ts` → TKOEBO JWKS ✅
+- [ ] `src/lib/auth-guard.server.ts` → TKOEBO ✅
+- [ ] `src/lib/tracks.functions.ts` → TKOEBO ✅
+- [ ] `src/lib/risc-events.server.ts` → TKOEBO ✅
+- [ ] `src/lib/email-templates/magic-link.tsx` dove URL → TKOEBO ✅
+- [ ] `src/routes/api/public/devotional-cover.$date.ts` → TKOEBO only, no Lovable Cloud fallback ✅
 
-- Remove the editable `<textarea>` and `caption` state — caption is read-only from `data.caption`.
-- Remove the "Copy caption" button — the caption block replaces it.
-- Remove the "Copy link" button entirely from image mode.
+### G. Left on Lovable Cloud intentionally
+- Email queue routes under `src/routes/lovable/email/*` (pgmq + cron live on Lovable Cloud).
+- `.env` `VITE_SUPABASE_*` values (unused by runtime now that clients are hardcoded, but harmless).
 
-## 2. Filename convention for File / Download
+---
 
-Deterministic per share (idempotent re-shares):
+## 4. Pre-publish smoke test (in order)
 
-- `gracenotes-grace-note-<YYYY-MM-DD>.png`
-- `gracenotes-answered-prayer-<prayer_id>.png`
-- `gracenotes-<tier>-day-rhythm.png`
+Run these against the **preview build** before promoting to live:
 
-Devotional never downloads — link mode.
+1. Sign out completely, clear `localStorage`.
+2. Request a magic link on `/login`. Confirm the email arrives, branded, dove renders.
+3. Click the link. Confirm you land on the home screen signed in, PostHog identifies the user.
+4. Sign out, run password reset. Confirm `/reset-password` accepts a new password and signs you in.
+5. Open a devotional for today and one for a broken date (e.g. `2026-07-20`). Both cover images load.
+6. Send a message in the daily chat. Confirm reply streams and habit auto-marks.
 
-## 3. Reframe modal copy (all four call sites)
+If any of steps 2–4 fail, the issue is almost always item A, B, or C in §3.
 
-Rewrite `heading` props to center the user's walk, not the recipient. No "someone in your life", no "share it forward":
+---
 
-| Trigger | File | Eyebrow | Title | Subtitle |
-|---|---|---|---|---|
-| Devotional | `src/components/devotional-modal.tsx` | Today's devotional | Keep this one close | A quiet way to remember what stirred in you today. |
-| Grace note | `src/routes/home.tsx` | Today's grace note | Hold onto this | Save it where you'll see it again. |
-| Answered prayer | `src/routes/prayers.tsx` | Prayer answered | Mark the moment | A small record of what He did. |
-| Milestone | `src/components/milestone-watcher.tsx` | `${tier}-day rhythm` | `${tier} days of showing up` | A marker for your own walk. |
+## 5. What I recommend right now
 
-Drafts — flag any wording you want changed before I ship.
+I don't need to change any code to answer this question. If you want, I can:
+- **Option 1:** Just publish and run through §4 with you.
+- **Option 2:** Before publish, I audit the code once more for any remaining Lovable Cloud reference I might have missed (grep for `jtjizrchmmmvphkndmhs` and Lovable Cloud URLs).
+- **Option 3:** Address the two open security findings first (`proxy_diag_errors` leaking internal error text, and the `share-card admin_nonce` backdoor) since they're both easy and both live on public routes.
 
-## 4. Shrink the devotional Share button (`src/components/devotional-modal.tsx`)
-
-The received-state row: replace the second pill with a subtle ghost icon.
-
-- Keep **Received today** pill as the emotional anchor.
-- Replace outlined Share pill with 36×36 ghost icon: `Share2` at `size="sm"`, `text-grace/70`, `hover:bg-grace-soft`, `aria-label="Share"`, tooltip "Share".
-- No Share button in the pre-receive state.
-
-Spot-check grace-note trigger in `home.tsx` and answered-prayer trigger in `prayers.tsx` — align to the same ghost-icon treatment.
-
-## 5. QA sweep
-
-- **iOS Safari (current)**: image mode → Instagram, WhatsApp, TikTok, iMessage all appear. Auto-copy toast shows once per install. Devotional → link with OG preview.
-- **Android Chrome (current)**: same.
-- **Desktop Chrome / Safari / Firefox**: `canShareFiles` false → Download image visible; devotional Share works or falls back to Copy link.
-- 375 / 768 / 1280 viewports: caption block wraps cleanly, no overflow; devotional received-row fits on one line at 375px.
-- Milestone auto-open still doesn't race the daily devotional modal.
-
-## Out of scope
-
-- No changes to `src/lib/share.ts` — backend contract already returns `image_url`, `caption`, `deep_link`. No edits needed.
-- No analytics, no dismissal-key changes.
-- No caption refresh button (deferred).
-- No changes to `share-bar.tsx` (SEO landing surface).
-
-## Downsides — the honest list
-
-1. **Two gestures on Instagram / TikTok.** Auto-copy softens it; user still long-presses-paste in the destination app. Ceiling set by Meta/ByteDance.
-2. **Clipboard silently overwrites whatever the user had.** Standard for every creator tool, but worth naming.
-3. **Clipboard write can fail in some in-app browsers.** Instagram's own webview, Facebook's, LinkedIn's — programmatic writes may be blocked. We fall through: caption block stays tappable.
-4. **The "Caption copied" first-share toast is a one-shot teach moment.** Miss it and the user might not know why we copied. Always-visible helper line mitigates but doesn't fully replace it.
-5. **In-app browsers may lack `navigator.share` entirely.** Traffic from inside Instagram/Facebook browsers hits desktop fallback (Download image). Nothing we can do — those webviews strip the API.
-6. **No signal back from destinations.** We can't tell if the paste happened. Standard for all web-share flows.
-7. **Caption is fixed per session — no refresh yet.** Backend rotates 10 sequentially, but a user who doesn't love this one has no in-modal option to swap. Small follow-up if you want it.
-8. **File fetch adds a brief network round-trip before the sheet opens.** ~300ms cold, instant warm. Button spinner covers it.
-9. **The CLAUDE.md invariant stays intact.** Fork B never passes `text`+`url` together, so the 2026-07-05 concatenation bug can't recur. Good.
-10. **Removing "Copy caption" as an explicit button means the caption block must be discoverable as tappable.** We handle this with the clipboard icon + "tap to copy" hint, but it's less obvious than a labeled button. Trade-off for cleaner layout.
+Tell me which of 1/2/3 you want, or approve this plan as-is and I'll wait for your go.

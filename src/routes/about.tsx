@@ -5,13 +5,28 @@ import { Sparkles } from "lucide-react";
 import { DoveMark } from "@/components/dove-mark";
 import { useAuth } from "@/hooks/use-auth";
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "GraceNotes Daily",
+  url: "https://www.gracenotesdaily.com",
+  logo: "https://www.gracenotesdaily.com/icons/icon-512.png",
+  description:
+    "A soft, daily companion for your walk with God: devotionals, prayer journaling, and answered prayer tracking in one gentle space.",
+  founder: {
+    "@type": "Person",
+    name: "Cindy Adem",
+    url: "https://www.product-queen.com",
+  },
+};
+
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About GraceNotes Daily | Built by Someone Who Needed It First" },
       { name: "description", content: "GraceNotes Daily was built by Product Queen, a Nairobi-based product builder who came back to faith and couldn't find an app that met her gently. So she built one." },
       { property: "og:title", content: "About GraceNotes Daily" },
-      { property: "og:description", content: "A soft, daily companion for your walk with God. Built by someone who needed it first — from Nairobi, for the whole world." },
+      { property: "og:description", content: "A soft, daily companion for your walk with God. Built by someone who needed it first, from Nairobi, for the whole world." },
       { property: "og:url", content: "https://www.gracenotesdaily.com/about" },
       { property: "og:image", content: "https://www.gracenotesdaily.com/og/homepage.png" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -19,6 +34,9 @@ export const Route = createFileRoute("/about")({
     ],
     links: [
       { rel: "canonical", href: "https://www.gracenotesdaily.com/about" },
+    ],
+    scripts: [
+      { type: "application/ld+json", children: JSON.stringify(organizationJsonLd) },
     ],
   }),
   component: About,

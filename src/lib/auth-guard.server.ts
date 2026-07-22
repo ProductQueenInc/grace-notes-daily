@@ -7,18 +7,11 @@ import { getRequestHeader } from "@tanstack/react-start/server";
  * or invalid so unauthenticated callers cannot trigger AI calls.
  */
 export async function requireUserId(): Promise<string> {
-  const url =
-    process.env.SUPABASE_URL ||
-    process.env.VITE_SUPABASE_URL;
+  // Hardcoded to TKOEBO — auth users live there.
+  const url = "https://tkoebogweygaabndrsvl.supabase.co";
   const anon =
-    process.env.SUPABASE_PUBLISHABLE_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.VITE_SUPABASE_ANON_KEY ||
-    process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrb2Vib2d3ZXlnYWFibmRyc3ZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjA4MzEsImV4cCI6MjA5NDAzNjgzMX0.tFA7kj0ffcdZbnF9EXbq0sN9GRFeQHmvS4k-RHlfaTE";
 
-  if (!url || !anon) {
-    throw new Error("Unauthorized");
-  }
 
   const authHeader = getRequestHeader("authorization") || getRequestHeader("Authorization");
   const token = authHeader?.replace(/^Bearer\s+/i, "");
