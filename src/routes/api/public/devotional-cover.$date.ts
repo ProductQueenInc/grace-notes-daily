@@ -1,18 +1,13 @@
 // Public proxy that serves devotional cover images from the PRIVATE
-// `devotional-covers` bucket. We can't use a public bucket (workspace
-// policy blocks them), and signed URLs expire and break social share
-// previews - so we serve a stable public URL through this route and let
-// CDNs cache it long-term.
+// TKOEBO `devotional-covers` bucket. We can't use a public bucket, and
+// signed URLs expire and break social share previews - so we serve a stable
+// public URL through this route and let CDNs cache it long-term.
 //
 // URL shape: /api/public/devotional-cover/<YYYY-MM-DD>.png
 //
-// Storage lives across TWO Supabase projects:
-//   - Lovable Cloud (env SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)
-//   - TKOEBO GraceNotes backend (tkoebogweygaabndrsvl) - where the live
-//     `generate-daily-devotional` edge function (currently on Unsplash)
-//     writes new covers.
-// Older covers landed in Lovable Cloud; newer covers land in TKOEBO. We
-// try Lovable Cloud first, fall back to TKOEBO. Either hit wins.
+// Storage source of truth: TKOEBO GraceNotes backend
+// (tkoebogweygaabndrsvl), where the live `generate-daily-devotional` edge
+// function writes cover images. Do not try Lovable Cloud first.
 
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -36,19 +31,28 @@ function pngResponse(buffer: ArrayBuffer) {
   });
 }
 
-// TKOEBO fallback: this project is not injected by Lovable Cloud, so we
-// build a fresh service-role client on demand. Key stored as
-// TKOEBO_SERVICE_ROLE_KEY (existing project secret).
+// TKOEBO is not injected by Lovable Cloud, so we build a fresh service-role
+// client on demand. Key stored as TKOEBO_SERVICE_ROLE_KEY.
 async function downloadFromTkoebo(key: string): Promise<ArrayBuffer | null> {
   const serviceKey = process.env.TKOEBO_SERVICE_ROLE_KEY;
   if (!serviceKey) {
-    console.error("[devotional-cover-proxy] TKOEBO_SERVICE_ROLE_KEY missing; cannot fall back");
+    console.error("[devotional-cover-proxy] TKOEBO_SERVICE_ROLE_KEY missing");
     return null;
   }
   try {
     const { createClient } = await import("@supabase/supabase-js");
     const client = createClient(TKOEBO_URL, serviceKey, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const headers = new Headers(init?.headers);
+          if (serviceKey.startsWith("sb_") && headers.get("Authorization") === `Bearer ${serviceKey}`) {
+            headers.delete("Authorization");
+          }
+          headers.set("apikey", serviceKey);
+          return fetch(input, { ...init, headers });
+        },
+      },
     });
     const { data, error } = await client.storage.from(BUCKET).download(key);
     if (error || !data) {
@@ -77,25 +81,6 @@ export const Route = createFileRoute("/api/public/devotional-cover/$date")({
         if (!date) return new Response("Invalid date", { status: 400 });
         const key = `${date}.png`;
 
-        // 1. Try Lovable Cloud first (older covers live here).
-        try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
-          const { data, error } = await supabaseAdmin.storage.from(BUCKET).download(key);
-          if (!error && data) {
-            return pngResponse(await data.arrayBuffer());
-          }
-          console.warn("[devotional-cover-proxy] cloud miss, trying tkoebo", {
-            key,
-            message: error?.message,
-          });
-        } catch (err) {
-          console.error("[devotional-cover-proxy] cloud handler threw, trying tkoebo", {
-            key,
-            message: err instanceof Error ? err.message : String(err),
-          });
-        }
-
-        // 2. Fall back to TKOEBO (newer covers, from the live edge function).
         const tkoeboBuf = await downloadFromTkoebo(key);
         if (tkoeboBuf) return pngResponse(tkoeboBuf);
 
