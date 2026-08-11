@@ -12,24 +12,46 @@ export type InferredThemesPayload = {
   updated_at: string | null;
 };
 
+// ACTUAL storage shape of profiles.inferred_themes, written by the nightly
+// daily-chat classifier (generate-daily-grace-notes/index.ts) and the
+// heart-notes classifier (classify-heart-note-theme/index.ts): a flat map of
+// { [tag]: { weight, last_seen } }. This function used to assume a totally
+// different shape ({ themes: [...], updated_at }), which meant Settings could
+// never display a theme even once the classifiers were writing correctly --
+// found and fixed 2026-08-11. Keep this shape in sync with the `ThemeMap`
+// type in both edge functions above if it ever changes.
+type StoredThemeMap = Record<string, { weight?: number; last_seen?: string } | null | undefined>;
+
 function normalize(raw: unknown): InferredThemesPayload {
-  if (!raw || typeof raw !== "object") return { themes: [], updated_at: null };
-  const obj = raw as Record<string, unknown>;
-  const rawThemes = Array.isArray(obj.themes) ? obj.themes : [];
+  // The column also currently defaults to '[]'::jsonb for new profiles
+  // (array, not object) -- treat that the same as "nothing yet".
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return { themes: [], updated_at: null };
+  }
+  const map = raw as StoredThemeMap;
   const themes: InferredTheme[] = [];
-  for (const t of rawThemes) {
-    if (!t || typeof t !== "object") continue;
-    const r = t as Record<string, unknown>;
-    if (typeof r.theme !== "string" || !r.theme) continue;
-    const entry: InferredTheme = { theme: r.theme };
-    if (typeof r.weight === "number") entry.weight = r.weight;
-    if (typeof r.last_seen === "string") entry.last_seen = r.last_seen;
+  let latest: string | null = null;
+  for (const [tag, v] of Object.entries(map)) {
+    if (!tag || !v || typeof v !== "object") continue;
+    const entry: InferredTheme = { theme: tag };
+    if (typeof v.weight === "number") entry.weight = v.weight;
+    if (typeof v.last_seen === "string") {
+      entry.last_seen = v.last_seen;
+      if (!latest || v.last_seen > latest) latest = v.last_seen;
+    }
     themes.push(entry);
   }
-  return {
-    themes,
-    updated_at: typeof obj.updated_at === "string" ? obj.updated_at : null,
-  };
+  // Strongest theme first so it's the first chip a user sees in Settings.
+  themes.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
+  return { themes, updated_at: latest };
+}
+
+function toStoredMap(themes: InferredTheme[]): StoredThemeMap {
+  const map: StoredThemeMap = {};
+  for (const t of themes) {
+    map[t.theme] = { weight: t.weight, last_seen: t.last_seen };
+  }
+  return map;
 }
 
 export const getInferredThemes = createServerFn({ method: "GET" })
@@ -63,14 +85,13 @@ export const deleteInferredTheme = createServerFn({ method: "POST" })
     if (error) throw error;
     const current = normalize((row as { inferred_themes?: unknown } | null)?.inferred_themes);
     const nextThemes = current.themes.filter((t) => t.theme !== data.theme);
-    const next = {
-      themes: nextThemes,
-      updated_at: new Date().toISOString(),
-    };
+    // Write back in the SAME flat tag-map shape the classifiers use --
+    // writing the old {themes, updated_at} wrapper here would silently break
+    // the next classifier run or note-generation read of this column.
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ inferred_themes: next })
+      .update({ inferred_themes: toStoredMap(nextThemes) })
       .eq("id", userId);
     if (updateError) throw updateError;
-    return next;
+    return { themes: nextThemes, updated_at: new Date().toISOString() };
   });

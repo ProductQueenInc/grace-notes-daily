@@ -293,6 +293,22 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 
 ## 11. Recent changes log
 
+### 2026-08-11 — Theme classification: three real bugs found and fixed; daily chat now the primary source
+
+Cindy asked why her daily chats "aren't saving themes" and nothing showed on her Settings page. Investigation (with live DB checks against her own account: 217 daily chat messages, 4 Heart Notes entries, `profiles.inferred_themes` confirmed empty) found three separate, compounding bugs:
+
+1. **Daily chat was never wired into theme classification at all.** Only Heart Notes (a separate, rarely-used journaling feature at `/heart-notes`) fed `profiles.inferred_themes`, via a DB trigger on `heart_notes` insert. The chat someone actually uses every day (`daily_messages` / `chat_sessions`, behind `use-daily-chat.ts` and `chat-reply`) had zero connection to it.
+2. **The Heart Notes trigger fired at the wrong time.** `heart-notes.tsx` inserts the row first (no `summary` yet), then a separate `UPDATE` sets `summary` moments later. The trigger was `AFTER INSERT`, so `classify-heart-note-theme` always ran against `summary = null` and quietly skipped — every single time, for every user, since the trigger was added 2026-07-14.
+3. **`profiles.inferred_themes` defaulted to `'[]'::jsonb`** (a JSON array) but every reader/writer (the classifiers, the note generator, the Settings page) treats it as an object map `{ [tag]: {weight, last_seen} }`. Merging a tag into an array in JS sets a non-index property that `JSON.stringify` silently drops — so even a successful classification for a new profile would have failed to persist. Separately, **the Settings page (`src/lib/profile-themes.functions.ts`) was reading/writing an entirely different, incompatible shape** (`{themes: [...], updated_at}`) than what the classifiers actually store — so even with bugs 1 and 2 fixed, Settings would never have shown anything.
+
+**Fixed, per owner decision (daily chat primary, Heart Notes still allowed to contribute; nightly-batch cadence over per-message):**
+
+- **`supabase/functions/generate-daily-grace-notes/index.ts`** — new `classifyDailyChatTheme()` step runs once per onboarded user per night, right before that night's note is generated: summarizes the prior day's `daily_messages` (privacy-safe, generalized, same fixed `THEME_VOCAB` as Heart Notes), classifies it, merges into `profiles.inferred_themes`, and feeds the result straight into that same run's note generation — so a day's chat shapes the very next note.
+- **`supabase/functions/classify-heart-note-theme/index.ts`** — brought into the repo (previously only a live, untracked deployment — same drift pattern as the devotional-cover gap logged 2026-07-22). Hardened the `inferred_themes` merge against the `[]` default.
+- **Migration `20260811120000_fix_theme_classification.sql`** — retimes the Heart Notes trigger to `AFTER INSERT ... WHEN (summary IS NOT NULL)` + `AFTER UPDATE OF summary ... WHEN (summary changed and not null)`; fixes `profiles.inferred_themes` default to `'{}'::jsonb` + backfills existing `[]` rows; adds `chat_sessions.summary` (mirrors `heart_notes.summary`, debugging/support only, no UI today).
+- **`src/lib/profile-themes.functions.ts`** rewritten — `getInferredThemes`/`deleteInferredTheme` now read/write the SAME flat tag-map shape the classifiers use, converting to/from the `{themes: [...]}` array shape only at the API boundary for the Settings UI.
+- ⚠️ **Deployment status:** code + migration written and committed to this repo, **not yet applied to Supabase**. Applying the migration and deploying the two edge functions are direct production-database actions and were blocked by the session's safety gate pending Cindy's explicit go-ahead. Once approved: apply `20260811120000_fix_theme_classification.sql`, deploy `generate-daily-grace-notes` and `classify-heart-note-theme`, then back-fill Cindy's existing 4 Heart Notes + recent chat days so she isn't waiting on the next 1am UTC cron run. None of this is live until that happens — Settings will keep showing no themes until then.
+
 ### 2026-07-20 — Cover image prompt: human-emotion centered, diverse demographic rotation; sitemap + bucket fixes
 
 Three changes shipped this session:
@@ -665,7 +681,9 @@ Product direction set with Cindy after a full code-grounded QA. This entry logs 
 | AI server functions | `src/lib/ai.functions.ts` |
 | **Canonical grace-note prompt** | `src/lib/ai.functions.ts` (in `generateGraceNoteRaw`, line ~160) |
 | Chat safety edge function | `supabase/functions/chat-reply/index.ts` |
-| Daily grace-note cron edge function | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| Daily grace-note cron edge function (also runs nightly theme classification) | `supabase/functions/generate-daily-grace-notes/index.ts` |
+| Heart Notes theme classifier (DB-trigger-driven) | `supabase/functions/classify-heart-note-theme/index.ts` |
+| Inferred themes read/delete (Settings page) | `src/lib/profile-themes.functions.ts` |
 | Daily devotional cron edge function (day-ahead) | `supabase/functions/generate-daily-devotional/index.ts` |
 | Personalization helpers | `src/lib/personalization.ts` |
 | Badges | `src/lib/badges.ts` |

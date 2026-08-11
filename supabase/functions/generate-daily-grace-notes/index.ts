@@ -8,12 +8,21 @@
 // source — copy from there.
 //
 // UPDATED: adds two new, OPTIONAL inputs on top of the existing faith_phase
-// and seasons -- inferred_themes (generalized signal from heart notes, fades
-// over time) and streak_context (steady / returning, derived from daily_habits).
-// Both follow the exact same pattern as the existing seasonLine(): if there's
-// nothing meaningful to say, they contribute an empty string and cost nothing
-// extra. faith_phase itself is untouched -- still 100% user-declared, never
+// and seasons -- inferred_themes (generalized signal, fades over time) and
+// streak_context (steady / returning, derived from daily_habits). Both follow
+// the exact same pattern as the existing seasonLine(): if there's nothing
+// meaningful to say, they contribute an empty string and cost nothing extra.
+// faith_phase itself is untouched -- still 100% user-declared, never
 // auto-changed by this function.
+//
+// UPDATED AGAIN (2026-08-11): inferred_themes was supposed to be driven by
+// the daily chat someone actually uses every day, but it was ONLY ever wired
+// to a separate, rarely-used journaling feature (Heart Notes) -- and that
+// path had its own bug (classifier fired before the summary it needed even
+// existed; see migration 20260811120000). This cron now classifies each
+// user's chat from the day that just ended, right before reading
+// inferred_themes below, so daily chat is the primary signal and Heart Notes
+// remains a secondary one. See classifyDailyChatTheme() further down.
 //
 // UPDATED AGAIN (2026-07-20): the note library had converged on one dominant
 // sentence shape ("Not because X... it is Y"), because that shape happened to
@@ -82,6 +91,143 @@ function inferredThemesLine(themes: ThemeMap | null): string {
   const top = decayedThemes(themes)
   if (!top.length) return ''
   return `\nEmerging context (inferred, generalized, may shift): ${top.join(', ')}. Let this gently shape tone only. Never name it back. Never assume it explains everything today.`
+}
+
+// ─── daily chat theme classification (added 2026-08-11) ────────────────────
+// The primary source of inferred_themes. Previously ONLY Heart Notes (a
+// separate journaling feature) fed this column -- the daily chat someone
+// actually talks to every day never did, and on top of that the Heart Notes
+// path had its own bug (see migration 20260811120000). This runs once per
+// user per night, right here in the same cron that's about to read
+// inferred_themes to write tomorrow's note, so today's chat shapes tomorrow's
+// note immediately instead of waiting on a separate job.
+//
+// Same fixed vocabulary and same privacy design as
+// supabase/functions/classify-heart-note-theme/index.ts: only ever writes a
+// generalized tag, never raw chat content. Kept as a self-contained copy
+// here (this repo's edge functions don't share code between deployments;
+// see the existing CHAT_REPLY_PROMPT duplication note in chat-reply/index.ts
+// for the same reason) -- if you change the vocabulary or the storage shape,
+// change it in both files.
+const THEME_VOCAB = [
+  'abundance', 'anxiety', 'belonging', 'burnout', 'comfort', 'contentment', 'courage',
+  'disconnection', 'doubt', 'exhaustion', 'expansion', 'faith', 'fear', 'gratitude',
+  'grief', 'growth', 'hope', 'joy', 'loneliness', 'longing', 'new-beginnings',
+  'opposition', 'overwhelm', 'presence', 'purpose', 'renewal', 'returning',
+  'self-doubt', 'shame', 'uncertainty', 'unworthiness', 'waiting', 'worry', 'worth',
+] as const
+
+// Guards against profiles.inferred_themes' stale '[]'::jsonb default (or any
+// other non-object value) before merging -- merging a tag into an array in
+// JS sets a non-index property that JSON.stringify silently drops on write.
+function asThemeMap(raw: unknown): ThemeMap {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return raw as ThemeMap
+  }
+  return {}
+}
+
+// One short, generalized sentence describing the emotional/spiritual thread
+// of that day's chat -- never a transcript, never specifics. Returns null if
+// there was no chat that day, or the model judges it too light to summarize.
+async function summarizeChatDay(userId: string, chatDate: string): Promise<string | null> {
+  const { data: msgs } = await supabase
+    .from('daily_messages')
+    .select('role, text')
+    .eq('user_id', userId)
+    .eq('date', chatDate)
+    .order('ts', { ascending: true })
+
+  if (!msgs?.length) return null
+
+  const transcript = msgs
+    .slice(-30) // cap length; a full day's back-and-forth can run long
+    .map((m) => `${m.role === 'user' ? 'Them' : 'GraceNote'}: ${m.text}`)
+    .join('\n')
+    .slice(0, 6000)
+
+  const msg = await anthropic.messages.create({
+    model: 'claude-haiku-4-5',
+    max_tokens: 80,
+    temperature: 0.2,
+    system: `You summarize a private conversation in ONE short, generalized sentence describing its emotional/spiritual thread. Never quote or restate specific details, names, or events from the conversation -- describe the general shape of what someone was carrying, nothing identifiable. If the conversation is too light or surface-level to summarize meaningfully, respond with exactly: NONE.`,
+    messages: [{ role: 'user', content: transcript }],
+  })
+  const block = msg.content[0] as { type: string; text?: string }
+  const raw = (block.type === 'text' ? block.text ?? '' : '').trim()
+  if (!raw || raw.toUpperCase() === 'NONE') return null
+  return raw
+}
+
+async function classifyThemesFromSummary(summary: string): Promise<string[]> {
+  const msg = await anthropic.messages.create({
+    model: 'claude-haiku-4-5',
+    max_tokens: 100,
+    temperature: 0.2,
+    system: `You classify a private conversation summary into general emotional/spiritual themes. You must ONLY output tags from this fixed list, nothing else:
+${THEME_VOCAB.join(', ')}
+
+Rules:
+- Choose 1 to 3 tags that best capture the emotional/spiritual weather of the summary.
+- Always generalize. A disclosure of a specific trauma, diagnosis, or crisis (abuse, PTSD, addiction, a specific illness, self-harm, etc.) must map to the nearest general tag (e.g. "grief", "fear", "exhaustion", "shame") -- never output anything outside the fixed list.
+- If nothing meaningfully applies, return an empty array.
+
+Respond with valid JSON only, no markdown: { "themes": ["tag1", "tag2"] }`,
+    messages: [{ role: 'user', content: summary }],
+  })
+  const block = msg.content[0] as { type: string; text?: string }
+  const raw = block.type === 'text' ? block.text ?? '' : ''
+  const parsed = parseJSON<{ themes?: string[] }>(raw, { themes: [] })
+  return (parsed.themes ?? []).filter((t) => (THEME_VOCAB as readonly string[]).includes(t)).slice(0, 3)
+}
+
+// Classifies this user's chat from `chatDate` (if any) and writes the result
+// into profiles.inferred_themes using the same reinforcement/decay shape as
+// classify-heart-note-theme. Returns the up-to-date theme map so the caller
+// can use it immediately for tonight's note, without a second DB read.
+// Never throws -- a classification failure falls back to the themes already
+// on the profile rather than blocking that user's note generation.
+async function classifyDailyChatTheme(
+  userId: string,
+  chatDate: string,
+  currentThemes: ThemeMap | null
+): Promise<ThemeMap | null> {
+  try {
+    const summary = await summarizeChatDay(userId, chatDate)
+    if (!summary) return currentThemes
+
+    const { data: session } = await supabase
+      .from('chat_sessions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('date', chatDate)
+      .maybeSingle()
+    if (session?.id) {
+      await supabase.from('chat_sessions').update({ summary }).eq('id', session.id)
+    }
+
+    const themes = await classifyThemesFromSummary(summary)
+    if (!themes.length) return currentThemes
+
+    const existing = asThemeMap(currentThemes)
+    const now = new Date().toISOString()
+    for (const tag of themes) {
+      const prior = existing[tag]?.weight ?? 0
+      existing[tag] = { weight: Math.min(1, prior + 0.5), last_seen: now }
+    }
+
+    await supabase.from('profiles').update({ inferred_themes: existing }).eq('id', userId)
+    await supabase.rpc('posthog_capture', {
+      p_event: 'theme_inferred',
+      p_distinct: userId,
+      p_props: { themes, source: 'daily_chat' },
+    })
+
+    return existing
+  } catch (err) {
+    console.error(`classifyDailyChatTheme failed for user ${userId}:`, err)
+    return currentThemes
+  }
 }
 
 // ─── streak_context ─────────────────────────────────────────────────────────
@@ -409,11 +555,25 @@ Deno.serve(async (req) => {
     )
   }
 
+  // The chat day that just finished: one calendar day before dateStr
+  // (dateStr defaults to tomorrow, so this is "today" -- the day whose chat
+  // just wrapped up, about to shape the note going out for dateStr).
+  const chatDateObj = new Date(`${dateStr}T00:00:00Z`)
+  chatDateObj.setUTCDate(chatDateObj.getUTCDate() - 1)
+  const chatDate = chatDateObj.toISOString().split('T')[0]
+
   let generated = 0
   let failed = 0
 
   for (const user of users) {
     try {
+      // Classify today's chat (if any) before reading inferred_themes below,
+      // so this note benefits from today's conversation right away.
+      const freshThemes = await classifyDailyChatTheme(
+        user.id,
+        chatDate,
+        asThemeMap(user.inferred_themes)
+      )
       const seasonsTags: string[] = Array.isArray(user.seasons)
         ? (user.seasons as Array<{ tag?: string } | string>)
             .map((s) => (typeof s === 'string' ? s : s?.tag ?? ''))
@@ -450,7 +610,7 @@ Deno.serve(async (req) => {
         user.faith_phase ?? 'newbie',
         seasonsTags,
         { text: chosen.text, reference: chosen.reference },
-        (user.inferred_themes as ThemeMap) ?? null,
+        freshThemes,
         streakCtx,
         recentShapes,
         recentNoteTexts
