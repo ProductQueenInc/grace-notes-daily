@@ -566,32 +566,3 @@ Deno.serve(async (req: Request) => {
     return jsonErr(500, "render_failed", e instanceof Error ? e.message : "unknown error");
   }
 });
-
-// ---------- fixtures (admin render-test only) ----------
-
-async function fixtureTree(template: TemplateId, size: Size, bgSeed: string): Promise<El> {
-  const bg = await pickBackground(template, size, bgSeed, "hope");
-  if (template === "devotional") {
-    return frame(size, bg.uri, null, devotionalOverlay(size, "The Quiet Work of Waiting", "Psalm 27:14", "JULY 5, 2026"));
-  }
-  const logo = await dataUri("icons/logo.png", "image/png", true);
-  if (template === "grace-note") {
-    return frame(size, bg.uri, await graceNoteCard(size,
-      "I am not waiting to see if you get it right before I move. My love for you is already in motion; it does not pause when you stumble. What I have started in you, I will finish.",
-      "The Lord will vindicate me; your love, Lord, endures forever - do not abandon the works of your hands.",
-      "Psalm 138:8", logo), footerEl(size, "Get yours at:"));
-  }
-  if (template === "answered-prayer") {
-    const confetti = await dataUri("icons/answered-prayer-confetti-icon.png", "image/png", true);
-    return frame(size, bg.uri, answeredPrayerCard(size, "Monaco feels perfect. Like brand new. Zero mech issues.", "Added June 24, 2026", logo, confetti), footerEl(size, "Track yours at:"));
-  }
-  const weeks: ({ day: number; tier: "none" | "copper" | "silver" | "gold" } | null)[][] = [];
-  const cells: ({ day: number; tier: "none" | "copper" | "silver" | "gold" } | null)[] = [null, null, ...Array.from({ length: 31 }, (_, i) => {
-    const day = i + 1;
-    const tier = day === 2 ? "copper" : day === 3 ? "silver" : day === 5 ? "gold" : "none";
-    return { day, tier: tier as "none" | "copper" | "silver" | "gold" };
-  })];
-  while (cells.length % 7) cells.push(null);
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-  return frame(size, bg.uri, streakCard(size, "July 2026", weeks), footerEl(size, "Start yours at:"));
-}
