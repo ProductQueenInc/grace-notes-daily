@@ -30,15 +30,9 @@ export const Route = createFileRoute("/api/public/share-card/$key")({
               message: error?.message,
               name: error?.name,
             });
-            // TEMP DIAGNOSTIC: surface the real cause in the response body
-            // itself (no secrets in a storage error message) so it can be
-            // read via a plain request instead of digging through logs.
-            // Revert to a bare "Not found" once the root cause is fixed.
-            return new Response(
-              `Not found (diag: ${error?.name ?? "no-error"}: ${error?.message ?? "no data returned"})`,
-              { status: 404 },
-            );
+            return new Response("Not found", { status: 404 });
           }
+
 
           const buffer = await data.arrayBuffer();
           return new Response(buffer, {
@@ -60,12 +54,8 @@ export const Route = createFileRoute("/api/public/share-card/$key")({
             message: err instanceof Error ? err.message : String(err),
             stack: err instanceof Error ? err.stack : undefined,
           });
-          // TEMP DIAGNOSTIC: same reasoning as above - safe to surface,
-          // revert once fixed.
-          return new Response(
-            `Not found (diag: threw before download: ${err instanceof Error ? err.message : String(err)})`,
-            { status: 404 },
-          );
+          return new Response("Not found", { status: 404 });
+
         }
       },
     },

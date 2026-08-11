@@ -38,9 +38,9 @@ const BASE_URL = "https://www.gracenotesdaily.com";
 const CONTRACT_VERSION = "1.1-draft";
 const TEMPLATE_VERSION = "8";
 
-// Removed after asset sync + Stage 2 verification: admin upload/test routes.
-// deno-lint-ignore no-unused-vars
-const ADMIN_NONCE = "gn-a7f3c9e2d84b4f6f9c1e7d4e30";
+// Admin fixture/render-test route removed (was gated only by a static
+// hardcoded nonce). `admin/upload` remains, gated by the service-role key.
+
 
 const TEMPLATES = ["grace-note", "devotional", "answered-prayer", "streak-calendar"] as const;
 type TemplateId = (typeof TEMPLATES)[number];
@@ -473,24 +473,6 @@ Deno.serve(async (req: Request) => {
     if (error) return jsonErr(500, "render_failed", error.message);
     return new Response(JSON.stringify({ ok: true, path, bytes: body.length }), { headers: { "Content-Type": "application/json" } });
   }
-  if (route === "render-test" && segs.includes("admin")) {
-    if (url.searchParams.get("nonce") !== ADMIN_NONCE) return jsonErr(401, "auth_required", "bad nonce");
-    const body = await req.json().catch(() => ({}));
-    const template = body.template_id as TemplateId;
-    const size = parseSize(body, template);
-    if (!TEMPLATES.includes(template) || !size) return jsonErr(400, "invalid_template", "bad template/size");
-    const t0 = Date.now();
-    const tree = await fixtureTree(template, size, body.bg_seed ?? "fixture");
-    const { w, h: hgt } = sizeConf(size);
-    if (url.searchParams.get("svg") === "1") {
-      // Diagnostic mode: return satori's raw SVG (skips resvg entirely).
-      // deno-lint-ignore no-explicit-any
-      const svg = await satori(tree as any, { width: w, height: hgt, fonts: await getFonts() });
-      return new Response(svg, { headers: { "Content-Type": "image/svg+xml", "X-Template-Version": TEMPLATE_VERSION } });
-    }
-    const png = await renderPng(tree, w, hgt);
-    return new Response(png, { headers: { "Content-Type": "image/png", "X-Render-Ms": String(Date.now() - t0), "X-Template-Version": TEMPLATE_VERSION } });
-  }
 
   if (req.method !== "POST") return jsonErr(400, "payload_invalid", "POST only");
   if (!TEMPLATES.includes(route as TemplateId)) return jsonErr(400, "invalid_template", `unknown route: ${route}`);
@@ -584,32 +566,3 @@ Deno.serve(async (req: Request) => {
     return jsonErr(500, "render_failed", e instanceof Error ? e.message : "unknown error");
   }
 });
-
-// ---------- fixtures (admin render-test only) ----------
-
-async function fixtureTree(template: TemplateId, size: Size, bgSeed: string): Promise<El> {
-  const bg = await pickBackground(template, size, bgSeed, "hope");
-  if (template === "devotional") {
-    return frame(size, bg.uri, null, devotionalOverlay(size, "The Quiet Work of Waiting", "Psalm 27:14", "JULY 5, 2026"));
-  }
-  const logo = await dataUri("icons/logo.png", "image/png", true);
-  if (template === "grace-note") {
-    return frame(size, bg.uri, await graceNoteCard(size,
-      "I am not waiting to see if you get it right before I move. My love for you is already in motion; it does not pause when you stumble. What I have started in you, I will finish.",
-      "The Lord will vindicate me; your love, Lord, endures forever - do not abandon the works of your hands.",
-      "Psalm 138:8", logo), footerEl(size, "Get yours at:"));
-  }
-  if (template === "answered-prayer") {
-    const confetti = await dataUri("icons/answered-prayer-confetti-icon.png", "image/png", true);
-    return frame(size, bg.uri, answeredPrayerCard(size, "Monaco feels perfect. Like brand new. Zero mech issues.", "Added June 24, 2026", logo, confetti), footerEl(size, "Track yours at:"));
-  }
-  const weeks: ({ day: number; tier: "none" | "copper" | "silver" | "gold" } | null)[][] = [];
-  const cells: ({ day: number; tier: "none" | "copper" | "silver" | "gold" } | null)[] = [null, null, ...Array.from({ length: 31 }, (_, i) => {
-    const day = i + 1;
-    const tier = day === 2 ? "copper" : day === 3 ? "silver" : day === 5 ? "gold" : "none";
-    return { day, tier: tier as "none" | "copper" | "silver" | "gold" };
-  })];
-  while (cells.length % 7) cells.push(null);
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-  return frame(size, bg.uri, streakCard(size, "July 2026", weeks), footerEl(size, "Start yours at:"));
-}
