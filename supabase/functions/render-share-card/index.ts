@@ -473,24 +473,6 @@ Deno.serve(async (req: Request) => {
     if (error) return jsonErr(500, "render_failed", error.message);
     return new Response(JSON.stringify({ ok: true, path, bytes: body.length }), { headers: { "Content-Type": "application/json" } });
   }
-  if (route === "render-test" && segs.includes("admin")) {
-    if (url.searchParams.get("nonce") !== ADMIN_NONCE) return jsonErr(401, "auth_required", "bad nonce");
-    const body = await req.json().catch(() => ({}));
-    const template = body.template_id as TemplateId;
-    const size = parseSize(body, template);
-    if (!TEMPLATES.includes(template) || !size) return jsonErr(400, "invalid_template", "bad template/size");
-    const t0 = Date.now();
-    const tree = await fixtureTree(template, size, body.bg_seed ?? "fixture");
-    const { w, h: hgt } = sizeConf(size);
-    if (url.searchParams.get("svg") === "1") {
-      // Diagnostic mode: return satori's raw SVG (skips resvg entirely).
-      // deno-lint-ignore no-explicit-any
-      const svg = await satori(tree as any, { width: w, height: hgt, fonts: await getFonts() });
-      return new Response(svg, { headers: { "Content-Type": "image/svg+xml", "X-Template-Version": TEMPLATE_VERSION } });
-    }
-    const png = await renderPng(tree, w, hgt);
-    return new Response(png, { headers: { "Content-Type": "image/png", "X-Render-Ms": String(Date.now() - t0), "X-Template-Version": TEMPLATE_VERSION } });
-  }
 
   if (req.method !== "POST") return jsonErr(400, "payload_invalid", "POST only");
   if (!TEMPLATES.includes(route as TemplateId)) return jsonErr(400, "invalid_template", `unknown route: ${route}`);
