@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -36,6 +37,7 @@ import { Route as R7DayPrayerJournalRouteImport } from './routes/7-day-prayer-jo
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
 import { Route as DevotionalIndexRouteImport } from './routes/devotional.index'
+import { Route as LibraryBuildingGracenotesDailyRouteImport } from './routes/library.building-gracenotes-daily'
 import { Route as LibrarySlugRouteImport } from './routes/library.$slug'
 import { Route as DevotionalDateRouteImport } from './routes/devotional.$date'
 import { Route as BlogBuildingGracenotesDailyRouteImport } from './routes/blog.building-gracenotes-daily'
@@ -52,6 +54,11 @@ import { Route as ApiPublicDevotionalCoverDateRouteImport } from './routes/api/p
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -184,6 +191,12 @@ const DevotionalIndexRoute = DevotionalIndexRouteImport.update({
   path: '/devotional/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryBuildingGracenotesDailyRoute =
+  LibraryBuildingGracenotesDailyRouteImport.update({
+    id: '/library/building-gracenotes-daily',
+    path: '/library/building-gracenotes-daily',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LibrarySlugRoute = LibrarySlugRouteImport.update({
   id: '/library/$slug',
   path: '/library/$slug',
@@ -273,11 +286,13 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/library/building-gracenotes-daily': typeof LibraryBuildingGracenotesDailyRoute
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
@@ -314,11 +329,13 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/library/building-gracenotes-daily': typeof LibraryBuildingGracenotesDailyRoute
   '/devotional': typeof DevotionalIndexRoute
   '/library': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
@@ -356,11 +373,13 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/building-gracenotes-daily': typeof BlogBuildingGracenotesDailyRoute
   '/devotional/$date': typeof DevotionalDateRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/library/building-gracenotes-daily': typeof LibraryBuildingGracenotesDailyRoute
   '/devotional/': typeof DevotionalIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/api/risc/receiver': typeof ApiRiscReceiverRoute
@@ -399,11 +418,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/auth/callback'
     | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
+    | '/library/building-gracenotes-daily'
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
@@ -440,11 +461,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/auth/callback'
     | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
+    | '/library/building-gracenotes-daily'
     | '/devotional'
     | '/library'
     | '/api/risc/receiver'
@@ -481,11 +504,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/auth/callback'
     | '/blog/building-gracenotes-daily'
     | '/devotional/$date'
     | '/library/$slug'
+    | '/library/building-gracenotes-daily'
     | '/devotional/'
     | '/library/'
     | '/api/risc/receiver'
@@ -523,11 +548,13 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogBuildingGracenotesDailyRoute: typeof BlogBuildingGracenotesDailyRoute
   DevotionalDateRoute: typeof DevotionalDateRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
+  LibraryBuildingGracenotesDailyRoute: typeof LibraryBuildingGracenotesDailyRoute
   DevotionalIndexRoute: typeof DevotionalIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   ApiRiscReceiverRoute: typeof ApiRiscReceiverRoute
@@ -547,6 +574,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -731,6 +765,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevotionalIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/building-gracenotes-daily': {
+      id: '/library/building-gracenotes-daily'
+      path: '/library/building-gracenotes-daily'
+      fullPath: '/library/building-gracenotes-daily'
+      preLoaderRoute: typeof LibraryBuildingGracenotesDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/$slug': {
       id: '/library/$slug'
       path: '/library/$slug'
@@ -843,11 +884,13 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogBuildingGracenotesDailyRoute: BlogBuildingGracenotesDailyRoute,
   DevotionalDateRoute: DevotionalDateRoute,
   LibrarySlugRoute: LibrarySlugRoute,
+  LibraryBuildingGracenotesDailyRoute: LibraryBuildingGracenotesDailyRoute,
   DevotionalIndexRoute: DevotionalIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   ApiRiscReceiverRoute: ApiRiscReceiverRoute,
@@ -862,3 +905,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
