@@ -54,12 +54,8 @@ export const Route = createFileRoute("/api/public/share-card/$key")({
             message: err instanceof Error ? err.message : String(err),
             stack: err instanceof Error ? err.stack : undefined,
           });
-          // TEMP DIAGNOSTIC: same reasoning as above - safe to surface,
-          // revert once fixed.
-          return new Response(
-            `Not found (diag: threw before download: ${err instanceof Error ? err.message : String(err)})`,
-            { status: 404 },
-          );
+          return new Response("Not found", { status: 404 });
+
         }
       },
     },
