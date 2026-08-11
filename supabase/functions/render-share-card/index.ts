@@ -38,9 +38,9 @@ const BASE_URL = "https://www.gracenotesdaily.com";
 const CONTRACT_VERSION = "1.1-draft";
 const TEMPLATE_VERSION = "8";
 
-// Removed after asset sync + Stage 2 verification: admin upload/test routes.
-// deno-lint-ignore no-unused-vars
-const ADMIN_NONCE = "gn-a7f3c9e2d84b4f6f9c1e7d4e30";
+// Admin fixture/render-test route removed (was gated only by a static
+// hardcoded nonce). `admin/upload` remains, gated by the service-role key.
+
 
 const TEMPLATES = ["grace-note", "devotional", "answered-prayer", "streak-calendar"] as const;
 type TemplateId = (typeof TEMPLATES)[number];
