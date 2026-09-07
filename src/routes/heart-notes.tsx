@@ -27,7 +27,7 @@ export const Route = createFileRoute("/heart-notes")({
   component: () => <RequireAuth><AppShell><HeartNotes /></AppShell></RequireAuth>,
 });
 
-const LIMIT = 1000;
+const LIMIT = 2500;
 
 function todayISO() {
   return localTodayISO();
