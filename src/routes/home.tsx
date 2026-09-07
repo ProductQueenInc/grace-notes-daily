@@ -564,7 +564,7 @@ function CalendarCard({ todayTier }: { todayTier: BadgeTier }) {
     <div className="glass-on-hue rounded-3xl p-5">
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-1.5 min-w-0">
-          <h3 className="font-display text-xl text-white whitespace-nowrap">Spiritual Journey</h3>
+          <h3 className="font-display text-xl text-white whitespace-nowrap">Days of Presence</h3>
           <Popover>
             <PopoverTrigger asChild>
               <button aria-label="How this works" className="text-white/70 hover:text-white shrink-0 p-1 -m-1">
