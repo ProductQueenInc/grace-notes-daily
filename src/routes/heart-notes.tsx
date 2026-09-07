@@ -4,7 +4,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { NatureBackground } from "@/components/nature-background";
 import { PageHeader } from "@/components/page-header";
 import { useHabits } from "@/hooks/use-habits";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { respondToHeartNote, summarizeHeartNote } from "@/lib/ai-stubs";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
@@ -27,11 +27,65 @@ export const Route = createFileRoute("/heart-notes")({
   component: () => <RequireAuth><AppShell><HeartNotes /></AppShell></RequireAuth>,
 });
 
+// Keep in sync with HEART_NOTE_MAX_CHARS in src/lib/ai.functions.ts.
 const LIMIT = 2500;
 
 function todayISO() {
   return localTodayISO();
 }
+
+// ── Draft autosave ─────────────────────────────────────────────────────────────
+// The composer text lives only in React state, so a reload, a crash, or a
+// navigation away used to erase an unsent note. Mirror it to localStorage
+// (per user, per day) while typing, restore it on mount, and clear it once
+// the note is safely in the database.
+
+const DRAFT_PREFIX = "gnd:heart-note-draft:";
+
+function draftKey(userId: string | undefined) {
+  return `${DRAFT_PREFIX}${userId ?? "anon"}:${todayISO()}`;
+}
+
+function readDraft(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function writeDraft(key: string, value: string) {
+  try {
+    if (value.trim()) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable (private mode, quota). Nothing to do.
+  }
+}
+
+function clearDraft(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
+// Drop drafts from previous days so storage doesn't accumulate.
+function pruneOldDrafts(keep: string) {
+  try {
+    const stale: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(DRAFT_PREFIX) && k !== keep) stale.push(k);
+    }
+    stale.forEach((k) => localStorage.removeItem(k));
+  } catch {
+    // ignore
+  }
+}
+
+const SAVE_ERROR = "Your note couldn't be saved just now. It's still here - please try again in a moment.";
 
 function HeartNotes() {
   const [text, setText] = useState("");
@@ -43,14 +97,34 @@ function HeartNotes() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [replyError, setReplyError] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { markComplete } = useHabits();
   const { user, profile } = useAuth();
 
+  // True once we've decided whether to restore a draft, so the autosave
+  // effect never wipes a stored draft with the initial empty textarea.
+  const hydratedRef = useRef(false);
+
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const key = draftKey(user?.id);
 
   useEffect(() => {
-    if (!supabaseConfigured || !user) return;
+    pruneOldDrafts(key);
+
+    const restoreDraft = () => {
+      const d = readDraft(key);
+      if (d) setText((t) => t || d);
+      hydratedRef.current = true;
+    };
+
+    if (!supabaseConfigured || !user) {
+      restoreDraft();
+      return;
+    }
+
     supabase
       .from("heart_notes")
       .select("id, body, ai_response, summary")
@@ -64,58 +138,97 @@ function HeartNotes() {
           setSubmitted(data.body as string);
           setResponse(data.ai_response as string | null);
           setTitle((data.summary as string | null) ?? null);
+          // A saved note with no reply means the reply failed earlier
+          // (or the page was left mid-request). Offer a retry.
+          if (!data.ai_response) setReplyError(true);
+          hydratedRef.current = true;
+        } else {
+          restoreDraft();
         }
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  async function submit() {
-    if (!text.trim() || words > LIMIT) return;
-    const body = text;
-    setSubmitted(body);
+  // Mirror the composer to localStorage while typing.
+  useEffect(() => {
+    if (!hydratedRef.current || submitted) return;
+    writeDraft(key, text);
+  }, [text, key, submitted]);
+
+  async function fetchReply(body: string, id: string | null) {
     setLoading(true);
-    setTitleLoading(true);
-    markComplete("journal");
-    capture("journal_entry_saved", { word_count: body.trim() ? body.trim().split(/\s+/).length : 0 });
-
-    const r = await respondToHeartNote(body, profile);
-    setResponse(r);
-    setLoading(false);
-
-    let newId = rowId;
-    if (supabaseConfigured && user) {
-      if (newId) {
-        const { data } = await supabase
-          .from("heart_notes")
-          .update({ body, ai_response: r })
-          .eq("id", newId)
-          .select("id")
-          .maybeSingle();
-        if (data?.id) newId = data.id as string;
-      } else {
-        const { data } = await supabase
-          .from("heart_notes")
-          .insert({ user_id: user.id, date: todayISO(), body, ai_response: r })
-          .select("id")
-          .maybeSingle();
-        if (data?.id) {
-          newId = data.id as string;
-          setRowId(newId);
-        }
+    setReplyError(false);
+    try {
+      const r = await respondToHeartNote(body, profile);
+      setResponse(r);
+      if (supabaseConfigured && user && id) {
+        await supabase.from("heart_notes").update({ ai_response: r }).eq("id", id);
       }
+    } catch {
+      // The note is already saved; only the reply is missing.
+      setReplyError(true);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    // Generate and persist title
+  async function fetchTitle(body: string, id: string | null) {
+    setTitleLoading(true);
     try {
       const t = await summarizeHeartNote(body);
       setTitle(t);
-      if (supabaseConfigured && user && newId) {
-        await supabase.from("heart_notes").update({ summary: t }).eq("id", newId);
+      if (supabaseConfigured && user && id) {
+        await supabase.from("heart_notes").update({ summary: t }).eq("id", id);
       }
     } catch {
       // leave title null; fallback shown below
     } finally {
       setTitleLoading(false);
     }
+  }
+
+  async function submit() {
+    if (!text.trim() || words > LIMIT || saving) return;
+    const body = text;
+    setSaveError(null);
+    setReplyError(false);
+
+    // 1. Persist the note FIRST. Nothing that can fail (AI reply, title)
+    //    happens before the words are safely in the database.
+    let newId = rowId;
+    if (supabaseConfigured && user) {
+      setSaving(true);
+      const res = newId
+        ? await supabase
+            .from("heart_notes")
+            .update({ body, ai_response: null })
+            .eq("id", newId)
+            .select("id")
+            .maybeSingle()
+        : await supabase
+            .from("heart_notes")
+            .insert({ user_id: user.id, date: todayISO(), body, ai_response: null })
+            .select("id")
+            .maybeSingle();
+      setSaving(false);
+      if (res.error || !res.data?.id) {
+        // Keep the composer exactly as it was, draft included.
+        setSaveError(SAVE_ERROR);
+        return;
+      }
+      newId = res.data.id as string;
+      setRowId(newId);
+    }
+
+    clearDraft(key);
+    setSubmitted(body);
+    setResponse(null);
+    markComplete("journal");
+    capture("journal_entry_saved", { word_count: words });
+
+    // 2. Ask for the reply and the title. Failures here never lose the note.
+    await fetchReply(body, newId);
+    await fetchTitle(body, newId);
   }
 
   async function saveTitle() {
@@ -132,9 +245,11 @@ function HeartNotes() {
     if (supabaseConfigured && user && rowId) {
       await supabase.from("heart_notes").delete().eq("id", rowId);
     }
+    clearDraft(key);
     setRowId(null);
     setSubmitted(null);
     setResponse(null);
+    setReplyError(false);
     setTitle(null);
     setText("");
     setConfirmDelete(false);
@@ -153,6 +268,7 @@ function HeartNotes() {
     setRowId(null);
     setSubmitted(null);
     setResponse(null);
+    setReplyError(false);
     setTitle(null);
     setText("");
     setEditingTitle(false);
@@ -185,12 +301,17 @@ function HeartNotes() {
               </span>
               <button
                 onClick={submit}
-                disabled={!text.trim() || words > LIMIT}
+                disabled={!text.trim() || words > LIMIT || saving}
                 className="px-5 py-3 min-h-11 rounded-full bg-grace text-white font-semibold flex items-center gap-2 disabled:opacity-50"
               >
-                <Send className="w-4 h-4" /> Share with Him
+                <Send className="w-4 h-4" /> {saving ? "Saving…" : "Share with Him"}
               </button>
             </div>
+            {saveError && (
+              <p role="alert" className="text-xs text-destructive mt-2">
+                {saveError}
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -260,6 +381,16 @@ function HeartNotes() {
               {loading ? (
                 <div className="flex items-center gap-2 text-foreground/60">
                   <div className="w-4 h-4 border-2 border-grace border-t-transparent rounded-full animate-spin" /> Listening…
+                </div>
+              ) : replyError ? (
+                <div className="space-y-2">
+                  <p className="text-foreground/70">Your note is saved. His reply didn't come through this time.</p>
+                  <button
+                    onClick={() => fetchReply(submitted, rowId)}
+                    className="text-sm font-semibold text-grace underline-offset-2 hover:underline"
+                  >
+                    Try again
+                  </button>
                 </div>
               ) : (
                 <p className="font-display text-lg text-foreground/85 italic whitespace-pre-wrap">{response}</p>

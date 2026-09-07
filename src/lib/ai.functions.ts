@@ -60,13 +60,19 @@ const AIProfileSchema = z.object({
 });
 
 
+// Heart Notes allow up to 2,500 words in the UI (src/routes/heart-notes.tsx LIMIT).
+// At roughly 6 characters per word plus whitespace that is ~15,000 characters,
+// so cap at 20,000 to leave headroom. A note that passes the UI limit must
+// never be rejected here: the client saves first, but the reply would fail.
+const HEART_NOTE_MAX_CHARS = 20_000;
+
 const HeartNoteInputSchema = z.object({
-  text: z.string().min(1).max(5000),
+  text: z.string().min(1).max(HEART_NOTE_MAX_CHARS),
   profile: AIProfileSchema,
 });
 
 const SummarizeInputSchema = z.object({
-  text: z.string().min(1).max(5000),
+  text: z.string().min(1).max(HEART_NOTE_MAX_CHARS),
 });
 
 const DailyMessageInputSchema = z.object({
