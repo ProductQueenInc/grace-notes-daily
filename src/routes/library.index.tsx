@@ -646,7 +646,7 @@ function SwipeRow({
   eyebrow: string;
   items: LibraryArticle[];
   seeAllLabel: string;
-  seeAllTag?: string;
+  seeAllTag?: LibraryTag | "All";
 }) {
   if (items.length === 0) return null;
   return (
