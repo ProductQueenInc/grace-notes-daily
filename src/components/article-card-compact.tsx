@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import type { LibraryArticle } from "@/lib/library";
+import type { LibraryArticle, LibraryTag } from "@/lib/library";
 
 interface ArticleCardCompactProps {
   article: LibraryArticle;
@@ -52,7 +52,7 @@ export function SeeAllTile({
   tag,
   label,
 }: {
-  tag?: string;
+  tag?: LibraryTag | "All";
   label: string;
 }) {
   return (
