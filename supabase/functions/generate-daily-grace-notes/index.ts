@@ -423,28 +423,85 @@ SHAPES - choose exactly one for today's note (see the shape rotation note above,
 CRITICAL - THE message FIELD MUST NEVER CONTAIN VERSE TEXT:
 The message and verse are two completely separate fields. The message field must end before any scripture is quoted. Never place a verse quotation, a verse reference, or any fragment of the verse inside the message field. If the message contains quotation marks around scripture or a book/chapter reference (e.g. "Isaiah 60:1"), it is wrong. The verse belongs exclusively in the verse field.
 
-EXAMPLES - study these for voice and restraint, one per shape. Do not copy phrasing. (The verse is provided to you separately; you only write the message.)
+OPENING BAN (added 2026-09-15, verified against real output across every active user): a second wave of templates has taken over the note library, the same way "Not X... it is Y" did before it was banned in July. These are now BANNED - do not use them or a close paraphrase of any of them:
+- "I am holding..." as a catch-all opener (holding you steady, holding the door open, holding what you cannot see yet, holding the ground, holding the outcome, holding the thing you carry)
+- "I am steady" / "I am [already] standing between you and..."
+- "I am closer to you than [the air you breathe / your next breath / the ground you stand on]"
+- "What does it look like when I...? It looks like..." or "What would it look like if I...?"
+- picturing "the thread of your life" or "the thread of your story"
+Banning the exact wording is not enough - the underlying move (open with "I am holding/steady/standing/closer" as a safe default) must not repeat either, even reworded. If a candidate opening feels like the most obvious, safest way to start, that is a signal to pick a different shape or image entirely.
 
-(declaration - Blessing)
-My blessing is already on you, resting there whether you notice it or not. Nothing you do adds to it, and nothing you do can take it away. Stand there.
+EXAMPLES - study these for voice and restraint. Ten per shape, so there is real range to draw from - do not default to the first one, do not copy phrasing, and do not let any one image (light, water, doors, thread, hands) become its own new tic across days.
 
-(image - Courage)
-Picture a shield raised before the first arrow is even loosed. That is Me, already positioned between you and what you are afraid of. Walk forward under it.
+(declaration)
+1. My hand was on this before you noticed the need for it.
+2. I do not run out partway through the things I start.
+3. My kindness reaches you before your effort does.
+4. I have already made peace with everything you are afraid to tell Me.
+5. Nothing about today catches Me off guard.
+6. I chose you on purpose, not as a fallback.
+7. My patience with you has no closing date.
+8. I finish what I begin, every single time.
+9. Your name is written where it cannot be erased.
+10. I delight in you the way a father delights in a child learning to walk.
 
-(question - Being Known)
-Do I forget the small things? I never have, not once, not with you. Every detail matters to Me, and I am not done paying attention.
+(image)
+1. Picture rain finding the one crack in dry ground and reaching the root anyway.
+2. Picture a lighthouse that keeps turning even when no ship is near.
+3. Think of a harbour wall built before the first storm ever came.
+4. Picture a seed doing its quiet work underground, long before anything shows above.
+5. Think of a fire kept low and steady through the night so it is still burning by morning.
+6. Picture a table set before the guest has even left home.
+7. Think of a tree bending in the wind without breaking, roots doing what they were made to do.
+8. Picture a lamp left burning in a window for someone who does not know the way back yet.
+9. Think of the tide, going out and always, always coming back in.
+10. Picture a shepherd who counts the flock twice, just to be sure.
 
-(invitation - Rest)
-Set it down for a minute. I am strong enough to hold what you are carrying, and I am not going anywhere while you rest. Come sit with Me.
+(question)
+1. Do I forget the promises I have made? Not once, and I am not starting now.
+2. What does My patience look like up close? Waiting for you as many times as it takes.
+3. Am I moved by what moves you? Every time, more than you know.
+4. Do I measure you against who you used to be? Never. I only see who you are becoming.
+5. What happens to a prayer I have not answered yet? It is not lost. It is being worked.
+6. Do I need you to have it figured out first? No. I only ever needed you to come.
+7. What do I do with the parts of your story you are ashamed of? I hold them without flinching.
+8. Is My love conditional on a good day? It was never conditional on any day.
+9. Do I see the effort no one else noticed? Every bit of it, and it was not wasted.
+10. What is My timing like? Precise in a way you will only understand looking back.
 
-(promise - Hope)
-I am not finished with what I started in you. What looks stalled from here is still moving on My side, and I have never once let go of it. Keep walking toward Me.
+(invitation)
+1. Bring Me the version of today you are actually having. I am not asking for the polished one.
+2. Let this be the day you stop carrying it alone. I have room for all of it.
+3. Rest here for a while. The work will still be there, and so will I.
+4. Say the hard thing out loud to Me. I have heard worse and I have not left.
+5. Come as you are this morning, tired or not. That is who I invited.
+6. Hand Me the thing you keep picking back up. I can actually hold it.
+7. Let Me go first today. You do not have to lead with your own strength.
+8. Ask Me the question you have been avoiding. I would rather you ask than wonder.
+9. Stop rehearsing the apology. Just come back. That is all this takes.
+10. Give Me the next five minutes, not the whole week. I will meet you there.
 
-NEGATIVE EXAMPLES - these violate the HARD BAN or SHAPE BAN above. Do not write anything like these:
+(promise)
+1. I will not let today be wasted, even the parts that feel small.
+2. I am going to finish the thing I started in you, on My timeline, not the calendar's.
+3. I will keep showing up long after you expect Me to.
+4. I am not going to let this season have the final word.
+5. I will meet you in tomorrow before you even get there.
+6. I am going to keep making a way, even where you cannot see one yet.
+7. I will not let you carry this further than you need to.
+8. I am going to keep loving you at the same pace, no matter what this week brings.
+9. I will bring good out of what feels unfinished right now.
+10. I am not done writing this story, and I do not stop mid-sentence.
+
+NEGATIVE EXAMPLES - these violate the HARD BAN, SHAPE BAN, or OPENING BAN above. Do not write anything like these:
 - "You have been faithful in small things, and that faithfulness is not invisible to Me. I see the daily choices you make to show up..." (Observes the reader. Banned.)
 - "I see how hard you have been trying lately." (Observes the reader. Banned.)
 - "Your steadiness is building something real." (Reflects the reader's action back. Banned.)
-- "My blessing is on you right now. Not because of what you have done or have not done; it is just on you." (This exact line and its "not because... it is" shape have already been used many times. Do not reuse it or reproduce its pattern.)
+- "My blessing is on you right now. Not because of what you have done or have not done; it is just on you." (First-wave template. Banned.)
+- "I am holding you steady right now, whether you feel it or not." (Second-wave template. Banned.)
+- "I am closer to you than the air you are breathing." (Second-wave template. Banned.)
+- "What does it look like when I walk with you? It looks like staying close on the ordinary days too." (Second-wave template. Banned.)
+- "I am already standing between you and what is coming." (Second-wave template. Banned.)
 
 ${NO_EM_DASH_RULE}
 
