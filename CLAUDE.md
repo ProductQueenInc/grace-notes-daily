@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-08-11**.
+Last updated: **2026-10-12**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -197,7 +197,7 @@ Badge tiers (`src/lib/badges.ts`): `none → copper (1/3) → silver (2/3) → g
 
 This prompt is used by:
 1. **On-demand / fallback** — when `use-daily-grace-note.ts` doesn't find a row in `daily_grace_notes` for today, it calls `generateGraceNote` (in `ai-stubs.ts` → `ai.functions.ts`) and gets a fresh one.
-2. **Overnight cron** — `supabase/functions/generate-daily-grace-notes/index.ts` carries an **inlined copy** of the same prompt text (edge functions can't `import` from `src/`). Both paths use **`claude-sonnet-4-5`**, temp `0.9`, `max_tokens: 400` (verified in code 2026-07-05; this doc previously said haiku/0.7 — stale), JSON output `{ message, chatPrompt }`, and the `stripEmDashes` sanitizer. (The shared devotional and chat safety paths still use `claude-haiku-4-5`.)
+2. **Overnight cron** — `supabase/functions/generate-daily-grace-notes/index.ts` carries an **inlined copy** of the same prompt text (edge functions can't `import` from `src/`). Both paths use **`claude-sonnet-4-5`**, temp `0.9`, `max_tokens: 400`, and the `stripEmDashes` sanitizer. The cron returns `{ message }`; the on-demand path also returns `chatPrompt`. **Since 2026-10-12 the prompt contains NO example sentences, the shape is assigned by code (not self-reported), and a code gate (see §11, 2026-10-12) rejects repeats.** The shared devotional is now also `claude-sonnet-4-5` (was Haiku). Chat safety classifier and reply paths still use `claude-haiku-4-5`.
 
 **If you change the prompt, change it in both files.** The cron file has a header comment reminding you of this.
 
@@ -292,6 +292,32 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-10-12 — Repetition fixed at the root: variety is now enforced by code, not requested from the model
+
+**Problem (Cindy):** grace notes and the daily devotional felt repetitive, "word for word or vibe for vibe", despite the July and September fixes. **Diagnosis from live data:** (1) the grace-note prompt held ~50 example sentences and the model copied them word for word (one example line was sent ~50 times in four weeks); (2) the model's self-reported "shape" rotation was ignored (about 89% were "declaration"); (3) the duplicate check compared only one reader's own first 6 words, so 30 readers could all get the same note; (4) every new ban just moved the tic to the next stock phrase (whack-a-mole); (5) one idea ("you do not have to earn it, it is already settled") dominated the library; (6) the devotional had no memory of what it had already published, ran on Haiku, and ended almost every day with "Name one thing you...". Titles repeated ("The Anchor Holds" seven times).
+
+**Fix, grace notes** (`generate-daily-grace-notes`, deployed v19, mirrored in `ai.functions.ts`):
+- Prompt: no example sentences. New "THE JOB" paragraph: write from the one particular truth in TODAY'S verse (verse theme is passed in). Old HARD BAN / SHAPE BAN / OPENING BAN / CRITICAL / NEGATIVE EXAMPLES blocks kept verbatim.
+- **Shape is assigned by code** (`pickShape`: FNV hash of user+date, skips the reader's last 2 shapes). The model no longer picks or reports it.
+- The prompt shows the reader's last 8 notes, plus a live list of **closed openers and words**, computed from `daily_grace_notes` (last 14 days, all readers) every run, and updated live as the run proceeds. Nothing is a hand-kept ban list: a 3-word opening used 2+ times, a 2-word opening used 4+ times, a first word starting more than 15% of notes, or a content word appearing in more than 10% of notes closes itself (needs 20+ notes of sample), and reopens when the library moves on.
+- **Code gate** (`collisionReason`) rejects a candidate with a closed opener/first word/word, **any negation: the words not / nor / n't (`NEGATION`; the "not X, it is Y" tic kept coming back through every narrower rule, so the whole word family is closed)**, the words already/earn*/perform*/prove yourself/measure up (`STOCK_IDEA`), an identical note, the same opener as the reader's own, or any shared 6-word phrase. Up to 4 attempts. If none pass, the latest attempt that only has a "soft" problem (a common opening) is kept over one with a "hard" problem (negation, stock idea), so a note is always produced. After an 80s soft deadline, one attempt per reader.
+- **Readers now run 4 at a time.** Found while testing: the old sequential loop could not finish inside the edge function time limit as readers grew. 5 of 32 onboarded readers had silently stopped receiving nightly notes (last note between Sep 30 and Oct 7; they fell back to the on-demand path). Parallel processing fixes this too.
+- New POST body options on the function: `dry_run` (generate and return notes, write nothing, skip chat classification and verse log), `limit` N, `skip_chat`, `date`. Re-generate a date by hand with `{"date":"YYYY-MM-DD","skip_chat":true}`.
+
+**Fix, devotional** (`generate-daily-devotional`, deployed v14+, mirrored in `ai.functions.ts`): Sonnet 4.5 (temp 0.8, 1400 tokens) instead of Haiku; the prompt lists recent titles, opening sentences (last 14 days, plus earlier same-theme openers) and takeaways; the takeaway **form is assigned by code per date** (6 forms: question, act for another person, line to pray aloud, thing to set down, thing to look at, line to carry); `OPENING_RULE` also bans defining the theme word ("Hope is not optimism") and "Most people..."; title rule "drawn from this passage". Gate: duplicate title, title sharing its first 2 words with a recent title, same first-4-word opener, "X is not Y" opener, "Most people" opener, repeated takeaway start, takeaway beginning Name/Notice/Identify. Up to 3 attempts. `dry_run` + `date` body options for testing. Weekday-theme and verse rotation deliberately unchanged. This also replaces the stale Gemini-era copy that had drifted in the repo.
+
+**Deliberately not changed:** which verse a reader gets (rotation works; variety comes from the verse driving the content), theme-per-weekday, the voice rules.
+
+**Sync rule reminder (Class E):** grace-note helpers and prompt exist in two places: `generate-daily-grace-notes/index.ts` and the "Grace note variety engine" + `generateGraceNoteRaw` block in `src/lib/ai.functions.ts`. Devotional: `generate-daily-devotional/index.ts` and the "Devotional variety engine" + `generateSharedDevotionalRaw` block. Change both, then redeploy the edge function (pushing does NOT deploy).
+
+**Known, not fixed:** recent devotionals have `cover_image_url` null (Unsplash cover step is failing or skipped; run `{"backfill":true}` after checking `UNSPLASH_ACCESS_KEY`). The cron job for grace notes still uses `timeout_milliseconds := 30000` on the HTTP call; the function keeps running past that, which is how it has always worked.
+
+**Tuning knobs if notes ever feel too constrained or still repetitive:** `OVERUSED_AT`, `OVERUSED_AT_2`, `FIRST_WORD_SHARE`, `WORD_SHARE`, `MIN_SAMPLE`, `STOP_WORDS` (grace function); `TAKEAWAY_FORMS` (devotional).
+
+**Verified 2026-10-12 (dry run, 32 readers):** all 32 got a note in about 2 minutes, zero used "not". Known side effects: about a third of notes needed all 4 attempts, and image-shape notes often open with "A [noun]" (the first-word share cap will close "A" by itself once enough history accumulates). Rarely the no-negation rule produces an awkward sentence; if that becomes common, loosen `NEGATION` to the "not X, it is Y" pattern only. Tomorrow's (2026-10-13) notes were generated by the old code at 01:00 UTC; the new logic applies from the next nightly run. To regenerate a date by hand: `{"date":"YYYY-MM-DD","skip_chat":true}` (overwrites that date's notes and re-logs verses).
+
+**Devotional gate (v15)** also rejects a title sharing its first two words with any of the last 60 titles.
 
 ### 2026-08-11 — Theme classification: three real bugs found and fixed; daily chat now the primary source
 

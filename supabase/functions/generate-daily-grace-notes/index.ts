@@ -24,6 +24,11 @@
 // inferred_themes below, so daily chat is the primary signal and Heart Notes
 // remains a secondary one. See classifyDailyChatTheme() further down.
 //
+// UPDATED (2026-10-12): see 'variety engine' below. Examples removed from the
+// prompt, shape assigned by code, cross-reader opener ban computed from the
+// database each run, verse-specific truth required. dry_run/limit/skip_chat
+// body options added for testing.
+//
 // UPDATED AGAIN (2026-07-20): the note library had converged on one dominant
 // sentence shape ("Not because X... it is Y"), because that shape happened to
 // dominate the EXAMPLES below and the model leaned on it. Fixed by: (1)
@@ -274,71 +279,251 @@ async function getStreakContext(userId: string): Promise<StreakContext> {
   return 'neutral'
 }
 
-// ─── shape rotation ──────────────────────────────────────────────────────────
-// A small, fixed vocabulary of sentence shapes. The model self-reports which
-// one it used each time (stored in daily_grace_notes.shape); we feed the last
-// few back in so the same shape doesn't repeat note after note.
+// ─── variety engine (rewritten 2026-10-12) ───────────────────────────────────
+// WHY: the old design asked the model to vary itself (self-reported shape,
+// 50 example sentences, a same-reader first-6-words check). Real output
+// showed the model copying the examples word for word (one example line was
+// sent 50 times in four weeks), ignoring the shape rotation (89% "declaration"),
+// and every ban just moving the tic to the next stock phrase. So variety is
+// now enforced by code, not requested from the model:
+//   1. NO example sentences in the prompt (nothing to copy).
+//   2. The note must come from the specific truth in TODAY'S verse, so the
+//      verse (which already rotates) drives content variety.
+//   3. Code assigns the shape per reader per day (deterministic, no repeats
+//      of the last two shapes).
+//   4. The prompt shows the reader's last notes and a live list of opening
+//      words overused across ALL readers, computed from the database each
+//      run, so bans update themselves.
+//   5. A code gate rejects openers that are overused (or already used by this
+//      reader), and any 6-word phrase this reader already received; retries
+//      up to MAX_ATTEMPTS, then accepts the last try rather than failing.
 const SHAPES = ['declaration', 'image', 'question', 'invitation', 'promise'] as const
 type Shape = (typeof SHAPES)[number]
 
-function isShape(s: unknown): s is Shape {
-  return typeof s === 'string' && (SHAPES as readonly string[]).includes(s)
+const SHAPE_GUIDE: Record<Shape, string> = {
+  declaration: 'a flat, confident statement of who I am or what I have done. No setup, no negation.',
+  image: 'open inside one concrete, ordinary physical scene that carries the truth without explaining it. Start with the scene itself; never begin with "Picture" or "Imagine". Do not use light, water, doors, threads, hands, anchors, lighthouses, seeds, foundations, walls, or trees; the library has overused them.',
+  question: 'I ask one question about My own character, then answer it directly. Do not start with "Do I" or "Do you"; open with a different question word.',
+  invitation: 'a short invitation or instruction, then the reason it is safe to follow it.',
+  promise: 'a forward-looking commitment: what I am doing, will do, or will not stop doing.',
 }
 
-function recentShapesLine(recentShapes: string[]): string {
-  if (!recentShapes.length) return ''
-  const remaining = SHAPES.filter((s) => !recentShapes.includes(s))
-  const pickFrom = remaining.length ? remaining : SHAPES
-  return `\nShape rotation: the last note(s) sent to this person used, most recent first: ${recentShapes.join(', ')}. Do not use that shape again today. Choose from: ${pickFrom.join(', ')}.`
+function hashString(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
 }
 
-async function getRecentShapes(userId: string): Promise<string[]> {
+// Code decides the shape. Deterministic per reader per day, so re-running a
+// date gives the same shape, and skips the shapes this reader just received.
+function pickShape(userId: string, dateStr: string, recentShapes: string[]): Shape {
+  const start = hashString(`${userId}|${dateStr}`) % SHAPES.length
+  const avoid = recentShapes.slice(0, 2)
+  for (let i = 0; i < SHAPES.length; i++) {
+    const s = SHAPES[(start + i) % SHAPES.length]
+    if (!avoid.includes(s)) return s
+  }
+  return SHAPES[start]
+}
+
+function normalizeForCompare(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
+}
+
+function wordsOf(s: string): string[] {
+  return normalizeForCompare(s).split(/\s+/).filter(Boolean)
+}
+
+function openerOf(s: string, n = 3): string {
+  return wordsOf(s).slice(0, n).join(' ')
+}
+
+function sharesPhrase(a: string, b: string, n = 6): boolean {
+  const aw = wordsOf(a)
+  const bw = wordsOf(b)
+  if (aw.length < n || bw.length < n) return false
+  const grams = new Set<string>()
+  for (let i = 0; i + n <= bw.length; i++) grams.add(bw.slice(i, i + n).join(' '))
+  for (let i = 0; i + n <= aw.length; i++) {
+    if (grams.has(aw.slice(i, i + n).join(' '))) return true
+  }
+  return false
+}
+
+// Library-wide usage counts over the last 14 days (all readers), updated live
+// as this run produces notes. One map holds everything, keyed by kind:
+//   "<three words>" and "<two words>"  openings
+//   "f:<word>"                         first word of a note
+//   "w:<stem>"                         a content word appearing anywhere in a note
+//   "#total"                           number of notes counted
+// Nothing here is a hand-kept ban list: whatever the library is overusing
+// right now closes itself, and reopens when the library moves on.
+type OpenerCounts = Map<string, number>
+
+async function loadOpenerCounts(dateStr: string): Promise<OpenerCounts> {
+  const from = new Date(`${dateStr}T00:00:00Z`)
+  from.setUTCDate(from.getUTCDate() - 14)
+  const { data } = await supabase
+    .from('daily_grace_notes')
+    .select('grace_note')
+    .gte('date', from.toISOString().split('T')[0])
+    .lt('date', dateStr)
+    .limit(3000)
+  const counts: OpenerCounts = new Map()
+  for (const r of data ?? []) {
+    bumpOpener(counts, r.grace_note ?? '')
+  }
+  return counts
+}
+
+const STOP_WORDS = new Set((
+  'that this with from have will your they them then than what when where which while there here been were into over ' +
+  'just only even ever every each about because before after again does doesn dont also more most much such some same ' +
+  'still never always make made makes take takes come comes came give gives gave know knows knew want wants need needs ' +
+  'like look looks thing things whom whose their these those would could should other another being both until through ' +
+  'toward towards upon down back away well long right today anything nothing something everything someone yours mine ' +
+  'itself myself yourself himself love loved loves grace faith peace hope joy heart life days day world ' +
+  'wait waits hear hears keep keeps stay stays rest rests walk walks hold holds'
+).split(' '))
+
+function stem(w: string): string {
+  return w.length > 5 ? w.replace(/(ing|ed|es|s)$/, '') : w.replace(/s$/, '')
+}
+
+function contentStems(s: string, allowed: Set<string> = new Set()): Set<string> {
+  const out = new Set<string>()
+  for (const w of wordsOf(s)) {
+    if (w.length < 4 || STOP_WORDS.has(w)) continue
+    const st = stem(w)
+    if (!allowed.has(st)) out.add(st)
+  }
+  return out
+}
+
+function bumpOpener(counts: OpenerCounts, text: string): void {
+  for (const n of [3, 2]) {
+    const op = openerOf(text, n)
+    if (op) counts.set(op, (counts.get(op) ?? 0) + 1)
+  }
+  const first = openerOf(text, 1)
+  if (first) counts.set(`f:${first}`, (counts.get(`f:${first}`) ?? 0) + 1)
+  for (const st of contentStems(text)) counts.set(`w:${st}`, (counts.get(`w:${st}`) ?? 0) + 1)
+  counts.set('#total', (counts.get('#total') ?? 0) + 1)
+}
+
+const OVERUSED_AT = 2 // a 3-word opener used this often in 14 days is closed
+const OVERUSED_AT_2 = 4 // a 2-word opener used this often in 14 days is closed
+const FIRST_WORD_SHARE = 0.15 // one first word may open at most this share of notes
+const WORD_SHARE = 0.1 // one content word may appear in at most this share of notes
+const MIN_SAMPLE = 20 // shares are only enforced once this many notes are counted
+
+function isClosed(key: string, count: number, total: number): boolean {
+  if (key === '#total') return false
+  if (key.startsWith('w:')) return total >= MIN_SAMPLE && count / total >= WORD_SHARE
+  if (key.startsWith('f:')) return total >= MIN_SAMPLE && count / total >= FIRST_WORD_SHARE
+  return count >= (key.split(' ').length === 2 ? OVERUSED_AT_2 : OVERUSED_AT)
+}
+
+function closedLists(counts: OpenerCounts): { openers: string[]; words: string[] } {
+  const total = counts.get('#total') ?? 0
+  const closed = [...counts.entries()].filter(([k, c]) => isClosed(k, c, total)).sort((a, b) => b[1] - a[1])
+  return {
+    openers: closed.filter(([k]) => !k.startsWith('w:')).slice(0, 25).map(([k]) => (k.startsWith('f:') ? k.slice(2) : k)),
+    words: closed.filter(([k]) => k.startsWith('w:')).slice(0, 15).map(([k]) => k.slice(2)),
+  }
+}
+
+// One idea ("you do not have to earn it, it is already settled") dominated the
+// library, so the words that carry it are closed outright.
+const STOCK_IDEA = /\b(already|earn\w*|perform\w*|measure up|prove yourself)\b/i
+
+// Negation is closed outright. The "not X, it is Y" construction has been
+// banned in the prompt since July and the model keeps writing it, so the code
+// rejects any note that uses "not", "nor" or an n't contraction. (Nothing is
+// lost: "I never run out" says what "I do not run out" does.)
+const NEGATION = /\bnot\b|\bnor\b|n't\b/i
+
+async function getRecentShapes(userId: string, dateStr: string): Promise<string[]> {
   const { data } = await supabase
     .from('daily_grace_notes')
     .select('shape')
     .eq('user_id', userId)
+    .lt('date', dateStr)
     .order('date', { ascending: false })
     .limit(3)
   return (data ?? []).map((r) => r.shape).filter((s): s is string => !!s)
 }
 
-async function getRecentNoteTexts(userId: string): Promise<string[]> {
+async function getRecentNoteTexts(userId: string, dateStr: string): Promise<string[]> {
   const { data } = await supabase
     .from('daily_grace_notes')
     .select('grace_note')
     .eq('user_id', userId)
+    .lt('date', dateStr)
     .order('date', { ascending: false })
-    .limit(20)
+    .limit(30)
   return (data ?? []).map((r) => r.grace_note).filter((s): s is string => !!s)
 }
 
-// ─── duplicate safety net ────────────────────────────────────────────────────
-function normalizeForCompare(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
-}
-
-function firstWords(s: string, n: number): string {
-  return normalizeForCompare(s).split(/\s+/).slice(0, n).join(' ')
-}
-
-function isTooSimilar(candidate: string, recent: string[]): boolean {
+// Returns why a candidate is too close to existing notes, or null if fine.
+function collisionReason(candidate: string, ownRecent: string[], counts: OpenerCounts, verseText: string): string | null {
+  const total = counts.get('#total') ?? 0
   const candNorm = normalizeForCompare(candidate)
-  const candPrefix = firstWords(candidate, 6)
-  for (const r of recent) {
-    if (!r) continue
-    if (candNorm === normalizeForCompare(r)) return true
-    if (candPrefix && candPrefix === firstWords(r, 6)) return true
+  const candOpener = openerOf(candidate)
+  const cand2 = openerOf(candidate, 2)
+  const first = openerOf(candidate, 1)
+  if (NEGATION.test(candidate)) {
+    return 'it uses "not", "nor" or an n\'t contraction, and negation is banned; say only what IS true ("I never run out", not "I do not run out")'
   }
-  return false
+  const stock = candidate.match(STOCK_IDEA)
+  if (stock) return `it uses the word "${stock[0]}", which is closed because it carries the library's most overused idea`
+  if (isClosed(candOpener, counts.get(candOpener) ?? 0, total)) {
+    return `it opens with "${candOpener}...", which many readers have received lately`
+  }
+  if (isClosed(cand2, counts.get(cand2) ?? 0, total)) {
+    return `it opens with "${cand2}...", an opening family many readers have received lately`
+  }
+  if (isClosed(`f:${first}`, counts.get(`f:${first}`) ?? 0, total)) {
+    return `it starts with the word "${first}", which too many recent notes start with; open with a different kind of word`
+  }
+  const verseStems = contentStems(verseText)
+  const overusedWords = closedLists(counts).words
+  const hit = [...contentStems(candidate)].find((w) => overusedWords.includes(w) && !verseStems.has(w))
+  if (hit) return `it uses the word "${hit}", which too many recent notes use; find a fresher word or image`
+  for (const r of ownRecent) {
+    if (!r) continue
+    if (candNorm === normalizeForCompare(r)) return 'it is identical to a note this reader already received'
+    if (candOpener && candOpener === openerOf(r)) return `this reader already received a note opening with "${candOpener}..."`
+    if (sharesPhrase(candidate, r)) return 'it repeats a phrase from a note this reader already received'
+  }
+  return null
 }
 
-function avoidNoteLine(avoid: string | null): string {
+function recentNotesBlock(ownRecent: string[]): string {
+  const shown = ownRecent.slice(0, 8)
+  if (!shown.length) return ''
+  return `\n\nVARIETY - notes this reader already received, newest first. Do not reuse their opening words, images, key phrases, or central idea:\n${shown.map((n, i) => `${i + 1}. ${n}`).join('\n')}`
+}
+
+function overusedBlock(closed: { openers: string[]; words: string[] }): string {
+  let out = ''
+  if (closed.openers.length) {
+    out += `\n\nOpening words already used by several readers lately. Do not begin with any of these, or anything close to them:\n${closed.openers.map((o) => `- "${o}..."`).join('\n')}`
+  }
+  if (closed.words.length) {
+    out += `\n\nWords that too many recent notes have used. Do not use any of them (unless the verse itself contains the word); reach for a fresher word or image: ${closed.words.join(', ')}`
+  }
+  return out
+}
+
+function avoidAttemptLine(avoid: string | null, reason: string | null): string {
   if (!avoid) return ''
-  return `\nYour last attempt for this note was too close to something this person already received recently: "${avoid}" Write something that arrives at the same truth through clearly different words and a different shape.`
+  return `\n\nYour last attempt was rejected because ${reason ?? 'it was too close to an earlier note'}: "${avoid}" Write a clearly different note: different opening words, different image, different angle on the verse.`
 }
 
-// Maps faith phase to a posture_tag used by select_verse_for_user. Mirrors the
-// on-demand path in src/lib/ai.functions.ts.
 function postureFromPhase(phase: string): string {
   const map: Record<string, string> = {
     newbie: 'hope',
@@ -363,7 +548,7 @@ function parseJSON<T>(raw: string, fallback: T): T {
   }
 }
 
-type GraceNote = { message: string; verse: string; signed: string; shape: string | null }
+type GraceNote = { message: string; verse: string; signed: string; shape: string | null; attempts: number }
 
 const NO_EM_DASH_RULE =
   'STYLE RULE: Never use em-dashes (—) or en-dashes (–). Use a hyphen (-), comma, semicolon, or colon instead.'
@@ -375,21 +560,26 @@ const DEFAULT_MESSAGE =
 function GRACE_NOTE_SYSTEM(
   faithPhase: string,
   seasons: string[],
-  verse: { text: string; reference: string },
+  verse: { text: string; reference: string; theme: string },
   inferredThemes: ThemeMap | null,
   streakCtx: StreakContext,
-  recentShapes: string[],
-  avoidNote: string | null
+  shape: Shape,
+  ownRecent: string[],
+  overused: { openers: string[]; words: string[] },
+  avoidNote: string | null,
+  avoidReason: string | null
 ): string {
   return `You are writing today's grace note for GraceNotes Daily. You speak as God (I) directly to the reader (you).
-Faith phase: ${phaseDesc(faithPhase)}.${seasonLine(seasons)}${inferredThemesLine(inferredThemes)}${streakContextLine(streakCtx)}${recentShapesLine(recentShapes)}${avoidNoteLine(avoidNote)}
+Faith phase: ${phaseDesc(faithPhase)}.${seasonLine(seasons)}${inferredThemesLine(inferredThemes)}${streakContextLine(streakCtx)}
 
-Today's verse has already been chosen and is shown to the reader separately:
+Today's verse has already been chosen and is shown to the reader separately (its theme is ${verse.theme}):
 "${verse.text}" - ${verse.reference}
 
-Write a grace note that earns this verse - the note is the path, the verse is the destination. By the time the reader reaches the verse, it should feel like the most natural thing in the world that it appears there. Do NOT quote, paraphrase, or restate the verse or its reference anywhere in your note; it is shown on its own. Arrive at the same truth from a different angle.
+THE JOB: Before writing, decide privately what this specific passage shows about who God is or what God does. Not a general truth like "God loves you" or "God is faithful": the particular thing this passage says (a person in it, an image in it, an action in it, a promise inside it). Write the note from that one particular truth, so the note could not be pasted onto a different verse. Do NOT quote, paraphrase, or restate the verse or its reference anywhere in the note; it is shown on its own. The note is the path; the verse is the destination.
 
-Write 2 to 4 sentences. Speak as God, from His revealed character in Scripture. Every I-statement must reflect what God has already said about Himself in the Bible - His presence, His faithfulness, His love, His steadiness, His knowledge of this person. Do not make predictions about the reader's specific situation. Do not speculate about what they are going through.
+TODAY'S SHAPE: ${shape}. ${SHAPE_GUIDE[shape]} Use exactly this shape.
+
+Write 2 to 4 sentences. Speak as God, from His revealed character in Scripture. Every I-statement must reflect what God has said about Himself in the Bible - His presence, His faithfulness, His love, His steadiness, His knowledge of this person. Do not make predictions about the reader's specific situation. Do not speculate about what they are going through.
 
 The grace note must NOT quote or paraphrase the verse. It arrives at the same truth from a different angle.
 
@@ -413,13 +603,6 @@ Rules (in priority order - the first three are the most important):
 - Read it aloud - if it sounds written, rewrite it until it sounds spoken
 - Never open with "I notice." This is a stage direction, not a declaration.
 
-SHAPES - choose exactly one for today's note (see the shape rotation note above, if present, for which ones to avoid):
-- declaration: a flat, confident statement of who I am or what I have done. No setup, no negation.
-- image: a picture or piece of the physical world that carries the truth without explaining it.
-- question: I ask a question about My own character, then answer it directly.
-- invitation: a short instruction or invitation, then the reason it is safe to follow it.
-- promise: a forward-looking commitment - what I am doing, will do, or will not stop doing.
-
 CRITICAL - THE message FIELD MUST NEVER CONTAIN VERSE TEXT:
 The message and verse are two completely separate fields. The message field must end before any scripture is quoted. Never place a verse quotation, a verse reference, or any fragment of the verse inside the message field. If the message contains quotation marks around scripture or a book/chapter reference (e.g. "Isaiah 60:1"), it is wrong. The verse belongs exclusively in the verse field.
 
@@ -431,68 +614,6 @@ OPENING BAN (added 2026-09-15, verified against real output across every active 
 - picturing "the thread of your life" or "the thread of your story"
 Banning the exact wording is not enough - the underlying move (open with "I am holding/steady/standing/closer" as a safe default) must not repeat either, even reworded. If a candidate opening feels like the most obvious, safest way to start, that is a signal to pick a different shape or image entirely.
 
-EXAMPLES - study these for voice and restraint. Ten per shape, so there is real range to draw from - do not default to the first one, do not copy phrasing, and do not let any one image (light, water, doors, thread, hands) become its own new tic across days.
-
-(declaration)
-1. My hand was on this before you noticed the need for it.
-2. I do not run out partway through the things I start.
-3. My kindness reaches you before your effort does.
-4. I have already made peace with everything you are afraid to tell Me.
-5. Nothing about today catches Me off guard.
-6. I chose you on purpose, not as a fallback.
-7. My patience with you has no closing date.
-8. I finish what I begin, every single time.
-9. Your name is written where it cannot be erased.
-10. I delight in you the way a father delights in a child learning to walk.
-
-(image)
-1. Picture rain finding the one crack in dry ground and reaching the root anyway.
-2. Picture a lighthouse that keeps turning even when no ship is near.
-3. Think of a harbour wall built before the first storm ever came.
-4. Picture a seed doing its quiet work underground, long before anything shows above.
-5. Think of a fire kept low and steady through the night so it is still burning by morning.
-6. Picture a table set before the guest has even left home.
-7. Think of a tree bending in the wind without breaking, roots doing what they were made to do.
-8. Picture a lamp left burning in a window for someone who does not know the way back yet.
-9. Think of the tide, going out and always, always coming back in.
-10. Picture a shepherd who counts the flock twice, just to be sure.
-
-(question)
-1. Do I forget the promises I have made? Not once, and I am not starting now.
-2. What does My patience look like up close? Waiting for you as many times as it takes.
-3. Am I moved by what moves you? Every time, more than you know.
-4. Do I measure you against who you used to be? Never. I only see who you are becoming.
-5. What happens to a prayer I have not answered yet? It is not lost. It is being worked.
-6. Do I need you to have it figured out first? No. I only ever needed you to come.
-7. What do I do with the parts of your story you are ashamed of? I hold them without flinching.
-8. Is My love conditional on a good day? It was never conditional on any day.
-9. Do I see the effort no one else noticed? Every bit of it, and it was not wasted.
-10. What is My timing like? Precise in a way you will only understand looking back.
-
-(invitation)
-1. Bring Me the version of today you are actually having. I am not asking for the polished one.
-2. Let this be the day you stop carrying it alone. I have room for all of it.
-3. Rest here for a while. The work will still be there, and so will I.
-4. Say the hard thing out loud to Me. I have heard worse and I have not left.
-5. Come as you are this morning, tired or not. That is who I invited.
-6. Hand Me the thing you keep picking back up. I can actually hold it.
-7. Let Me go first today. You do not have to lead with your own strength.
-8. Ask Me the question you have been avoiding. I would rather you ask than wonder.
-9. Stop rehearsing the apology. Just come back. That is all this takes.
-10. Give Me the next five minutes, not the whole week. I will meet you there.
-
-(promise)
-1. I will not let today be wasted, even the parts that feel small.
-2. I am going to finish the thing I started in you, on My timeline, not the calendar's.
-3. I will keep showing up long after you expect Me to.
-4. I am not going to let this season have the final word.
-5. I will meet you in tomorrow before you even get there.
-6. I am going to keep making a way, even where you cannot see one yet.
-7. I will not let you carry this further than you need to.
-8. I am going to keep loving you at the same pace, no matter what this week brings.
-9. I will bring good out of what feels unfinished right now.
-10. I am not done writing this story, and I do not stop mid-sentence.
-
 NEGATIVE EXAMPLES - these violate the HARD BAN, SHAPE BAN, or OPENING BAN above. Do not write anything like these:
 - "You have been faithful in small things, and that faithfulness is not invisible to Me. I see the daily choices you make to show up..." (Observes the reader. Banned.)
 - "I see how hard you have been trying lately." (Observes the reader. Banned.)
@@ -503,55 +624,66 @@ NEGATIVE EXAMPLES - these violate the HARD BAN, SHAPE BAN, or OPENING BAN above.
 - "What does it look like when I walk with you? It looks like staying close on the ordinary days too." (Second-wave template. Banned.)
 - "I am already standing between you and what is coming." (Second-wave template. Banned.)
 
+NO NEGATION: do not use the word "not", "nor", or any n't contraction anywhere in the note. Say only what IS true. "I never run out" works; "I do not run out" does not. Any note that says what God is not, or what the reader does not have to do, will be rejected.
+
+IDEA WARNING: one idea has dominated the note library: that the reader does not have to earn something, that it was already settled before they woke, that God is not waiting for them to measure up. Say what THIS verse says instead. These words are closed and will be rejected: already, earn, earned, perform, performance, prove yourself, measure up.${recentNotesBlock(ownRecent)}${overusedBlock(overused)}${avoidAttemptLine(avoidNote, avoidReason)}
+
 ${NO_EM_DASH_RULE}
 
 Respond with valid JSON only - no markdown, no code fences:
-{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "signed": "", "shape": "one of: declaration, image, question, invitation, promise - whichever you actually used" }`
+{ "message": "2 to 4 sentences, God speaking as I to you, NO verse text inside, NO observation of the reader", "signed": "" }`
 }
 
 async function generateGraceNote(
   faithPhase: string,
   seasons: string[],
-  verse: { text: string; reference: string },
+  verse: { text: string; reference: string; theme: string },
   inferredThemes: ThemeMap | null,
   streakCtx: StreakContext,
-  recentShapes: string[],
-  recentNoteTexts: string[]
+  shape: Shape,
+  ownRecent: string[],
+  counts: OpenerCounts,
+  maxAttempts: number
 ): Promise<GraceNote> {
   let avoidNote: string | null = null
-  let lastMessage = ''
-  const MAX_ATTEMPTS = 3
+  let avoidReason: string | null = null
+  const tried: { text: string; hard: boolean }[] = []
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const msg = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 400,
       temperature: 0.9,
-      system: GRACE_NOTE_SYSTEM(faithPhase, seasons, verse, inferredThemes, streakCtx, recentShapes, avoidNote),
+      system: GRACE_NOTE_SYSTEM(
+        faithPhase, seasons, verse, inferredThemes, streakCtx, shape,
+        ownRecent, closedLists(counts), avoidNote, avoidReason
+      ),
       messages: [{ role: 'user', content: "Write today's note." }],
     })
     const block = msg.content[0] as { type: string; text?: string }
     const raw = block.type === 'text' ? block.text ?? '' : ''
-    const parsed = parseJSON<{ message?: string; shape?: string }>(raw, {})
+    const parsed = parseJSON<{ message?: string }>(raw, {})
     const candidate = stripEmDashes(parsed.message ?? '')
-    if (candidate) lastMessage = candidate
 
-    if (candidate && (attempt === MAX_ATTEMPTS || !isTooSimilar(candidate, recentNoteTexts))) {
-      return {
-        message: candidate,
-        verse: `${verse.text} - ${verse.reference}`,
-        signed: '',
-        shape: isShape(parsed.shape) ? parsed.shape : null,
-      }
+    const reason = candidate ? collisionReason(candidate, ownRecent, counts, verse.text) : 'the reply was empty'
+    if (candidate) {
+      // "Hard" problems (negation, the dominant stock idea) are worse than a
+      // merely common opening, so if every attempt fails we keep a soft one.
+      tried.push({ text: candidate, hard: !!reason && /negation|most overused idea/.test(reason) })
+      if (!reason) return { message: candidate, verse: `${verse.text} - ${verse.reference}`, signed: '', shape, attempts: attempt }
     }
     avoidNote = candidate || avoidNote
+    avoidReason = reason
   }
 
+  // Nothing passed the gate: accept the best of what we have rather than fail.
+  const pick = [...tried].reverse().find((t) => !t.hard) ?? tried[tried.length - 1]
   return {
-    message: lastMessage || DEFAULT_MESSAGE,
+    message: pick?.text || DEFAULT_MESSAGE,
     verse: `${verse.text} - ${verse.reference}`,
     signed: '',
-    shape: null,
+    shape: pick ? shape : null,
+    attempts: maxAttempts,
   }
 }
 
@@ -582,17 +714,23 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Body options (all optional):
+  //   date       "YYYY-MM-DD"  generate for that date (default: tomorrow)
+  //   dry_run    true          generate and RETURN the notes; write nothing,
+  //                            classify nothing, log no verses. For testing.
+  //   limit      N             only the first N readers (testing)
+  //   skip_chat  true          do not run the nightly chat classification
+  //                            (use when re-generating a date by hand so the
+  //                            same chat day is not counted twice)
+  const body = await req.json().catch(() => ({}))
+  const dryRun = body?.dry_run === true
+  const skipChat = body?.skip_chat === true || dryRun
+  const limit = Number.isFinite(Number(body?.limit)) && Number(body.limit) > 0 ? Number(body.limit) : null
+
   let dateStr: string
-  try {
-    const body = await req.json().catch(() => ({}))
-    if (body?.date && /^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
-      dateStr = body.date
-    } else {
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      dateStr = tomorrow.toISOString().split('T')[0]
-    }
-  } catch {
+  if (body?.date && /^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+    dateStr = body.date
+  } else {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     dateStr = tomorrow.toISOString().split('T')[0]
@@ -600,17 +738,18 @@ Deno.serve(async (req) => {
 
   // CHANGED: now also selects inferred_themes. faith_phase is still read-only
   // here -- this function never writes to it.
-  const { data: users, error: usersError } = await supabase
+  const { data: allUsers, error: usersError } = await supabase
     .from('profiles')
     .select('id, faith_phase, seasons, inferred_themes')
     .eq('onboarded', true)
 
-  if (usersError || !users) {
+  if (usersError || !allUsers) {
     return new Response(
       JSON.stringify({ error: 'Failed to fetch users', detail: usersError }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
+  const users = limit ? allUsers.slice(0, limit) : allUsers
 
   // The chat day that just finished: one calendar day before dateStr
   // (dateStr defaults to tomorrow, so this is "today" -- the day whose chat
@@ -619,18 +758,27 @@ Deno.serve(async (req) => {
   chatDateObj.setUTCDate(chatDateObj.getUTCDate() - 1)
   const chatDate = chatDateObj.toISOString().split('T')[0]
 
+  // Cross-reader opener counts, loaded once and updated as notes are made so
+  // two readers cannot both be handed the same stock opening in one run.
+  const openerCounts = await loadOpenerCounts(dateStr)
+
+  // Edge functions have a wall-clock limit. If the run is getting long, stop
+  // retrying (one attempt per reader) so everyone still gets a note.
+  const softDeadline = Date.now() + 80_000
+  const MAX_ATTEMPTS = 4
+  const CONCURRENCY = 4
+
   let generated = 0
   let failed = 0
+  const preview: Array<Record<string, unknown>> = []
 
-  for (const user of users) {
+  const processUser = async (user: (typeof users)[number]): Promise<void> => {
     try {
       // Classify today's chat (if any) before reading inferred_themes below,
       // so this note benefits from today's conversation right away.
-      const freshThemes = await classifyDailyChatTheme(
-        user.id,
-        chatDate,
-        asThemeMap(user.inferred_themes)
-      )
+      const freshThemes = skipChat
+        ? asThemeMap(user.inferred_themes)
+        : await classifyDailyChatTheme(user.id, chatDate, asThemeMap(user.inferred_themes))
       const seasonsTags: string[] = Array.isArray(user.seasons)
         ? (user.seasons as Array<{ tag?: string } | string>)
             .map((s) => (typeof s === 'string' ? s : s?.tag ?? ''))
@@ -652,26 +800,46 @@ Deno.serve(async (req) => {
         const r = anyV?.[0]
         if (r) chosen = { verse_id: r.id, text: r.text, reference: r.reference, theme: r.theme }
       }
-      if (!chosen) { failed++; continue }
+      if (!chosen) { failed++; return }
 
       // Derive streak context, no AI involved.
       const streakCtx = await getStreakContext(user.id)
 
-      // Shape rotation + duplicate safety net inputs, from this person's history.
-      const [recentShapes, recentNoteTexts] = await Promise.all([
-        getRecentShapes(user.id),
-        getRecentNoteTexts(user.id),
+      // This reader's history (before the date being generated).
+      const [recentShapes, ownRecent] = await Promise.all([
+        getRecentShapes(user.id, dateStr),
+        getRecentNoteTexts(user.id, dateStr),
       ])
+      const shape = pickShape(user.id, dateStr, recentShapes)
 
       const note = await generateGraceNote(
         user.faith_phase ?? 'newbie',
         seasonsTags,
-        { text: chosen.text, reference: chosen.reference },
+        { text: chosen.text, reference: chosen.reference, theme: chosen.theme ?? '' },
         freshThemes,
         streakCtx,
-        recentShapes,
-        recentNoteTexts
+        shape,
+        ownRecent,
+        openerCounts,
+        Date.now() > softDeadline ? 1 : MAX_ATTEMPTS
       )
+
+      // Count this opener so later readers in the same run steer away from it.
+      bumpOpener(openerCounts, note.message)
+
+      if (dryRun) {
+        preview.push({
+          reader: user.id.slice(0, 8),
+          phase: user.faith_phase,
+          shape: note.shape,
+          attempts: note.attempts,
+          verse: chosen.reference,
+          theme: chosen.theme,
+          message: note.message,
+        })
+        generated++
+        return
+      }
 
       await supabase.from('daily_grace_notes').upsert(
         {
@@ -696,8 +864,19 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Readers are independent, so run a few at a time. Sequentially, a full run
+  // with retries could outlast the edge function time limit.
+  const queue = [...users]
+  const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+    while (queue.length) {
+      const next = queue.shift()
+      if (next) await processUser(next)
+    }
+  })
+  await Promise.all(workers)
+
   return new Response(
-    JSON.stringify({ date: dateStr, generated, failed }),
+    JSON.stringify(dryRun ? { date: dateStr, dry_run: true, generated, failed, notes: preview } : { date: dateStr, generated, failed }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   )
 })
