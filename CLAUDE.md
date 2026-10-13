@@ -1,6 +1,6 @@
 # CLAUDE.md — GraceNotes Daily Handover
 
-Last updated: **2026-10-12**.
+Last updated: **2026-10-13**.
 
 This document hands the **backend + AI wiring** of GraceNotes Daily over to whoever is picking the project up next (Claude Code, a new Lovable session, or a human). The frontend is intentionally complete and opinionated; please change as little of it as possible.
 
@@ -292,6 +292,15 @@ The ambient background list lives in `src/components/nature-background.tsx`. Vet
 ---
 
 ## 11. Recent changes log
+
+### 2026-10-13 — Devotional body now gated too (the "not X, but Y" tic and the verse parade)
+
+**Found by Cindy** reading the 2026-10-13 devotional: three verses in a row, each as "[Book] says ..., not because X, but because Y". The 2026-10-12 gate only covered title, opening sentence and takeaway, so the body kept the same tics the grace notes had.
+
+- `generate-daily-devotional` (deployed v17, mirrored in `ai.functions.ts`): new body checks in `collisionReason` / `devotionalCollisionReason`: more than one "not X, but Y" contrast (`CONTRAST_NEGATION`), more than 7 negation words (`NEG_WORDS`: not / nor / never / n't), or 3+ "[Name] says/writes/records..." sentences in one paragraph (`NAMED_SAYS`) all reject the draft, and the rejection message quotes the offending phrases back to the model. New `NEGATION RULE` and `PASSAGE RULE` paragraphs in the prompt (use a related passage only if it adds something; never walk through several in a row).
+- Up to **4** attempts (was 3). If none pass, the **least-bad** attempt is published (`bodyScore`; a duplicate title or opener counts +100), instead of the last one.
+- **Dry-run result (2026-10-14, Psalm 73:26):** the verse parade is gone (one speaker, one passage), but the model still lands around 9 negation words and needed all 4 attempts, so the least-bad draft shipped. The devotional voice leans on contrast more than the grace notes do. If it still reads as a tic, options are: lower `NEG_WORDS` limit and raise attempts, or accept some negation in the body and keep only the contrast and verse-parade checks.
+- Not changed: the takeaway still sometimes starts with "Today," (the prompt forbids it, the gate does not check it).
 
 ### 2026-10-12 — Repetition fixed at the root: variety is now enforced by code, not requested from the model
 

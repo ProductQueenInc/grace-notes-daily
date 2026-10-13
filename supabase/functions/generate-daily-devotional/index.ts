@@ -206,6 +206,24 @@ ${takeaways.map((t) => `- ${t}`).join('\n')}
 `
 }
 
+// Body checks (added 2026-10-13): the "not X, but Y" tic and the "Paul says..., John
+// records..., Isaiah says..." verse parade had survived in the body even after
+// the title, opening and takeaway were gated.
+const CONTRAST_NEGATION = /\bnot because\b|\bnot\b[^.!?\n]{1,60}[,;]\s*(?:but|just|only|rather|instead)\b|\bnot\b[^.!?;\n]{1,40}\bbut\b/gi
+const NEG_WORDS = /\bnot\b|\bnor\b|\bnever\b|n't\b/gi
+const NAMED_SAYS = /\b[A-Z][a-z]+ (?:says|writes|records|tells|promises|declares|reminds|asks|speaks)\b/g
+
+// How bad is a draft's body? Used only to pick the best of the attempts when
+// none passes the gate (a duplicate title or opener is far worse than a few
+// negations, so those get +100).
+function bodyScore(body: string[]): number {
+  const t = body.join('\n')
+  const c = (t.match(CONTRAST_NEGATION) ?? []).length
+  const n = (t.match(NEG_WORDS) ?? []).length
+  const says = body.some((p) => (p.match(NAMED_SAYS) ?? []).length >= 3) ? 5 : 0
+  return c * 4 + n + says
+}
+
 function collisionReason(
   title: string,
   body: string[],
@@ -221,6 +239,12 @@ function collisionReason(
   if (past.slice(0, 120).some((p) => firstN(p.opener, 4) === o4)) return `it opens with "${o4}...", which an earlier devotional already did`
   if (/^[a-z]+(\s[a-z]+)?\s(is|are)\s+not\b/i.test(opener.trim())) return 'it opens by defining the theme word with "X is not Y"'
   if (/^most people\b/i.test(opener.trim())) return 'it opens with "Most people..."'
+  const bodyText = body.join('\n')
+  const contrasts = bodyText.match(CONTRAST_NEGATION) ?? []
+  if (contrasts.length > 1) return `the body leans on the "not X, but Y" construction more than once (for example: "${contrasts.slice(0, 2).join('" and "').slice(0, 160)}"); say what IS true instead, with no contrast`
+  const negations = bodyText.match(NEG_WORDS) ?? []
+  if (negations.length > 7) return `the body uses ${negations.length} negations (not / nor / never / n't); rewrite so most sentences state what IS true`
+  if (body.some((p) => (p.match(NAMED_SAYS) ?? []).length >= 3)) return 'one paragraph strings together three "[Name] says / writes / records..." sentences; use at most one passage per paragraph and weave it in'
   const k3 = firstN(takeaway, 3)
   if (k3 && past.slice(0, 30).some((p) => firstN(p.takeaway, 3) === k3)) return `the takeaway starts with "${k3}...", like a recent one`
   if (/^(today,?\s+)?(name|notice|identify)\b/i.test(takeaway.trim())) return 'the takeaway starts with "Name/Notice/Identify", which is overused'
@@ -487,6 +511,8 @@ ${OPENING_RULE}
 
 GENDER RULE: Never use gendered pronouns for the reader. Use "you" and "your". If third-person is unavoidable, use "they" or "them".
 STRUCTURE RULE: No three-part parallel structure, no rhetorical triplets, no rule-of-threes. Vary sentence shape and length.
+NEGATION RULE: Say what is true. Do not build sentences as "not because X, but because Y" or "not X, but Y"; use at most one such contrast in the whole devotional, and prefer none. Avoid piling up "not", "never" and "nor".
+PASSAGE RULE: Build the body on the main verse. Use a related passage only if it adds something the main verse does not, and never walk through several passages one after another ("Paul says..., John records..., Isaiah says...").
 
 TITLE RULE: A short, specific title drawn from this passage's own image, person, or phrase. Not a formula.
 
@@ -508,14 +534,14 @@ async function generateDevotional(
   themeName: string,
   verse: { text: string; reference: string },
   relatedBlock: string,
-  maxAttempts = 3,
+  maxAttempts = 4,
 ): Promise<DevotionalDraft> {
   const past = await loadPastDevotionals(date)
   const memory = memoryBlock(past, themeName)
   const form = takeawayFormForDate(date)
 
   let avoid: string | null = null
-  let last: DevotionalDraft | null = null
+  const tried: { draft: DevotionalDraft; score: number }[] = []
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const msg = await anthropic.messages.create({
@@ -542,14 +568,16 @@ async function generateDevotional(
       takeaway: sanitizeText(parsed.takeaway ?? ''),
       attempts: attempt,
     }
-    last = draft
     const reason = collisionReason(draft.title, draft.body, draft.takeaway, past)
     if (!reason) return draft
+    const bodyOnly = /^(the body|one paragraph)/.test(reason)
+    tried.push({ draft, score: bodyScore(draft.body) + (bodyOnly ? 0 : 100) })
     console.warn(`[devotional] attempt ${attempt} rejected: ${reason}`)
     avoid = reason
   }
-  // Accept the last attempt rather than publishing nothing.
-  return last as DevotionalDraft
+  // Nothing passed: publish the least-bad attempt rather than nothing.
+  tried.sort((x, y) => x.score - y.score)
+  return tried[0].draft
 }
 
 // ── Main handler ───────────────────────────────────────────────────────────
